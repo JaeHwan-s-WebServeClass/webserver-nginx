@@ -19,16 +19,19 @@ int main(int argc, char *argv[])
 		printf("Usage : %s <IP> <port>\n", argv[0]);
 		exit(1);
 	}
-	
+
+	// client socket 생성	
 	sock=socket(PF_INET, SOCK_STREAM, 0);   
 	if(sock==-1)
 		error_handling("socket() error");
 	
+	// server의 serv_adr 구조체 => server의 주소정보
 	memset(&serv_adr, 0, sizeof(serv_adr));
 	serv_adr.sin_family=AF_INET;
 	serv_adr.sin_addr.s_addr=inet_addr(argv[1]);
 	serv_adr.sin_port=htons(atoi(argv[2]));
 	
+	// int	connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 	if(connect(sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr))==-1)
 		error_handling("connect() error!");
 	else
@@ -42,12 +45,14 @@ int main(int argc, char *argv[])
 		if(!strcmp(message,"q\n") || !strcmp(message,"Q\n"))
 			break;
 
+		// server에게 requset msg 보냄
 		write(sock, message, strlen(message));
 		str_len=read(sock, message, BUF_SIZE-1);
 		message[str_len]=0;
 		printf("Message from server: %s", message);
 	}
 	
+	// client 끝
 	close(sock);
 	return 0;
 }
