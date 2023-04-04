@@ -1,0 +1,5 @@
+site_name: My Docs
+theme: readthedocs
+extra:
+  static_dirs:
+    - docs/image
