@@ -18,7 +18,5 @@ jobs:
         with:
           cache: pip
           python-version: '3.9'
-
-
       - run: pip install mkdocs
       - run: mkdocs gh-deploy --force
