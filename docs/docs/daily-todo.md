@@ -122,7 +122,57 @@
 3. 트랜젝션 과정 수도 코드 만들기
 
 ### 결과
-[13:00 ~ 18:00]
+[13:00 ~ 16:00] 에코 서버 코드 공부 및 테스트
+
+[17:00 ~ 20:00] [select 와 epoll 을 이용한 멀티플랙싱 에코 서버 코드 공부](https://github.com/JaeHwan-s-WebServeClass/webserver-nginx/tree/1-%EC%97%90%EC%BD%94-%EC%84%9C%EB%B2%84-%EB%A7%8C%EB%93%A4%EA%B8%B0/echo_server/Chapter17%20echo_epoll)
+<br>
+2, 3 번 못함.
+
+<br>
+<br>
+
+***
+
+## [8일차] 2023.04.05 (수)
+모임 시간
+프로젝트 진행 시간
+13:00 ~ 18:00
+
+### 진행 계획
+👍 [에코 서버 만들기 레퍼런스](https://github.com/JaeHwan-s-WebServeClass/webserver-nginx/issues/1)
+1. 에코 서버 레퍼런스 코드 공부하기
+2. 에코 서버 구현하기
+3. 트랜젝션 과정 수도 코드 만들기
+
+### 결과
+[13:00 ~ 18:00] [동기 & 비동기, Blocking & Non-Blocking, LT & GT 공부](https://github.com/JaeHwan-s-WebServeClass/webserver-nginx/tree/1-%EC%97%90%EC%BD%94-%EC%84%9C%EB%B2%84-%EB%A7%8C%EB%93%A4%EA%B8%B0/echo_server/Chapter17%20echo_epoll)
+
+☝🏻[참고자료](https://www.joinc.co.kr/w/Site/Network_Programing/AdvancedComm/AIO)
+
+2, 3번 못함.
+
+<br>
+<br>
+
+***
+
+## [9일차] 2023.04.06 (목)
+모임 시간
+프로젝트 진행 시간
+13:00 ~ 18:00
+
+### 진행 계획
+👍 [에코 서버 만들기 레퍼런스](https://github.com/JaeHwan-s-WebServeClass/webserver-nginx/issues/1)
+1. 개념 정리하기
+2. 에코 서버 구현하기
+3. 트랜젝션 과정 수도 코드 만들기
+
+### 결과
+[13:00 ~ 15:40] [kqueue 에코 서버 구현하기](https://github.com/JaeHwan-s-WebServeClass/webserver-nginx/blob/1-%EC%97%90%EC%BD%94-%EC%84%9C%EB%B2%84-%EB%A7%8C%EB%93%A4%EA%B8%B0/cpp_echo_server/cpp_echo_server.cpp)
+
+[16:00 ~ 17:00] 에코 서버 실행해보기 (터미널 1024 글자 제한 이슈... OS에서 보안상의 이유로 1024로 제한했다고 한다.)
+
+[17:00 ~ 18:00]
 
 <br>
 <br>
