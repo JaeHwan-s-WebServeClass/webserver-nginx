@@ -28,7 +28,7 @@ int main(void) {
 	int                 server_socket;
 	struct sockaddr_in  server_addr;
 
-	if ((server_socket = socket(PF_INET, SOCK_STREM, 0)) == -1) {
+	if ((server_socket = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
 		exit_with_perror("socket() error\n" + std::string(strerror(errno)));
 	}
 	memset(&server_addr, 0, sizeof(server_addr));
@@ -38,7 +38,7 @@ int main(void) {
 	server_addr.sin_port = htons(8080); // typedef __uint16_t	in_port_t;
 	
 	// 소켓을 연결
-	if (bind(server_socket, static_cast<struct sockaddr*>(&server_addr), sizeof(server_addr)) == -1) {
+	if (bind(server_socket, reinterpret_cast<struct sockaddr*>(&server_addr), sizeof(server_addr)) == -1) {
 		exit_with_perror("bind error\n" + std::string(strerror(errno)));
 	}
 	if (listen(server_socket, 2) == -1) { 
@@ -53,7 +53,7 @@ int main(void) {
 	}
 
 	/* init client map */
-	std::map<int, std::string> 	clients;
+	std::map<int, std::string>	clients;
 
 	/* kevent list 등록? */
 	std::vector<struct kevent>	change_list;	// 이벤트 모음집 (우리가 쓸거 전부 넣어놓기)
@@ -81,7 +81,7 @@ int main(void) {
 
 			// check error event return
 			if (curr_event->flags & EV_ERROR) {
-				if (curr_event->ident = server_socket) {
+				if (curr_event->ident == server_socket) {
 					exit_with_perror("server socket error");
 				} else {
 					std::cerr << "client socket error" << std::endl;
@@ -91,19 +91,19 @@ int main(void) {
 				if (curr_event->ident == server_socket) { // server 한테 connect 요청이 온 경우. why? 61줄에 server_socket 으로 ident 를 초기화한다.
 					/* accept new client */
 					int	client_socket;
-					if ((client_socket == accept(server_socket, NULL, NULL)) == -1) {
+					if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
 						exit_with_perror("accept() error\n" + std::string(strerror(errno)));
 					}
 					std::cout << "accept new client: " << client_socket << std::endl;
 					fcntl(client_socket, F_SETFL, O_NONBLOCK);
 					
 					/* add event for client_socket */
-					change_event(change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-					change_event(change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-					client[clinet_socket] = "";
+					change_events(change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+					change_events(change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+					clients[client_socket] = "";
 				} else if (clients.find(curr_event->ident) != clients.end()) { // 이벤트가 발생한 client가 연결된 client 목록에 있는 경우
 					/* read data from client */
-					char	buf[1024];
+					char	buf[100];
 					int		read_len = read(curr_event->ident, buf, sizeof(buf));
 
 					if (read_len <= 0) {
@@ -119,14 +119,14 @@ int main(void) {
 				}
 			} else if (curr_event->filter == EVFILT_WRITE) {
 				/* send data to client */
-				std::map<int, string>::iterator	it = clients.find(curr_event->ident);
+				std::map<int, std::string>::iterator	it = clients.find(curr_event->ident);
 				if (it != clients.end()) {
 					if (clients[curr_event->ident] != "") { // line 114 참고
 						int	write_len;
 						if ((write_len = write(curr_event->ident, clients[curr_event->ident].c_str(),
 												clients[curr_event->ident].size())) == -1) {
 							std::cerr << "client write error!" << std::endl;
-							disconnect_clinet(curr_event->ident, clients);
+							disconnect_client(curr_event->ident, clients);
 						} else {
 							clients[curr_event->ident].clear();
 						}

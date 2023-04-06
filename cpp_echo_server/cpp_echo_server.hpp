@@ -64,7 +64,7 @@ struct in_addr {
 
 // fcntl(server_socket, F_SETFL, O_NONBLOCK);
 /*
-#define F_SETFL         4               /* set file status flags
+#define F_SETFL         4   // set file status flags
 */
 
 /*

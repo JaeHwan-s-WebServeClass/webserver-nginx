@@ -45,9 +45,8 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void error_handling(char *message)
+void error_handling(std::string message)
 {
-    fputs(message, stderr);
-    fputc('\n', stderr);
+    std::cerr << message << std::endl;
     exit(1);
 }

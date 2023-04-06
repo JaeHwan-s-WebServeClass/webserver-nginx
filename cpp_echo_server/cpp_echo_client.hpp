@@ -15,4 +15,4 @@
 #define BUF_SIZE 1024
 
 /* functions */
-void error_handling(char *message);
+void error_handling(std::string message);
