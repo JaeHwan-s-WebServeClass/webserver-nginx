@@ -3,3 +3,14 @@ theme: readthedocs
 extra:
   static_dirs:
     - docs/image
+    
+nav:
+  - 'Intro': 'intro.md'
+  - '프로그래밍 방식': 'dev-method.md'
+  - '컨벤션': 'convention.md'
+  - '허용함수': 'allowed-functions.md'
+  - '요구사항': 'requirements.md'
+  - 'TIL':
+    - 'Daily todo': til/daily-todo.md
+    - '에코서버': til/how-to-work-echo-server.md
+    - '파서': til/simple-configuration-parser.md
