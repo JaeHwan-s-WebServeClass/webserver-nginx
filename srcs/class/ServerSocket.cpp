@@ -57,3 +57,7 @@ int ServerSocket::safeAccept(void) {
   std::cout << "safeAccept Done!!" << std::endl;
   return client_socket;
 }
+
+int ServerSocket::getServerSocket() {
+  return this->server_socket;
+}

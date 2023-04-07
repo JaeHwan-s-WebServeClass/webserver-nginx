@@ -12,17 +12,6 @@ class ServerSocket {
   int server_socket;
   struct sockaddr_in server_addr;
 
- public:
-  /// @brief ServerSocket constructor
-  /// @param protocol AF_INET
-  /// @param port 8080
-  ServerSocket(sa_family_t address_family, int port);
-
-  /// @brief  fd 를 NonBlock 방식으로 설정하는 함수
-  /// @param  socket_fd
-  /// @return
-  void setNonBlock(int);
-
  private:
   /// @brief 소켓 생성하는 함수
   /// @param  PF_INET
@@ -43,10 +32,23 @@ class ServerSocket {
   /// @return
   void safeListen(int backlog);
 
+ public:
+  /// @brief ServerSocket constructor
+  /// @param protocol AF_INET
+  /// @param port 8080
+  ServerSocket(sa_family_t address_family, int port);
+
+  /// @brief  fd 를 NonBlock 방식으로 설정하는 함수
+  /// @param  socket_fd
+  /// @return
+  void setNonBlock(int);
+
   /// @brief
   /// @param
   /// @param
   /// @param
   /// @return
   int safeAccept(void);
+
+  int getServerSocket(void);
 };
