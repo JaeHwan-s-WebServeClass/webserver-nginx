@@ -43,7 +43,7 @@ std::map<std::string, map<std::string, std::string>> location;
 location[0] = <std::string(/), map<std::string(autoindex), std::string(on)>
 location[1] = <std::string(/example), map<std::string(autoindex), std::string(on)>
 ```
-
+***
 ### BUT... 자료구조 결정과 파서 구현을 잠시 미뤘다...
 config 파일에 들어올 수 있는 여러가지 옵션들을 고려하다보니 파서 구조 결정하기가 어려웠다.
 가장 어려웠던 건, 이중... 삼중... location 설정 시 어떻게 처리해야할지였다.
