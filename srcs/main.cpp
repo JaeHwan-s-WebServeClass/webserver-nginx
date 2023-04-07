@@ -19,6 +19,7 @@
 #include <map>
 #include <vector>
 
+#include "./class/Server.hpp"
 #include "./class/ServerSocket.hpp"
 //-------------------------------------------------------------------------------------//
 
@@ -46,23 +47,24 @@ void disconnect_client(int client_fd, std::map<int, std::string> &clients) {
 int main(void) {
   try {
     // step 1 - server socket : socket, bind, listen, fcntl
-    ServerSocket server(AF_INET, 8080);
+    ServerSocket server_socket(AF_INET, 8080);
 
     /* init kqueue */
-    int kq;
-    if ((kq = kqueue()) == -1) {
-      exit_with_perror("kqueue error\n" + std::string(strerror(errno)));
-    }
+    Server server();
+    // int kq;
+    // if ((kq = kqueue()) == -1) {
+    //   exit_with_perror("kqueue error\n" + std::string(strerror(errno)));
+    // }
 
-    /* init client map */
-    std::map<int, std::string> clients;
+    // /* init client map */
+    // std::map<int, std::string> clients;
 
-    /* kevent list 등록? */
-    // 이벤트 모음집 (우리가 쓸거 전부 넣어놓기)
-    std::vector<struct kevent> change_list;
-    struct kevent event_list[8];  // kevent 배열
+    // /* kevent list 등록? */
+    // // 이벤트 모음집 (우리가 쓸거 전부 넣어놓기)
+    // std::vector<struct kevent> change_list;
+    // struct kevent event_list[8];  // kevent 배열
 
-    /* add events for server socket */
+    // /* add events for server socket */
     change_events(change_list, server.getServerSocket(), EVFILT_READ,
                   EV_ADD | EV_ENABLE, 0, 0, NULL);
     std::cout << "server started!!!" << std::endl;
