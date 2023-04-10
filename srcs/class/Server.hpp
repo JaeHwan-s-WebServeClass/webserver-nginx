@@ -1,7 +1,9 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include <sys/_types/_size_t.h>
 #include <sys/event.h>
+#include <unistd.h>
 
 #include <exception>
 #include <iostream>
@@ -12,15 +14,16 @@
 
 class Server {
  private:
-  std::map<int, std::string> clients;
-  int kq;
-  struct kevent event_list[8];
-  std::vector<struct kevent> change_list;
+  std::map<int, std::string>    clients;
+  int                           kq;
+  struct kevent                 event_list[8];
+  std::vector<struct kevent>    change_list;
 
-  ServerSocket  *server_socket;
+  ServerSocket                  *server_socket;
 
 public :
-  Server();
+  Server(ServerSocket &server_socket);
+  
   /// @brief
   /// @param change_list
   /// @param ident
@@ -32,6 +35,15 @@ public :
   void setChangeList(std::vector<struct kevent> &, uintptr_t, int16_t, uint16_t,
                      uint32_t, intptr_t, void *);
 
+
+  void run(void);
+
+  /// @brief
+  /// @param client_fd
+  /// @param clients
+  /// @return
+  void disconnectClient(int, std::map<int, std::string> &);
+
   /// @brief
   /// @param kq
   /// @param changelist
@@ -40,10 +52,18 @@ public :
   /// @param nevents
   /// @param timeout
   /// @return
-  int newEvents(int kq, const struct kevent *changelist, int nchanges,
-                struct kevent *eventlist, int nevents, const timespec *timeout);
+  int safeKevent(int, const timespec *);
 
-  void  run();
+  /// @brief
+  /// @param fd
+  /// @param buf
+  /// @return read size
+  int safeRead(int, char *);
+
+  /// @brief
+  /// @param fd
+  /// @return write size
+  int safeWrite(int);
 
 };
 

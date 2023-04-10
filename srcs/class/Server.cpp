@@ -1,10 +1,16 @@
 #include "Server.hpp"
+#include "ServerSocket.hpp"
+#include <sys/_types/_int16_t.h>
+#include <sys/_types/_intptr_t.h>
+#include <sys/event.h>
+#include <sys/fcntl.h>
 
 // Server 생성자에서 소캣 연결을 하는게 좋을지 아니면 따로 할지 고민중
-Server::Server(void) {
+Server::Server(ServerSocket &server_socket) {
   if ((this->kq = kqueue()) == -1) {
     throw std::string("socket() error\n" + std::string(strerror(errno)));
   }
+  this->server_socket = &server_socket;
 }
 
 void Server::setChangeList(std::vector<struct kevent> &change_list,
@@ -16,20 +22,118 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
   change_list.push_back(temp_event);
 }
 
-int Server::newEvents(int kq, const struct kevent *changelist, int nchanges,
-                      struct kevent *eventlist, int nevents,
-                      const timespec *timeout) {}
+void Server::disconnectClient(int client_fd, std::map<int, std::string> &clients) {
+  std::cout << "client disconnected: " << client_fd << std::endl;
+  close(client_fd);
+  clients.erase(client_fd);
+}
 
+// ---- safe functions -----------------------------------------------------------------
+int Server::safeKevent(int nevents, const timespec *timeout) {
+    int new_events;
+  
+    if ((new_events = kevent(this->kq, &(this->change_list[0]),
+                        this->change_list.size(), this->event_list, nevents, timeout))== -1) {
+      throw std::string("kevent() error\n" + std::string(strerror(errno)));
+    }
+    return new_events;
+}
+
+int Server::safeRead(int fd, char *buf) {
+  int   read_len;
+    
+  if ((read_len = read(fd, buf, sizeof(buf))) == -1) {
+    throw std::string("client read error!");
+  }
+  return read_len;
+}
+
+int Server::safeWrite(int fd) {
+  int write_len;
+  
+  if ((write_len = write(fd, this->clients[fd].c_str(),
+                         this->clients[fd].size())) == -1) {
+    throw std::string("client write error!");
+  }
+  return write_len;
+}
+
+//---- main loop -----------------------------------------------------------------
 void Server::run() {
   setChangeList(this->change_list, this->server_socket->getServerSocket(),
                 EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-  int new_events;
+  
+  int           new_events;
+  struct kevent *curr_event;
+
   while (42) {
-    new_events = kevent(this->kq, &(this->change_list[0]),
-                        this->change_list.size(), this->event_list, 8, NULL);
-    if (new_events == -1) {
-                            throw std::string("kevent() error\n" + std::string(strerror(errno));
-    }
+    new_events = safeKevent(8, NULL);
+
     this->change_list.clear();
+    for (int i = 0; i < new_events; i++) {
+      curr_event = &(this->event_list[i]);
+
+      /* 이벤트를 감지해서 filter에 맞게 조건문으로 분기 */
+
+      // 1. 들어온 신호가 error일 경우
+      if (curr_event->flags & EV_ERROR) {
+        if (curr_event->ident == this->server_socket->getServerSocket()) {
+          throw std::string("server socket error");
+        } else {
+          throw std::string("client socket error");
+          this->disconnectClient(curr_event->ident, this->clients);
+        }
+      }
+      // 2. 감지된 이벤트가 read일 경우
+      else if (curr_event->filter == EVFILT_READ) {
+
+        // 2-1. server 에게 connect 요청이 온 경우 => accept()
+        if (curr_event->ident == this->server_socket->getServerSocket()) {
+          int   client_socket;
+
+          client_socket = this->server_socket->safeAccept();
+          std::cout << "accept new client: " << client_socket << std::endl;
+          fcntl(client_socket, F_SETFL, O_NONBLOCK);
+
+          setChangeList(this->change_list, client_socket, EVFILT_READ,
+                        EV_ADD | EV_ENABLE, 0, 0, NULL);
+          setChangeList(this->change_list, client_socket, EVFILT_WRITE,
+                        EV_ADD | EV_ENABLE, 0, 0, NULL);
+          // value 를 초기화하는 과정
+          this->clients[client_socket] = "";
+        }
+        // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
+        else if (this->clients.find(curr_event->ident) != this->clients.end()) {
+          char  buf[100];
+          int   read_len = safeRead(curr_event->ident, buf);
+
+          if (read_len == 0) {
+            this->disconnectClient(curr_event->ident, this->clients);
+          } else {
+            buf[read_len] = '\0';
+            this->clients[curr_event->ident] += buf;
+            std::cout << "received data from " << curr_event->ident << ": "
+                      << this->clients[curr_event->ident] << std::endl;
+          }
+        }
+      }
+      // 3. 감지된 이벤트가 write일 경우 => write()
+      else if (curr_event->filter == EVFILT_WRITE) {
+        std::map<int, std::string>::iterator it = clients.find(curr_event->ident);
+
+        // 3-1. client에서 이벤트 발생
+        if (it != clients.end()) {
+          if (this->clients[curr_event->ident] != "") {
+            int write_len = safeWrite(curr_event->ident);
+            
+            if (write_len == -1) {
+              this->disconnectClient(curr_event->ident, this->clients);
+            } else {
+              this->clients[curr_event->ident].clear();
+            }
+          }
+        }
+      }
     }
+  }
 }
