@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ServerSocket.hpp"
+
 #include <sys/_types/_int16_t.h>
 #include <sys/_types/_intptr_t.h>
 #include <sys/event.h>
@@ -23,7 +24,7 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
 }
 
 void Server::disconnectClient(int client_fd, std::map<int, std::string> &clients) {
-  std::cout << "client disconnected: " << client_fd << std::endl;
+  std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
   close(client_fd);
   clients.erase(client_fd);
 }
@@ -42,7 +43,7 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
 int Server::safeRead(int fd, char *buf) {
   int   read_len;
     
-  if ((read_len = read(fd, buf, sizeof(buf))) == -1) {
+  if ((read_len = read(fd, buf, BUFFER_SIZE)) == -1) {
     throw std::string("client read error!");
   }
   return read_len;
@@ -92,7 +93,7 @@ void Server::run() {
           int   client_socket;
 
           client_socket = this->server_socket->safeAccept();
-          std::cout << "accept new client: " << client_socket << std::endl;
+          std::cout << GRN << "accept new client: " << client_socket << DFT << std::endl;
           fcntl(client_socket, F_SETFL, O_NONBLOCK);
 
           setChangeList(this->change_list, client_socket, EVFILT_READ,
@@ -104,7 +105,7 @@ void Server::run() {
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
         else if (this->clients.find(curr_event->ident) != this->clients.end()) {
-          char  buf[100];
+          char  buf[BUFFER_SIZE];
           int   read_len = safeRead(curr_event->ident, buf);
 
           if (read_len == 0) {
@@ -112,7 +113,7 @@ void Server::run() {
           } else {
             buf[read_len] = '\0';
             this->clients[curr_event->ident] += buf;
-            std::cout << "received data from " << curr_event->ident << ": "
+            std::cout << GRY << "received data from " << curr_event->ident << ": " << DFT
                       << this->clients[curr_event->ident] << std::endl;
           }
         }
@@ -124,6 +125,7 @@ void Server::run() {
         // 3-1. client에서 이벤트 발생
         if (it != clients.end()) {
           if (this->clients[curr_event->ident] != "") {
+            //int write_len = safeWrite(curr_event->ident);
             int write_len = safeWrite(curr_event->ident);
             
             if (write_len == -1) {
