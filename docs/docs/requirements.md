@@ -1,17 +1,17 @@
-## 목표
+# 목표
 C++ 98 로 HTTP 웹서버 만들기
 
 <br>
 <br>
 
-## 프로그램 실행 방법
+# 프로그램 실행 방법
 ./webserv [configuration file] 
 
 <br>
 <br>
 
-## 요구 사항
-### P5
+# 요구 사항
+## P5
 * 프로그램은 configuration file 을 인자로 받거나 기본 경로를 사용해야 한다.
 <br>
 
@@ -69,11 +69,11 @@ C++ 98 로 HTTP 웹서버 만들기
 
 * 서버는 여러 포트를 수신할 수 있어야 한다.
 
-### P6
+## P6
 * MacOS 는 다른 유닉스 OS 와 같은 방식으로 write() 를 구현하지 않는다. 대신 fcntl() 을 사용할 수 있다.
   ❗️ 다만 nonblock 일 때만 사용가능하다. ex. `fcntl(fd, F_SETFL, O_NONBLOCK);`
 
-#### Configuration file
+### Configuration file
 ⭐️ nginx conf 파일의 'server' 부분에서 영감을 얻을 수 있다.
 <br>
 
@@ -124,7 +124,7 @@ C++ 98 로 HTTP 웹서버 만들기
   * 서버는 하나의 CGI (php-CGI, Python 등)으로 작동해야 한다.
 <br>
 
-### P8
+## P8
 추가 기능을 구현할 계획이 있다면,
 * 쿠키 및 세션 관리 지원하기
 * 여러 개의 CGI를 처리할 수 있도록 하기

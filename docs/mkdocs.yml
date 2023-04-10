@@ -11,6 +11,6 @@ nav:
   - '허용함수': 'allowed-functions.md'
   - '요구사항': 'requirements.md'
   - 'TIL':
-    - 'Daily todo': til/daily-todo.md
-    - '에코서버': til/how-to-work-echo-server.md
-    - '파서': til/simple-configuration-parser.md
+    - 'Daily todo': til/0_daily-todo.md
+    - '에코서버': til/1_how-to-work-echo-server.md
+    - '파서': til/2_simple-configuration-parser.md
