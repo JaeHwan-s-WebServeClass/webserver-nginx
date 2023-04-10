@@ -7,11 +7,11 @@ extra:
     
 nav:
   - 'Intro': index.md
-  - '프로그래밍 방식': dev-method.md
-  - '컨벤션': convention.md
-  - '허용함수': allowed-functions.md
-  - '요구사항': requirements.md
+  - 'How to develop': dev-method.md
+  - 'Convention': convention.md
+  - 'Requirements': requirements.md
+  - 'Allowed Functions': allowed-functions.md
   - 'TIL':
     - 'Daily todo': til/0_daily-todo.md
-    - '에코서버': til/1_how-to-work-echo-server.md
-    - '파서': til/2_simple-configuration-parser.md
+    - 'Log_Echo Server': til/1_how-to-work-echo-server.md
+    - 'Log_Parser': til/2_simple-configuration-parser.md
