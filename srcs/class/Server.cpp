@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ServerSocket.hpp"
+#include "Request.hpp"
 
 #include <sys/_types/_int16_t.h>
 #include <sys/_types/_intptr_t.h>
@@ -23,10 +24,12 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
   change_list.push_back(temp_event);
 }
 
-void Server::disconnectClient(int client_fd, std::map<int, std::string> &clients) {
-  std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
+void Server::disconnectClient(int client_fd, std::map<int, Request *> &clients) {
+  delete clients[client_fd];
+  // system("leaks webserv | grep total");
   close(client_fd);
   clients.erase(client_fd);
+  std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
 }
 
 // ---- safe functions -----------------------------------------------------------------
@@ -52,8 +55,8 @@ int Server::safeRead(int fd, char *buf) {
 int Server::safeWrite(int fd) {
   int write_len;
   
-  if ((write_len = write(fd, this->clients[fd].c_str(),
-                         this->clients[fd].size())) == -1) {
+  if ((write_len = write(fd, this->clients[fd]->getRawMsg().c_str(),
+                         this->clients[fd]->getRawMsg().size())) == -1) {
     throw std::string("client write error!");
   }
   return write_len;
@@ -101,7 +104,7 @@ void Server::run() {
           setChangeList(this->change_list, client_socket, EVFILT_WRITE,
                         EV_ADD | EV_ENABLE, 0, 0, NULL);
           // value 를 초기화하는 과정
-          this->clients[client_socket] = "";
+          this->clients[client_socket] = new Request();
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
         else if (this->clients.find(curr_event->ident) != this->clients.end()) {
@@ -112,26 +115,33 @@ void Server::run() {
             this->disconnectClient(curr_event->ident, this->clients);
           } else {
             buf[read_len] = '\0';
-            this->clients[curr_event->ident] += buf;
+            this->clients[curr_event->ident]->setRawMsg(buf);
             std::cout << GRY << "received data from " << curr_event->ident << ": " << DFT
-                      << this->clients[curr_event->ident] << std::endl;
+                      << this->clients[curr_event->ident]->getRawMsg() << std::endl;
           }
         }
       }
       // 3. 감지된 이벤트가 write일 경우 => write()
       else if (curr_event->filter == EVFILT_WRITE) {
-        std::map<int, std::string>::iterator it = clients.find(curr_event->ident);
+        std::map<int, Request*>::iterator it = clients.find(curr_event->ident);
 
         // 3-1. client에서 이벤트 발생
         if (it != clients.end()) {
-          if (this->clients[curr_event->ident] != "") {
+          if (this->clients[curr_event->ident]->getRawMsg() != "") {
             //int write_len = safeWrite(curr_event->ident);
             int write_len = safeWrite(curr_event->ident);
+
+            std::cout << GRY << "----------------------------------" << std::endl;
+            std::cout << this->clients[curr_event->ident]->getRawMsg();
+            std::cout << "----------------------------------" << DFT << std::endl;
             
-            if (write_len == -1) {
+            if (write_len == -1)
+            {
               this->disconnectClient(curr_event->ident, this->clients);
-            } else {
-              this->clients[curr_event->ident].clear();
+            }
+            else
+            {
+              this->clients[curr_event->ident]->clearSetRawMsg();
             }
           }
         }

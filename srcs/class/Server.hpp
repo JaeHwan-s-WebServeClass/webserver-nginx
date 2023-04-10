@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "ServerSocket.hpp"
+#include "Request.hpp"
 
 #define RED "\033[0;31m"
 #define GRN "\033[0;32m"
@@ -23,12 +24,14 @@
 
 class Server {
  private:
-  std::map<int, std::string>    clients;
+  // Request 클래스를 넣어봄
+  std::map<int, Request *>      clients;
   int                           kq;
   struct kevent                 event_list[8];
   std::vector<struct kevent>    change_list;
 
   ServerSocket                  *server_socket;
+  // Request                       *request;
 
 public :
   Server(ServerSocket &server_socket);
@@ -51,7 +54,7 @@ public :
   /// @param client_fd
   /// @param clients
   /// @return
-  void disconnectClient(int, std::map<int, std::string> &);
+  void disconnectClient(int, std::map<int, Request *> &);
 
   /// @brief
   /// @param kq

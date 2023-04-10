@@ -2,7 +2,8 @@ NAME 		:=	webserv
 
 DIR 		:=	./class/
 SRC_NAME 	=	Server.cpp \
-				ServerSocket.cpp
+				ServerSocket.cpp \
+				Request.cpp
 
 SRC 		=	$(addprefix $(DIR),$(SRC_NAME))
 OBJ 		=	$(SRC:.c=.o)
