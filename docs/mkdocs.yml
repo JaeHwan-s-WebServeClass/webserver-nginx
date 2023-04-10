@@ -13,5 +13,9 @@ nav:
   - 'Allowed Functions': allowed-functions.md
   - 'TIL':
     - 'Daily todo': til/0_daily-todo.md
-    - 'Log_Echo Server': til/1_how-to-work-echo-server.md
-    - 'Log_Parser': til/2_simple-configuration-parser.md
+    - '1_how-to-work-echo-server': til/1_how-to-work-echo-server.md
+    - '2_simple-configuration-parser': til/2_simple-configuration-parser.md
+    - '3_echo-server-specification': til/3_echo-server-specification.md
+    - '4_terminal-input-issue': til/4_terminal-input-issue.md
+    - '5_doxygen': til/5_doxygen.md
+    - '6_OOP-debate': til/6_OOP-debate.md
