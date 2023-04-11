@@ -7,6 +7,8 @@
 #include <map>
 #include <vector>
 
+#include "../include/include.hpp"
+
 #define POST 0
 #define GET 1
 #define DELETE 2
@@ -49,7 +51,7 @@ private:
 	std::string							raw_head;
 
     bool                                 is_end_head;
-	int                                  method;     // 파싱할 때 compare해서 define해둔 int 값 사용
+	std::string                          method;     // 파싱할 때 compare해서 define해둔 int 값 사용
 	std::string                          url;
 	std::string                          version;
 	std::map<std::string, std::string>   header;

@@ -1,8 +1,11 @@
+
 #include <iostream>
 #include <sstream>
 #include <vector>
 
-std::vector<std::string> split(std::string input, char dlim)
+#include "../include/include.hpp"
+
+std::vector<std::string> ft::split(std::string input, char dlim)
 {
 	std::vector<std::string>    result;
 	std::stringstream           ss;
