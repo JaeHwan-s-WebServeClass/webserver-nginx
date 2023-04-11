@@ -45,10 +45,6 @@ public :
   void disconnectClient(int, std::map<int, std::string> &);
 
   /// @brief
-  /// @param kq
-  /// @param changelist
-  /// @param nchanges
-  /// @param eventlist
   /// @param nevents
   /// @param timeout
   /// @return

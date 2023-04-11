@@ -14,10 +14,10 @@ class ServerSocket {
 
  private:
   /// @brief 소켓 생성하는 함수
-  /// @param  PF_INET
-  /// @param  socket_stream
-  /// @param  0
-  /// @return socket fd
+  /// @param  domain PF_INET
+  /// @param  type socket_stream
+  /// @param  protocol 0
+  /// @return 
   void safeSocket(int, int, int);
 
   /// @brief
@@ -30,13 +30,13 @@ class ServerSocket {
   /// @brief
   /// @param backlog
   /// @return
-  void safeListen(int backlog);
+  void safeListen(int);
 
  public:
   /// @brief ServerSocket constructor
-  /// @param protocol AF_INET
+  /// @param  address_family protocol AF_INET
   /// @param port 8080
-  ServerSocket(sa_family_t address_family, int port);
+  ServerSocket(sa_family_t, int);
 
   /// @brief  fd 를 NonBlock 방식으로 설정하는 함수
   /// @param  socket_fd
