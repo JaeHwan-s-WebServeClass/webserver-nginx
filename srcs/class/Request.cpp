@@ -2,19 +2,6 @@
 
 Request::Request() : raw_head(""), is_end_head(0) {}
 
-// void Request::setRawMsg(const std::string &update) {
-// 	while (std::getline(ss, str, '\n')) {
-
-// 	 if (분리한 문자열.length() == 0 || (분리한 문자열.length() == 1 && (분리한 문자열 == "\r")))
-// 	 	1. 헤드 끝났다 플래그 켜라
-// 		2. 헤드 파싱 gogo
-// 	 else if (헤더 안끝남?)
-// 	 	raw_head += str;   
-// 	 else
-// 	 	body_vec.push_back(str);
-// 	}
-// }
-
 //---- getter/setter --------------------------------------------
 void Request::setRawMsg(const char * read_msg) {
 	std::istringstream buf;
@@ -44,11 +31,7 @@ void Request::clearSetRawMsg() {
 	this->raw_head.clear();
 }
 
-void Request::toString() {
-	//std::cout << BLU << this->raw_head << std::endl << DFT;
-	
-	//std::copy(entity.begin(), entity.end(), std::ostream_iterator<int>(std::cout, "\n"));
-	
+void Request::toString() {	
 	std::cout << GRY << "-------------------- start-line --------------------" << DFT << std::endl;
 	std::cout << BLU << "method: " << DFT << this->method << std::endl;
 	std::cout << BLU << "url: " << DFT << this->url << std::endl;
@@ -85,4 +68,3 @@ void Request::parserHead() {
 		header[it->substr(0, pos)] = it->substr(pos + 1);
 	}
 }
-// string substr (size_t pos = 0, size_t len = npos) const;

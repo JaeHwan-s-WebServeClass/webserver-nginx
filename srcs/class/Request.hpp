@@ -59,10 +59,6 @@ private:
 
 public:
     Request();
-    // setMethod();
-    // setUrl();
-    // setHeader();
-    // setEntity();
 
     /// @brief set Raw Msg
     /// @param update

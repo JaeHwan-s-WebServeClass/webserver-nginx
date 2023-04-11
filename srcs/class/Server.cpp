@@ -116,7 +116,6 @@ void Server::run() {
           } else {
             buf[read_len] = '\0';
             this->clients[curr_event->ident]->setRawMsg(buf);
-            // this->clients[curr_event->ident]->parser();
             std::cout << GRY << "received data from " << curr_event->ident << ": " << DFT
                       << this->clients[curr_event->ident]->getRawMsg() << std::endl;
           }
