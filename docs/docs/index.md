@@ -51,8 +51,7 @@ jaekim, jimin, jnam, jrim, seunghye, yichoi
 ## 2주차 4/3 ~ 4/7
 
 1. 에코 서버 만들기
-
-⭐️ select, epoll, kqueue 를 이용한 에코 서버
+2. 에코 서버 객체로 리팩토링
 
 <br>
 
@@ -60,17 +59,26 @@ jaekim, jimin, jnam, jrim, seunghye, yichoi
 
 ## 3주차 4/10 ~ 4/14
 
-1. ㅇ
+1. request 객체 구현
+2. request 메시지 파싱
+3. response 객체 구현
+4. response 메시지 파싱
 
+<br>
 
-
+***
 
 ## 4주차 4/17 ~ 4/21
 
+<br>
 
+***
 
 
 ## 5주차 4/24 ~ 4/28
 
+<br>
+
+***
 
 ## 6주차 5/1 ~ 5/5
