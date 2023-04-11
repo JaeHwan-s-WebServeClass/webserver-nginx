@@ -14,8 +14,8 @@ nav:
   - 'TIL':
     - 'Daily todo': til/0_daily-todo.md
     - '1_how-to-work-echo-server': til/1_how-to-work-echo-server.md
-    - '2_simple-configuration-parser': til/2_simple-configuration-parser.md
-    - '3_echo-server-specification': til/3_echo-server-specification.md
+    - '2_webserver-specification': til/2_webserver-specification.md
+    - '3_simple-configuration-parser': til/3_simple-configuration-parser.md
     - '4_terminal-input-issue': til/4_terminal-input-issue.md
     - '5_doxygen': til/5_doxygen.md
     - '6_OOP-debate': til/6_OOP-debate.md

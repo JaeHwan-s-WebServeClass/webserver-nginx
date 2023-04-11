@@ -1,7 +1,8 @@
 
 ## ☝🏻 깃 컨벤션
-* issue 사용
-* [컨벤션](https://www.conventionalcommits.org/ko/v1.0.0-beta.4/)
+* 깃 허브 이슈 기능으로 프로젝트 진행 및 관리
+* pull request (approve 필요) 사용
+* 깃 컨벤션은 vscode 의 lint 기능을 사용해서 Google 또는 MS 적용 예정
 
 
 <br>
