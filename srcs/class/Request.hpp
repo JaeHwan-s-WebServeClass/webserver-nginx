@@ -3,12 +3,23 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <map>
 #include <vector>
 
 #define POST 0
 #define GET 1
 #define DELETE 2
+
+#define RED "\033[0;31m"
+#define GRN "\033[0;32m"
+#define YLW "\033[0;33m"
+#define BLU "\033[0;36m"
+#define GRY "\033[90m"
+#define DFT "\033[0;37m"
+
+// head : 시작줄, header
+// body : entity, body
 
 /*
 Request msg 형식
@@ -18,10 +29,10 @@ Request msg 형식
 	<엔터티 본문>
 
 ex)
-    <메서드> <요청 URL> <버전>
+    <메서드> <요청 URL> <버전> (white space 기준으로 구분)
     GET /test/hi-there.txt HTTP/1.1
     
-    <헤더>
+    <헤더> (key: value 구조)
     Accept: text/
     Host: www.joes-hardware.com	
 
@@ -35,13 +46,14 @@ class Request {
 private:
     // 여러가지 요청이 동시에 들어오고, 동시에 처리해야 하는 상황이 있을까?
     // 하나씩 처리한다면 raw_msg 를 clear 하면서 진행하면 되지만, 병렬처리라면 어떻게 해야하는가?
-	std::string							raw_msg;
+	std::string							raw_head;
 
-	// int                                  method;     // 파싱할 때 compare해서 define해둔 int 값 사용
-	// std::string                          url;
-	// std::string                          version;
-	// std::map<std::string, std::string>   header;
-	// std::vector<std::string> 		    entity;
+    bool                                 is_end_head;
+	int                                  method;     // 파싱할 때 compare해서 define해둔 int 값 사용
+	std::string                          url;
+	std::string                          version;
+	std::map<std::string, std::string>   header;
+	std::vector<std::string> 		     entity;
 
 public:
     Request();
@@ -53,7 +65,7 @@ public:
     /// @brief set Raw Msg
     /// @param update
     /// @return 
-	void setRawMsg(const std::string &);
+	void setRawMsg(const char *);
 
     /// @brief get Raw Msg
     /// @param 
@@ -64,6 +76,10 @@ public:
     /// @param 
     /// @return 
 	void clearSetRawMsg();
+
+    void parserHead();
+
+    void toString();
 };
 
 #endif
