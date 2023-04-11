@@ -129,6 +129,6 @@ Request();
 
 ***
 
-## 3. Response Class - 응답자
+## 4. Response Class - 응답자
 
 

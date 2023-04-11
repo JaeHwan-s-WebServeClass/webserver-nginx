@@ -1,7 +1,7 @@
+# 사용할 함수에 대한 질문 ( feat. chatGPT )
+## 🅀 gai_strerror 가 뭐지?
 
-# 🅀 gai_strerror 가 뭐지?
-
-## 🄰
+### 🄰
 gai_strerror() 함수는 네트워크 함수 중에 getaddrinfo()나 getnameinfo()와 함께 사용되며, 이 함수들이 반환하는 오류 코드를 문자열로 변환하는 역할을 합니다.<br>
 즉, gai_strerror() 함수는 인자로 받은 error 코드에 해당하는 오류 메시지를 반환합니다. 이 함수는 <netdb.h> 헤더 파일에 선언되어 있습니다.<br>
 예를 들어, getaddrinfo() 함수가 실패하면 해당 함수는 -1을 반환하고, 오류 정보는 gai_strerror() 함수를 호출하여 확인할 수 있습니다.
@@ -10,9 +10,9 @@ gai_strerror() 함수는 네트워크 함수 중에 getaddrinfo()나 getnameinfo
 
 ***
 
-# 🅀 htons 가 뭐야?
+## 🅀 htons 가 뭐야?
 
-## 🄰
+### 🄰
 htons() 함수는 "Host to Network Short"의 약어로, 16비트 short 형식의 데이터를 호스트 바이트 오더로 표현된 데이터에서 네트워크 바이트 오더로 변환하는 함수입니다.
 
 네트워크 바이트 오더는 빅 엔디안으로 정의되어 있기 때문에, htons() 함수는 호스트에서 사용하는 리틀 엔디안 바이트 오더를 네트워크에서 사용하는 빅 엔디안 바이트 오더로 변환합니다. 이 함수는 <arpa/inet.h> 헤더 파일에 선언되어 있습니다.
@@ -81,9 +81,9 @@ int main(int argc, char *argv[]) {
 
 ***
 
-# 🅀 select, poll, epoll, kqueue 의 특징과 차이점이 뭐여?
+## 🅀 select, poll, epoll, kqueue 의 특징과 차이점이 뭐여?
 
-## 🄰
+### 🄰
 select, poll, epoll, kqueue은 모두 I/O 멀티플렉싱 기법을 구현하는 시스템 콜입니다. 이러한 시스템 콜은 하나의 프로세스가 여러 개의 파일 디스크립터를 모니터링하고, 여러 개의 파일 디스크립터 중에서 I/O 이벤트가 발생한 것을 감지하여 이를 처리할 수 있도록 도와줍니다.
 
 하지만 select, poll, epoll, kqueue 각각의 특징과 차이점은 다음과 같습니다.
@@ -106,9 +106,9 @@ kqueue은 FreeBSD와 macOS에서 사용되는 I/O 멀티플렉싱 실행 방식�
 
 ***
 
-# 🅀 getaddrinfo, freeaddrinfo에 대해서 설명해주렴
+## 🅀 getaddrinfo, freeaddrinfo에 대해서 설명해주렴
 
-## 🄰
+### 🄰
 getaddrinfo는 호스트 이름과 서비스 이름(혹은 포트 번호)을 입력 받아 해당 호스트와 서비스에 대한 주소 정보를 가져오는 함수입니다. 이 함수는 IPv4와 IPv6를 모두 지원하며, 여러 개의 주소 정보를 반환할 수 있습니다. 이러한 다양한 주소 정보는 struct addrinfo 구조체의 형태로 반환됩니다.
 
 getaddrinfo 함수를 사용하기 전에는 반드시 해당 구조체를 초기화해야 합니다. 또한, getaddrinfo 함수를 사용한 후에는 반환된 addrinfo 구조체를 메모리에서 해제해주어야 하는데, 이를 위해 freeaddrinfo 함수를 사용합니다.
@@ -180,9 +180,9 @@ hints 구조체의 멤버 변수로는 ai_family, ai_socktype, ai_protocol, ai_f
 
 ***
 
-# 🅀 setsockopt, getsockname, getprotobyname 함수에 대해 설명해주련?
+## 🅀 setsockopt, getsockname, getprotobyname 함수에 대해 설명해주련?
 
-## 🄰 각 함수에 대해 간단한 설명을 드리겠습니다.
+### 🄰 각 함수에 대해 간단한 설명을 드리겠습니다.
 
 **↘︎ setsockopt** <br>
 setsockopt 함수는 소켓의 옵션 값을 설정합니다. 이 함수를 사용하여 소켓의 송수신 버퍼 크기, 브로드캐스트 가능 여부, 소켓의 타입 등을 설정할 수 있습니다. 함수의 프로토타입은 다음과 같습니다.
@@ -233,9 +233,9 @@ getprotobyname 함수는 struct protoent 구조체의 포인터를 반환합니�
 <br>
 
 ***
-# 🅀 getprotobyname의 예시를 한 번 보여줘. 프로토콜 번호는 어떻게 얻니?
+## 🅀 getprotobyname의 예시를 한 번 보여줘. 프로토콜 번호는 어떻게 얻니?
 
-## 🄰 getprotobyname 함수는 프로토콜 이름을 이용하여 struct protoent 구조체를 얻습니다. 이 구조체에는 프로토콜 이름, 프로토콜 번호, 프로토콜의 멀티캐스트 주소 등의 정보가 저장됩니다. 따라서 getprotobyname 함수를 사용하면 프로토콜 이름을 이용하여 프로토콜 번호를 얻을 수 있습니다.
+### 🄰 getprotobyname 함수는 프로토콜 이름을 이용하여 struct protoent 구조체를 얻습니다. 이 구조체에는 프로토콜 이름, 프로토콜 번호, 프로토콜의 멀티캐스트 주소 등의 정보가 저장됩니다. 따라서 getprotobyname 함수를 사용하면 프로토콜 이름을 이용하여 프로토콜 번호를 얻을 수 있습니다.
 
 다음은 getprotobyname 함수를 사용하여 TCP 프로토콜의 번호를 얻는 예시입니다.
 
@@ -277,9 +277,9 @@ struct protoent 구조체에 저장된 정보를 이용하여 프로토콜 번�
 
 ***
 
-# 🅀 위 예시에서 alias가 뭔지 알려줘보렴
+## 🅀 위 예시에서 alias가 뭔지 알려줘보렴
 
-## 🄰
+### 🄰
 struct protoent 구조체에는 프로토콜에 대한 다양한 정보들이 포함됩니다. p_aliases 멤버는 해당 프로토콜에 대한 별명(alias)들의 배열을 가리키는 포인터입니다. 즉, 프로토콜에 대해 여러 별명이 존재할 경우 이 배열에 저장됩니다.
 
 예를 들어, getprotobyname("tcp") 함수를 호출하여 TCP 프로토콜의 정보를 얻은 경우 proto->p_aliases 배열에는 "tcp6"과 같은 별명이 저장될 수 있습니다. 위 예시에서는 이러한 별명(alias)들을 반복문을 통해 출력하고 있습니다.
@@ -288,9 +288,9 @@ struct protoent 구조체에는 프로토콜에 대한 다양한 정보들이 �
 
 ***
 
-# 🅀 fcntl 에 대해 설명해줄 수 있겠니?
+## 🅀 fcntl 에 대해 설명해줄 수 있겠니?
 
-## 🄰
+### 🄰
 fcntl 함수는 파일 디스크립터에 대한 제어를 수행하는 함수입니다. 파일 디스크립터에 대한 여러가지 동작을 수행할 수 있으며, 주로 다음과 같은 목적으로 사용됩니다.
 
 * 파일 디스크립터의 플래그(상태)를 변경하기 위해 사용됩니다. 예를 들어, non-blocking 모드로 파일 디스크립터를 설정할 수 있습니다. <br>
@@ -339,9 +339,9 @@ int set_non_blocking(int fd) {
 
 ***
 
-# 🅀 fcntl(fd, F_SETFL, O_NONBLOCK) 부분의 의미를 좀 더 자세하게 설명해주렴
+## 🅀 fcntl(fd, F_SETFL, O_NONBLOCK) 부분의 의미를 좀 더 자세하게 설명해주렴
 
-## 🄰 fcntl(fd, F_SETFL, O_NONBLOCK)는 파일 디스크립터 fd를 non-blocking 모드로 설정하는 코드입니다.
+### 🄰 fcntl(fd, F_SETFL, O_NONBLOCK)는 파일 디스크립터 fd를 non-blocking 모드로 설정하는 코드입니다.
 
 일반적으로, 파일 디스크립터는 blocking 모드로 동작합니다. 이 말은, 파일 디스크립터를 읽거나 쓸 때, 해당 작업이 완료될 때까지 대기하게 된다는 뜻입니다. 이러한 대기 시간은 응용 프로그램에서 처리할 다른 작업들을 지연시키는 원인이 될 수 있습니다.
 
@@ -355,9 +355,9 @@ int set_non_blocking(int fd) {
 
 ***
 
-# 🅀 fcntl(fd, F_SETFL, O_NONBLOCK)은 언제 -1을 반환하니
+## 🅀 fcntl(fd, F_SETFL, O_NONBLOCK)은 언제 -1을 반환하니
 
-## 🄰 fcntl(fd, F_SETFL, O_NONBLOCK) 함수가 -1을 반환하는 경우는 일반적으로 다음과 같은 경우입니다.
+### 🄰 fcntl(fd, F_SETFL, O_NONBLOCK) 함수가 -1을 반환하는 경우는 일반적으로 다음과 같은 경우입니다.
 
 * fd가 유효하지 않은 파일 디스크립터인 경우 <br>
 * * F_SETFL 명령이 지원되지 않는 경우 <br>
@@ -370,9 +370,9 @@ int set_non_blocking(int fd) {
 
 ***
 
-# 🅀 fcntl 으로 여러 파일 디스크립터를 non-blocking 모드로 설정하고 실행하는 예시를 보여줄 수 있겠니?
+## 🅀 fcntl 으로 여러 파일 디스크립터를 non-blocking 모드로 설정하고 실행하는 예시를 보여줄 수 있겠니?
 
-## 🄰
+### 🄰
 네, 당연히요! 아래 예시 코드는 파일 디스크립터 0, 1, 2를 non-blocking 모드로 설정한 후, select() 함수를 사용하여 각 파일 디스크립터에서 입력을 받아들이는 예시입니다.
 
 ```c
@@ -437,9 +437,9 @@ int main()
 
 ***
 
-# 🅀 select(3, &readfds, NULL, NULL, NULL) 의 인자에 대해 설명해주렴^^
+## 🅀 select(3, &readfds, NULL, NULL, NULL) 의 인자에 대해 설명해주렴^^
 
-## 🄰 select() 함수는 I/O 멀티플렉싱을 수행하기 위한 시스템 콜 중 하나로, 여러 개의 파일 디스크립터에서 데이터를 읽고 쓰는 작업을 한 번에 처리할 수 있게 해줍니다. select() 함수는 다음과 같은 형태를 가지고 있습니다.
+### 🄰 select() 함수는 I/O 멀티플렉싱을 수행하기 위한 시스템 콜 중 하나로, 여러 개의 파일 디스크립터에서 데이터를 읽고 쓰는 작업을 한 번에 처리할 수 있게 해줍니다. select() 함수는 다음과 같은 형태를 가지고 있습니다.
 
 ```c
 #include <sys/select.h>
@@ -471,9 +471,9 @@ select() 함수는 지정된 파일 디스크립터 중 하나 이상의 I/O 상
 
 ***
 
-# 🅀 위 예시에서 등장하는 FD_ZERO(&readfds), FD_SET(0, &readfds), FD_ISSET(i, &readfds)들은 함수니?
+## 🅀 위 예시에서 등장하는 FD_ZERO(&readfds), FD_SET(0, &readfds), FD_ISSET(i, &readfds)들은 함수니?
 
-## 🄰 네, 맞습니다.
+### 🄰 네, 맞습니다.
 
 * FD_ZERO(&readfds): readfds 집합을 초기화하는 함수입니다. readfds 집합 내의 모든 파일 디스크립터를 제거하고 초기 상태로 만듭니다. <br>
 * FD_SET(0, &readfds): 파일 디스크립터 0을 readfds 집합에 추가하는 함수입니다. 이 경우 파일 디스크립터 0은 표준 입력을 나타냅니다. <br>
@@ -482,9 +482,9 @@ select() 함수는 지정된 파일 디스크립터 중 하나 이상의 I/O 상
 <br>
 
 ***
-# 🅀 fd가 읽을 수 있는 상태인지 검증하는 코드의 예시를 보여주렴^^
+## 🅀 fd가 읽을 수 있는 상태인지 검증하는 코드의 예시를 보여주렴^^
 
-## 🄰
+### 🄰
 fd가 읽을 수 있는 상태인지 검증하는 코드는 다음과 같이 작성할 수 있습니다.
 
 ```c
