@@ -55,6 +55,10 @@ map<int, Request *> clients
 <br>
 
 ## 2-3. 결론
+요청은 비동기로 받지만, 처리는 비동기가 아닌 동기로 처리하는 웹서버를 만들 것이기 때문에, 위 형태를 유지해도 괜찮을 것 같다.
+```c++
+map<int, Request *> clients
+```
 
 <br>
 
