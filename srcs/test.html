@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>HTTP Request Example</title>
+</head>
+
+<body>
+    <h1>HTTP Request Example</h1>
+
+    <h2>GET Request</h2>
+    <button onclick="sendGetRequest()">Send GET Request</button>
+    <p id="get-response"></p>
+
+    <h2>POST Request</h2>
+    <form onsubmit="sendPostRequest(event)">
+        <label for="post-data">Data to send:</label>
+        <input type="text" id="post-data" name="post-data" required>
+        <button type="submit">Send POST Request</button>
+    </form>
+    <p id="post-response"></p>
+
+    <h2>DELETE Request</h2>
+    <button onclick="sendDeleteRequest()">Send DELETE Request</button>
+    <p id="delete-response"></p>
+
+    <script>
+        function sendGetRequest() {
+            fetch('http://example.com/api/data', {
+                method: 'GET'
+            })
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('get-response').textContent = data;
+                });
+        }
+
+        function sendPostRequest(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            fetch('http://example.com/api/data', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('post-response').textContent = data;
+                });
+        }
+
+        function sendDeleteRequest() {
+            fetch('http://example.com/api/data', {
+                method: 'DELETE'
+            })
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('delete-response').textContent = data;
+                });
+        }
+    </script>
+</body>
+
+</html>

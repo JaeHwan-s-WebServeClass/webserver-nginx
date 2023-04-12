@@ -12,6 +12,7 @@
 
 #include "ServerSocket.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 
 #define RED "\033[0;31m"
 #define GRN "\033[0;32m"
@@ -31,7 +32,8 @@ class Server {
   std::vector<struct kevent>    change_list;
 
   ServerSocket                  *server_socket;
-  // Request                       *request;
+  // mockup response 를 위해 임시로 해놓음
+  Response                      *response;
 
 public :
   Server(ServerSocket &server_socket);

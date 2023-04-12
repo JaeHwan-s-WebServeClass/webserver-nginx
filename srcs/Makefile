@@ -3,7 +3,8 @@ NAME 		:=	webserv
 SRC_DIR 	:=	./class/
 SRC_NAME 	=	Server.cpp \
 				ServerSocket.cpp \
-				Request.cpp
+				Request.cpp \
+				Response.cpp
 
 UTILS_DIR 	:=	./utils/
 UTILS_NAME 	=	split.cpp \
@@ -16,7 +17,8 @@ OBJ 		=	$(SRC:.c=.o)
 
 INCLUDE		:=	-I./include/
 CC 			:=	c++
-CXXFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
+#CXXFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
+CXXFLAGS 	:=	
 
 all : $(NAME)
 

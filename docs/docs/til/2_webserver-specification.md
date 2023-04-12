@@ -96,11 +96,12 @@ Server(ServerSocket &server_socket);
 private:
     std::string							raw_msg;
 
-	// int                                  method;
-	// std::string                          url;
-	// std::string                          version;
-	// std::map<std::string, std::string>   header;
-	// std::vector<std::string> 		     entity;
+	bool                                 is_end_head;
+	std::string                          method;
+	std::string                          url;
+	std::string                          version;
+	std::map<std::string, std::string>   header;
+	std::vector<std::string> 		     entity;
 ```
 
 
@@ -116,9 +117,11 @@ public:
 	void        setRawMsg(const std::string &);
 	std::string getRawMsg();
 	void        clearSetRawMsg();
+    void        parserHead();
+    void        toString();
 ```
 
-### 3-2. 생성자
+### 3-3. 생성자
 ```c++
 Request();
 ```
@@ -131,4 +134,33 @@ Request();
 
 ## 4. Response Class - 응답자
 
+### 4-1. 멤버 변수
+
+```c++
+#define POST 0
+#define GET 1
+#define DELETE 2
+
+private:
+    
+```
+
+
+### 4-2. 멤버 함수
+
+```c++
+public:
+    
+```
+
+### 4-3. 생성자
+```c++
+Response();
+```
+
+
+
+<br>
+
+***
 

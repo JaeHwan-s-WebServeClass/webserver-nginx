@@ -20,3 +20,4 @@ nav:
     - '5_doxygen': til/5_doxygen.md
     - '6_OOP-debate': til/6_OOP-debate.md
     - '7_requestmsg_parsing' : til/7_requestmsg_parsing.md
+    - '8_response_msg_mockup_test' : til/8_response_msg_mockup_test.md
