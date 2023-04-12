@@ -20,6 +20,7 @@
 
 #include "./class/Server.hpp"
 #include "./class/ServerSocket.hpp"
+#include "./class/Request.hpp"
 
 //-------------------------------------------------------------------------------------//
 int main(void) {
