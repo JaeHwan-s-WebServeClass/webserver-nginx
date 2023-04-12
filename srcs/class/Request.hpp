@@ -48,7 +48,8 @@ class Request {
  private:
   // 여러가지 요청이 동시에 들어오고, 동시에 처리해야 하는 상황이 있을까?
   // 하나씩 처리한다면 raw_msg 를 clear 하면서 진행하면 되지만, 병렬처리라면
-  // 어떻게 해야하는가? -> 입력은 비동기로 받지만, 처리는 동기로 하기 떄문에 병렬 처리할 일이 없음.
+  // 어떻게 해야하는가? -> 입력은 비동기로 받지만, 처리는 동기로 하기 떄문에
+  // 병렬 처리할 일이 없음.
   std::string raw_head;
 
   bool is_end_head;
@@ -66,23 +67,17 @@ class Request {
   /// @return
   void setRawMsg(const char *);
 
-  /// @brief get Raw Msg
-  /// @param
-  /// @return rawmsg
-  std::string getRawMsg();
+  const std::string &getRawHead() const;
+  const bool &getIsEndHead() const;
+  const std::string &getMethod() const;
+  const std::string &getUrl() const;
+  const std::string &getHttpVersion() const;
+  const std::map<std::string, std::string> &getHeader() const;
+  const std::vector<std::string> &getEntity() const;
 
-  /// @brief clear Raw Msg buf
-  /// @param
-  /// @return
   void clearSetRawMsg();
-
-  /// @brief parse head
-  /// @return
   void parserHead();
-
-  /// @brief convert to string
-  /// @return
-  void toString();
+  void toString() const;
 };
 
 #endif

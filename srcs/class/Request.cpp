@@ -23,11 +23,23 @@ void Request::setRawMsg(const char* read_msg) {
   }
 }
 
-std::string Request::getRawMsg() { return this->raw_head; }
+const std::string& Request::getRawHead() const { return this->raw_head; }
+const bool& Request::getIsEndHead() const { return this->is_end_head; }
+const std::string& Request::getMethod() const { return this->method; }
+const std::string& Request::getUrl() const { return this->url; };
+const std::string& Request::getHttpVersion() const {
+  return this->http_version;
+}
+const std::map<std::string, std::string>& Request::getHeader() const {
+  return this->header;
+}
+const std::vector<std::string>& Request::getEntity() const {
+  return this->entity;
+}
 
 void Request::clearSetRawMsg() { this->raw_head.clear(); }
 
-void Request::toString() {
+void Request::toString() const {
   std::cout << GRY << "-------------------- start-line --------------------"
             << DFT << std::endl;
   std::cout << BLU << "method: " << DFT << this->method << std::endl;
@@ -35,7 +47,7 @@ void Request::toString() {
   std::cout << BLU << "version: " << DFT << this->http_version << std::endl;
   std::cout << GRY << "---------------------- header ----------------------"
             << DFT << std::endl;
-  for (std::map<std::string, std::string>::iterator it = header.begin();
+  for (std::map<std::string, std::string>::const_iterator it = header.begin();
        it != header.end(); ++it) {
     std::cout << BLU << it->first << ": " << DFT << it->second << std::endl;
   }

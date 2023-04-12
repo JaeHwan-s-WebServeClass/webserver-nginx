@@ -46,7 +46,7 @@ class Response {
   std::string status_msg;
   std::map<std::string, std::string> header;
   std::string entity;
-  // std::vector<std::string> entity;
+
   int event_fl;
 
  public:

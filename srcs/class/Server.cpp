@@ -1,13 +1,5 @@
 #include "Server.hpp"
 
-#include <sys/_types/_int16_t.h>
-#include <sys/_types/_intptr_t.h>
-#include <sys/event.h>
-#include <sys/fcntl.h>
-
-#include "Request.hpp"
-#include "ServerSocket.hpp"
-
 // Server 생성자에서 소캣 연결을 하는게 좋을지 아니면 따로 할지 고민중
 Server::Server(ServerSocket &server_socket) {
   if ((this->kq = kqueue()) == -1) {
@@ -26,7 +18,7 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
 }
 
 void Server::disconnectClient(int client_fd,
-                              std::map<int, Request *> &clients) {
+                              std::map<int, Transaction *> &clients) {
   delete clients[client_fd];
   // system("leaks webserv | grep total");
   close(client_fd);
@@ -59,8 +51,9 @@ int Server::safeRead(int fd, char *buf) {
 int Server::safeWrite(int fd) {
   int write_len;
 
-  if ((write_len = write(fd, this->clients[fd]->getRawMsg().c_str(),
-                         this->clients[fd]->getRawMsg().size())) == -1) {
+  if ((write_len =
+           write(fd, this->clients[fd]->getRequest().getRawHead().c_str(),
+                 this->clients[fd]->getRequest().getRawHead().size())) == -1) {
     throw std::string("client write error!");
   }
   return write_len;
@@ -109,8 +102,8 @@ void Server::run() {
           setChangeList(this->change_list, client_socket, EVFILT_WRITE,
                         EV_ADD | EV_ENABLE, 0, 0, NULL);
           // value 를 초기화하는 과정
-          this->clients[client_socket] = new Request();
-          this->response = new Response();
+          this->clients[client_socket] =
+              new Transaction(client_socket, "./testpage/");
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
         else if (this->clients.find(curr_event->ident) != this->clients.end()) {
@@ -121,34 +114,42 @@ void Server::run() {
             this->disconnectClient(curr_event->ident, this->clients);
           } else {
             buf[read_len] = '\0';
-            this->clients[curr_event->ident]->setRawMsg(buf);
-            std::cout << GRN << "received data from " << curr_event->ident
-                      << DFT << std::endl;
+            this->clients[curr_event->ident]->getRequest().setRawMsg(buf);
+
             // std::cout << GRY << "received data from " << curr_event->ident
             //           << ": \n"
-            //           << DFT << this->clients[curr_event->ident]->getRawMsg()
+            //           << DFT <<
+            //           this->clients[curr_event->ident]->getRawMsg()
             //           << std::endl;
           }
         }
       }
       // 3. 감지된 이벤트가 write일 경우 => write()
       else if (curr_event->filter == EVFILT_WRITE) {
-        std::map<int, Request *>::iterator it = clients.find(curr_event->ident);
+        std::map<int, Transaction *>::iterator it =
+            clients.find(curr_event->ident);
 
         // 3-1. client에서 이벤트 발생
         if (it != clients.end()) {
-          if (this->clients[curr_event->ident]->getRawMsg() != "") {
+          if (this->clients[curr_event->ident]->getRequest().getRawHead() !=
+              "") {
             // int write_len = safeWrite(curr_event->ident);
 
-            this->clients[curr_event->ident]->toString();
+            this->clients[curr_event->ident]->getRequest().toString();
             // tmp response 출력해보기
             std::cout << YLW << "response: \n"
-                      << DFT << this->response->getResponseMsg() << std::endl;
-            int write_len = this->response->safeWrite(curr_event->ident);
+                      << DFT
+                      << this->clients[curr_event->ident]
+                             ->getResponse()
+                             .getResponseMsg()
+                      << std::endl;
+            int write_len =
+                this->clients[curr_event->ident]->getResponse().safeWrite(
+                    curr_event->ident);
             if (write_len == -1) {
               this->disconnectClient(curr_event->ident, this->clients);
             } else {
-              this->clients[curr_event->ident]->clearSetRawMsg();
+              this->clients[curr_event->ident]->getRequest().clearSetRawMsg();
             }
           }
         }
