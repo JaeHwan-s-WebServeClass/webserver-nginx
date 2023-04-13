@@ -192,5 +192,13 @@ class '트랜잭션' {
 요청 메시지의 '메서드(method)와 리소스(url) 유효성 검사'를 진행하고, 각 메서드에 맞는 요청과 응답을 처리하는 과정을 구현해야한다.
 
 ### 4-2. 논의 사항
-<!-- 1. method, resource, GET DELETE POST 까지 코드 진행하며 상태코드를 int 로 반환 후 switch case 로 한번에 처리
-2. method, resource, GET DELETE POST 각 줄을 진행하며 객체에 상태값과 메시지를 세팅하며 바로 바로 처리 -->
+1. method, resource, GET DELETE POST 까지 코드 진행하며 상태코드를 int 로 반환 후 switch case 로 한번에 처리
+2. method, resource, GET DELETE POST 각 줄을 진행하며 객체에 상태값과 메시지를 세팅하며 바로 바로 처리
+
+   <p align='center'><img src="https://user-images.githubusercontent.com/85930183/231719510-85329c7e-39da-4a93-87f0-eb4dcb18aa0e.jpeg" width='95%'></p>
+
+### 4-2. 결론
+method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하면 각 상태 코드가 나오는데,
+상태 코드를 함수 안에서 한번에 처리하여 트랜잭션의 흐름과 상태 코드 처리를 한 눈에 볼 수 있게 했다.
+
+즉, 상태 코드 반환하는 부분과 객체에 세팅하는 부분을 한 곳으로 모았다.
