@@ -57,7 +57,9 @@ class Request {
   std::string url;
   std::string http_version;
   std::map<std::string, std::string> header;
-  std::vector<std::string> entity;
+  std::string entity;
+
+  bool done;
 
  public:
   Request();
@@ -66,7 +68,8 @@ class Request {
   /// @param update
   /// @return
   void setRawMsg(const char *);
-
+  void setEntity(std::string);
+ 
   const std::string &getRawHead() const;
   const bool &getIsEndHead() const;
   const std::string &getMethod() const;
@@ -74,6 +77,7 @@ class Request {
   const std::string &getHttpVersion() const;
   const std::map<std::string, std::string> &getHeader() const;
   const std::vector<std::string> &getEntity() const;
+  const bool isDone();
 
   void clearSetRawMsg();
   void parserHead();
