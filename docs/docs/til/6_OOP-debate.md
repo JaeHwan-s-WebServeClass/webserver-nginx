@@ -106,7 +106,7 @@ HTTP request message가 `Server class`에서 `Request class`로 이동했다!
 3. 개발자 도구에서 네트워크를 확인하면 메시지가 보내진 걸 볼 수 있음 <br>
    ( 이건 그냥 추가함 )
 
-## 3.
+## 3. [2023.04.12(수)]
 
 ### 3-1. 논의 사항
 
@@ -186,7 +186,7 @@ class '트랜잭션' {
    오버헤드는 어떤 처리를 하기 위해 들어가는 간접적인 처리 시간 · 메모리 등을 말한다. 예를 들어 A라는 처리를 단순하게 실행한다면 10초 걸리는데, 안전성을 고려하고 부가적인 B라는 처리를 추가한 결과 처리시간이 15초 걸렸다면, 오버헤드는 5초가 된다
 
 
-## 4.
+## 4. [2023.04.13(목)]
 
 ### 4-1. 상황
 요청 메시지의 '메서드(method)와 리소스(url) 유효성 검사'를 진행하고, 각 메서드에 맞는 요청과 응답을 처리하는 과정을 구현해야한다.
@@ -203,3 +203,26 @@ method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하�
 
 즉, 상태 코드 반환하는 부분과 객체에 세팅하는 부분을 한 곳으로 모았다.
 ↘︎ switch case 구문으로 처리 계획
+
+## 5 [2023.04.14(금)]
+
+
+## 6 [2023.04.14(금)]
+< 우리가 생각한 entity parsing >
+- step 1. entity를 읽어올 때부터 chunked / content-length 두 종류로 분기해야 함
+- step 2-1. content_length
+   - content-length 만큼 읽는다. 다 읽고 parsing 했으면 done=true
+- step 2-2. chunked
+   - chunked를 읽고, 그 사이즈만큼 read 해야함. 그리고 다 읽고, parsing 후 done=true
+
+=> 그럼 server.cpp의 109line 분기문이 (read하는 부분) Transaction으로 넘겨져야할 것 같음. 왜냐면 현 구조에서는 Transaction이 read할 buffer의 size를 조절하지 못함. chunked라면 이 size를 조절해야함! 
+
+- chunked는 데이터가 역순으로 들어옴. 읽으면서 바른 순서로 돌려야함
+   - 그래서 stack이나 queue에 대한 이야기도 했으나, 매번 chunk값을 해석해서 그만큼 read한다면 필요없을 듯..? 있을듯...? 몰?루?....
+
+=> 결과적으로 setRawMsg를 전체적으로 개편해야함  
+=> Server에서 read/write도 개편. Server는 event만 감지하자. 그 외의 일은 모두 Transaction이 하자!
+
+### < 다음주에 논의할 내용 >
+- parsing (configuration, entity, header) 진짜 최종으로 정리하고 넘어갑시다.
+- Server, Transaction, Response, Request 객체간에 어떤 역할을 할지 명확하게 정리합시다.
