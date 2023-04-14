@@ -46,6 +46,7 @@ class Response {
   std::string status_msg;
   std::map<std::string, std::string> header;
   std::string entity;
+  bool done;
 
   int event_fl;
 
@@ -58,15 +59,15 @@ class Response {
   void setHeader(std::string, std::string);
   void setEntity(std::string);
 
-  //   void getHttpVersion();
-  //   void getStatusCode();
-  //   void getStatusMsg();
-  //   void getHeader();
-  //   void getEntity();
+    // void getHttpVersion();
+    // void getStatusCode();
+    // void getStatusMsg();
+    // void getHeader();
+    // void getEntity();
 
-  int safeWrite(int fd);
   void setResponseMsg();
   std::string getResponseMsg();
+  const bool  isDone();
 };
 
 #endif

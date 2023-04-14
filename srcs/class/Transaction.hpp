@@ -42,7 +42,8 @@ class Transaction {
   Request &getRequest();
   
   int httpCheckStartLine(void);
-  void executeTransaction(void);
+
+  void executeTransaction(const char *);
 
   int httpGet(void);
   int httpDelete(void);

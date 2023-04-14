@@ -48,12 +48,12 @@ int Server::safeRead(int fd, char *buf) {
   return read_len;
 }
 
-int Server::safeWrite(int fd) {
+int Server::safeWrite(int fd, Response &response) {
   int write_len;
 
   if ((write_len =
-           write(fd, this->clients[fd]->getRequest().getRawHead().c_str(),
-                 this->clients[fd]->getRequest().getRawHead().size())) == -1) {
+           write(fd, response.getResponseMsg().c_str(),
+                 response.getResponseMsg().size())) == -1) {
     throw std::string("client write error!");
   }
   return write_len;
@@ -103,7 +103,7 @@ void Server::run() {
                         EV_ADD | EV_ENABLE, 0, 0, NULL);
           // value 를 초기화하는 과정
           this->clients[client_socket] =
-              new Transaction(client_socket, "./testpage/");
+              new Transaction(client_socket, "./rootdir/test");
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
         else if (this->clients.find(curr_event->ident) != this->clients.end()) {
@@ -114,13 +114,7 @@ void Server::run() {
             this->disconnectClient(curr_event->ident, this->clients);
           } else {
             buf[read_len] = '\0';
-            this->clients[curr_event->ident]->getRequest().setRawMsg(buf);
-
-            // std::cout << GRY << "received data from " << curr_event->ident
-            //           << ": \n"
-            //           << DFT <<
-            //           this->clients[curr_event->ident]->getRawMsg()
-            //           << std::endl;
+            this->clients[curr_event->ident]->executeTransaction(buf);
           }
         }
       }
@@ -131,22 +125,12 @@ void Server::run() {
 
         // 3-1. client에서 이벤트 발생
         if (it != clients.end()) {
-          if (this->clients[curr_event->ident]->getRequest().getRawHead() !=
-              "") {
-            // int write_len = safeWrite(curr_event->ident);
-
-            this->clients[curr_event->ident]->getRequest().toString();
-            // tmp response 출력해보기
-            std::cout << YLW << "response: \n"
-                      << DFT
-                      << this->clients[curr_event->ident]
-                             ->getResponse()
-                             .getResponseMsg()
-                      << std::endl;
+          // 응답시간이 너무 길어질 때의 처리도 필요하다.
+          Response tmp_response = this->clients[curr_event->ident]->getResponse();
+          if (tmp_response.isDone()) {
             int write_len =
-                this->clients[curr_event->ident]->getResponse().safeWrite(
-                    curr_event->ident);
-            if (write_len == -1) {
+                this->safeWrite(curr_event->ident, tmp_response);
+            if (tmp_response.isDone()) {
               this->disconnectClient(curr_event->ident, this->clients);
             } else {
               this->clients[curr_event->ident]->getRequest().clearSetRawMsg();
@@ -157,4 +141,3 @@ void Server::run() {
     }
   }
 }
-

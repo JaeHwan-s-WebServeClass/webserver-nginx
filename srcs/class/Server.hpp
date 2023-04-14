@@ -15,6 +15,7 @@
 
 #include "ServerSocket.hpp"
 #include "Transaction.hpp"
+#include "Response.hpp"
 
 #define RED "\033[0;31m"
 #define GRN "\033[0;32m"
@@ -73,8 +74,9 @@ class Server {
 
   /// @brief
   /// @param fd
+  /// @param response
   /// @return write size
-  int safeWrite(int);
+  int safeWrite(int, Response &);
 };
 
 #endif

@@ -22,47 +22,46 @@ void Request::setRawMsg(const char* read_msg) {
     }
   }
   // Chunked Message, 책 p438
-  buf()
-      this->setEntity(line);
+  // buf()
+  //     this->setEntity(line);
+  this->done = true;
 }
 
-void Request::setEntity(std::string line) {
-  // content length가 있을 때
-  if (header.find("Content-Length") != header.end()) {
-    if (entity.size() == header["Content_Length"]) {
-      done = true;
-    }
-    if (header["Content-Length"] >= (entity.length() + line.length()))
-      this->entity += line;
-    else if (header["Content-Length"] < (entity.length() + line.length()))
-    {
-      int i = 0;
-      while(header["Content-Length"] > entity.length()) {
-        entity += line[i++];
-      }    
-    }
-  }
-  // content length가 없을 때
-  else { 
-    // transfer encoding이 있을 때
-      // chunk: body를 chunk 단위로 쪼개서 보내게 되며, 다 끝나면 0으로 채워진 chunk가 오게 된다.
-      // chunk size는 chunk의 시작부분에 있는 16진수의 값으로 size가 지정된다. (p.438)
-    if (header.find("Transfer-Encoding") != header.end()) {
-    // transfer encoding이 없을 때
-    } else {
+// void Request::setEntity(std::string line) {
+//   // content length가 있을 때
+//   if (header.find("Content-Length") != header.end()) {
+//     if (entity.size() == header["Content_Length"]) {
+//       done = true;
+//     }
+//     if (header["Content-Length"] >= (entity.length() + line.length()))
+//       this->entity += line;
+//     else if (header["Content-Length"] < (entity.length() + line.length()))
+//     {
+//       int i = 0;
+//       while(header["Content-Length"] > entity.length()) {
+//         entity += line[i++];
+//       }    
+//     }
+//   }
+//   // content length가 없을 때
+//   else { 
+//     // transfer encoding이 있을 때
+//       // chunk: body를 chunk 단위로 쪼개서 보내게 되며, 다 끝나면 0으로 채워진 chunk가 오게 된다.
+//       // chunk size는 chunk의 시작부분에 있는 16진수의 값으로 size가 지정된다. (p.438)
+//     if (header.find("Transfer-Encoding") != header.end()) {
+//     // transfer encoding이 없을 때
+//     } else {
 
-    }
+//     }
 
-    this->entity += line;
-    if (EOF 만났으면)
-    {  
-      done = true;
-    }
-  }
+//     this->entity += line;
+//     if (EOF 만났으면)
+//     {  
+//       done = true;
+//     }
+//   }
    
-
-  
-}
+// }
 
 const std::string& Request::getRawHead() const { return this->raw_head; }
 const bool& Request::getIsEndHead() const { return this->is_end_head; }
@@ -74,7 +73,7 @@ const std::string& Request::getHttpVersion() const {
 const std::map<std::string, std::string>& Request::getHeader() const {
   return this->header;
 }
-const std::vector<std::string>& Request::getEntity() const {
+const std::string& Request::getEntity() const {
   return this->entity;
 }
 
@@ -120,4 +119,8 @@ void Request::parserHead() {
     int pos = it->find(':');
     header[it->substr(0, pos)] = it->substr(pos + 1);
   }
+}
+
+const bool  Request::isDone() {
+  return this->done;
 }

@@ -68,7 +68,7 @@ class Request {
   /// @param update
   /// @return
   void setRawMsg(const char *);
-  void setEntity(std::string);
+//   void setEntity(std::string);
  
   const std::string &getRawHead() const;
   const bool &getIsEndHead() const;
@@ -76,7 +76,7 @@ class Request {
   const std::string &getUrl() const;
   const std::string &getHttpVersion() const;
   const std::map<std::string, std::string> &getHeader() const;
-  const std::vector<std::string> &getEntity() const;
+  const std::string &getEntity() const;
   const bool isDone();
 
   void clearSetRawMsg();
