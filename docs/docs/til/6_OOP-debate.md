@@ -28,6 +28,7 @@ Socket 클래스에서 객체에 속성과 기능을 추가하는 단계에 대�
 
 <br>
 
+***
 ## 2.
 
 ### 2-1. 논의 사항
@@ -106,6 +107,7 @@ HTTP request message가 `Server class`에서 `Request class`로 이동했다!
 3. 개발자 도구에서 네트워크를 확인하면 메시지가 보내진 걸 볼 수 있음 <br>
    ( 이건 그냥 추가함 )
 
+***
 ## 3. [2023.04.12(수)]
 
 ### 3-1. 논의 사항
@@ -186,6 +188,7 @@ class '트랜잭션' {
    오버헤드는 어떤 처리를 하기 위해 들어가는 간접적인 처리 시간 · 메모리 등을 말한다. 예를 들어 A라는 처리를 단순하게 실행한다면 10초 걸리는데, 안전성을 고려하고 부가적인 B라는 처리를 추가한 결과 처리시간이 15초 걸렸다면, 오버헤드는 5초가 된다
 
 
+***
 ## 4. [2023.04.13(목)]
 
 ### 4-1. 상황
@@ -201,28 +204,102 @@ class '트랜잭션' {
 method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하면 각 상태 코드가 나오는데,
 상태 코드를 함수 안에서 한번에 처리하여 트랜잭션의 흐름과 상태 코드 처리를 한 눈에 볼 수 있게 했다.
 
-즉, 상태 코드 반환하는 부분과 객체에 세팅하는 부분을 한 곳으로 모았다.
-↘︎ switch case 구문으로 처리 계획
+즉, 상태 코드 반환하는 부분과 객체에 세팅하는 부분을 한 곳으로 모았다.<br>
+<b>↘︎ switch case 구문으로 처리 계획</b>
 
+***
 ## 5 [2023.04.14(금)]
+### 5-1. 상황
+트랜잭션 객체를 통해서 요청, 응답을 처리하기로 했다. 하지만 현재 코드는 트랜잭션 객체는 있지만 요청, 응답을 직접 처리하기 때문에 트랜잭션 객체를 통하도록 수정이 필요하다. 현재 코드 진행 상황은 이렇다.
 
+<p align='center'><img src="https://user-images.githubusercontent.com/85930183/232207851-e04cfad6-9d77-4b7f-9b99-175a3d612936.png" width='80%'></p>
+
+1. READ 는 클라이언트 요청을 감지하고, 요청 메시지를 받고 처리한다.<br>
+2. WRITE 는 응답 메시지를 만들고, 클라이언트에게 보낸다.
+
+앞서 얘기했듯이 READ 의 첫 줄을 보면, `new transaction` 을 생성하지만 transaction 객체를 통해 요청 메시지를 처리하지 않고, request 객체의 멤버 함수인 setRawMsg() 를 통해 메시지를 처리한다.
+
+
+### 5-2. 진행 계획
+다음 그림처럼 server 에서 READ 로 요청을 감지하면 Transaction 객체로 넘기도록 구현하자.<br>이후 Transaction 객체는 Request 객체의 parse 를 호출하도록 한다.<br>❗️ 그림의 parse() 는 setRawMsg() 이다.
+
+<p align='center'><img src="https://user-images.githubusercontent.com/85930183/232208099-d8f976f2-0ad2-4ddf-9ba2-2df8b24cb608.png" width='80%'></p>
+
+### 5-3. 결론
+`executeTransaction()` 를 만들었다. 해당 멤버 함수를 통해 request 객체에 접근하여 요청 메시지를 받을 수 있게 구현했다.
+
+### 5-4. 그 때 그 순간
+
+<img src="https://user-images.githubusercontent.com/85930183/232208805-d5f2d6c4-aaeb-4638-b58d-81ceb116cae0.png" width='30%' float='left'>
+<img src="https://user-images.githubusercontent.com/85930183/232208809-502d22d0-cb72-4863-a90e-54db9162b619.png" width='33%' float='left'>
+<img src="https://user-images.githubusercontent.com/85930183/232208811-a5bf519f-4ddb-486f-b050-e9f4248ff8eb.png" width='35%'>
+
+
+***
 
 ## 6 [2023.04.14(금)]
-< 우리가 생각한 entity parsing >
-- step 1. entity를 읽어올 때부터 chunked / content-length 두 종류로 분기해야 함
-- step 2-1. content_length
-   - content-length 만큼 읽는다. 다 읽고 parsing 했으면 done=true
-- step 2-2. chunked
-   - chunked를 읽고, 그 사이즈만큼 read 해야함. 그리고 다 읽고, parsing 후 done=true
+### 6-1. 상황
+요청 메시지의 head (시작줄 & 헤더) 파싱을 마무리하고, entity 파싱을 해야할 차례다..! 쉬울 줄 알았던 entity 파싱... 생각치 못한 entity 의 특징이 있었다. <br>
 
-=> 그럼 server.cpp의 109line 분기문이 (read하는 부분) Transaction으로 넘겨져야할 것 같음. 왜냐면 현 구조에서는 Transaction이 read할 buffer의 size를 조절하지 못함. chunked라면 이 size를 조절해야함! 
+#### 특징 1. entity 의 내용은 두 가지 종류로 나뉜다. 
+   - Chunked
 
-- chunked는 데이터가 역순으로 들어옴. 읽으면서 바른 순서로 돌려야함
-   - 그래서 stack이나 queue에 대한 이야기도 했으나, 매번 chunk값을 해석해서 그만큼 read한다면 필요없을 듯..? 있을듯...? 몰?루?....
+      Chunked 로 들어올 경우, Content-Length 에 대한 정보가 없다. 그리고 chunk 의 값이 다르다.
 
-=> 결과적으로 setRawMsg를 전체적으로 개편해야함  
-=> Server에서 read/write도 개편. Server는 event만 감지하자. 그 외의 일은 모두 Transaction이 하자!
+      <img src="https://user-images.githubusercontent.com/85930183/232204903-3d1af4f5-b1ee-4f9e-860f-b24b356f9d94.png" width='50%'>
+   
+   - Content-Length
 
-### < 다음주에 논의할 내용 >
-- parsing (configuration, entity, header) 진짜 최종으로 정리하고 넘어갑시다.
-- Server, Transaction, Response, Request 객체간에 어떤 역할을 할지 명확하게 정리합시다.
+      length 로 들어올 경우, Chunked 가 없다.
+
+      <img src="https://user-images.githubusercontent.com/85930183/232205330-c1b3fabc-7be5-4529-ad5f-fd965150c516.png" width='50%'>
+
+<br>
+
+#### 특징 2. chunked 로 올 경우, 내용을 역순으로 받아온다.
+   - 참고<br>
+      <img src="https://user-images.githubusercontent.com/85930183/232204412-d04d520b-2184-44eb-bc38-18532a18deea.png" width='80%'>
+
+<br>
+
+### 6-2. 우리가 생각한 entity parsing
+
+#### step 1. 분기
+- entity를 읽어올 때부터 chunked / content-length 두 종류로 분기해야 함
+#### step 2. content_length
+   - content-length 만큼 읽는다.
+   - 다 읽고, parsing 후 done=true
+#### step 3. chunked
+   - chunked를 읽고, 그 사이즈만큼 read 해야함.
+   - 다 읽고, parsing 후 done=true
+
+<br>
+
+### 6-3. 고민 사항
+<br>
+
+#### 6-3-1. entity 를 read 할 위치
+- 우리가 생각한 entity parsing 을 한다면 server.cpp 의 109 line 분기문이 (read 하는 부분) Transaction 으로 넘겨져야할 것 같다.
+
+   왜냐하면 Chunked 로 entity 가 들어온다면 Chunk size 에 따라 read 할 buffer size 를 조절해야 파싱하기 수월한데, 현 구조에서는 read 가 Transaction 밖에 있어서, chunk 에 따라 buffer 의 size 를 조절하지 못하기 때문이다.
+
+   즉, Trasaction 에서 read 를 한다면 buffer 의 size 를 조절할 수 있어서 파싱하기 수월하다.
+
+<br>
+
+#### 6-3-2. 역순으로 들어오는 chunk 로 들어오는 데이터
+- chunked 는 데이터가 역순으로 들어오기 때문에, 읽으면서 바른 순서로 돌려야한다.
+   - stack 이나 queue 자료구조에 대한 이야기도 했으나, 매번 chunk 값을 해석해서 그만큼 read 한다면 필요하지 않을 수도 있을 것 같다. 추후에 다시 논의가 필요하다.
+
+### 6-4. 결론
+논의가 더 필요하다.
+#### < 다음주에 논의할 내용 >
+- setRawMsg 를 전체적으로 개편?!
+
+- Server 의 read/write도 개편<br>
+   Server는 event만 감지하며, 그 외의 일은 모두 Transaction이 하자?!
+
+- parsing (configuration, entity, header) 정리!
+
+- Server, Transaction, Response, Request 객체간에 어떤 역할을 할지 명확하게 정리!
+
