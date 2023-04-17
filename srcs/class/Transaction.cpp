@@ -5,7 +5,7 @@
 //---- constructor --------------------------------------------
 Transaction::Transaction(int socket_fd, std::string root_dir)
     : socket_fd(socket_fd), root_dir(root_dir) {
-  std::cout << GRY << "Transaction: constructor\n" << DFT;
+  std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
 }
 
 //---- getter ---------------------------------------------
@@ -22,8 +22,32 @@ int Transaction::executeRead(void) {
     return -1;
   } else {
     buf[read_len] = '\0';
+
+    /*
+      1-1. head parsing이 끝난 경우
+           ㄴ head가 끝났다면 2(body에 대한 parsing)로 넘어간다
+          2-1. content-length의 존재하는 경우
+               ㄴ content-length의 value를 받아와서 활용한다.
+          2-2. content-length의 존재하지 않는 경우
+               ㄴ chunk로 처리 => gnl식 처리
+      1-2. head parsing이 끝나지 않은 경우
+           ㄴ 더 읽어들여야한다.
+    */
+
+    /* pseudo code
+    setRawMsgHead() {
+      if (head의 content-length 옵션) {
+        content-langth의 길이만큼 Request의 entity 를 채워준다.
+      }
+      else if (청크일 경우) {
+      }
+      else  { Error! }
+    }
+
+    */
     this->request.setRawMsg(buf);
   }
+  std::cout << GRY << "Debug: Transaction::executeRead\n";
   return 0;
 }
 
@@ -32,6 +56,8 @@ int Transaction::executeWrite(void) {
       (safeWrite(this->socket_fd, this->response) == -1)) {
     return -1;
   }
+  std::cout << GRY << "Debug: Transaction::executeWrite\n";
+
   return 0;
 }
 
@@ -74,6 +100,8 @@ int Transaction::executeMethod(void) {
       break;
   }
   this->response.setResponseMsg();
+  std::cout << GRY << "Debug: Transaction::executeMethod\n";
+
   return 0;
 }
 
@@ -89,6 +117,8 @@ int Transaction::httpCheckStartLine() {
   if (access((this->root_dir + this->request.getUrl()).c_str(), F_OK) == -1) {
     return (404);  // Not Found.
   }
+  std::cout << GRY << "Debug: Transaction::httpCheckStartLine\n";
+
   return (0);
 }
 
@@ -120,6 +150,8 @@ int Transaction::httpGet(void) {
 
   this->response.setHeader("Content-Length", content_length.str());
   this->response.setEntity(content);
+  std::cout << GRY << "Debug: Transaction::httpGet\n";
+
   return 200;
 }
 
@@ -140,6 +172,8 @@ int Transaction::safeRead(int fd, char *buf) {
   if ((read_len = read(fd, buf, BUFFER_SIZE)) == -1) {
     throw std::string("client read error!");
   }
+  std::cout << GRY << "Debug: Transaction::safeRead\n";
+
   return read_len;
 }
 
@@ -150,5 +184,7 @@ int Transaction::safeWrite(int fd, Response &response) {
                          response.getResponseMsg().size())) == -1) {
     throw std::string("client write error!");
   }
+  std::cout << GRY << "Debug: Transaction::safeWrite\n";
+
   return write_len;
 }

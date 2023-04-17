@@ -1,15 +1,20 @@
 #include "Request.hpp"
 
-Request::Request() : raw_head(""), is_end_head(0), done(false), entity("") {}
+Request::Request() : raw_head(""), is_end_head(0), done(false), entity("") {
+  std::cout << GRY << "Debug: Request::contructor\n" << DFT;
+}
 
 //---- getter/setter --------------------------------------------
-// -------------------------- 갈 부분? 갈릴 부분...? -----------------------
+// -------------------------- 수정할 부분 -----------------------
 void Request::setRawMsg(const char* read_msg) {
   std::istringstream buf;
   buf.str(read_msg);
 
   std::string line;
+// -------------------------- head 파싱 -----------------------
   while (std::getline(buf, line, '\n')) {
+  // char buf[BUFFER_SIZE];
+  // int read_len = safeRead(this->socket_fd, buf);
     if (line.length() == 0 || line == "\r") {
       this->is_end_head = true;
       this->parserHead();
@@ -18,19 +23,12 @@ void Request::setRawMsg(const char* read_msg) {
       if (!buf.eof()) {
         this->raw_head += '\n';
       }
-    } else {
-      // 2. 헤드 파싱을 참고해서 Content-Length 인지 chunk 인지 확인
-      // Content-Length 이면 buf[BUFFER_SIZE]
-      // chunk 이면 첫줄 16진수 -> 10진수로 바꾼 뒤... 그 수 만큼 그 다음
-      // 읽어오기 /r/n 으로 구분 break;
-      this->entity += line;
-      this->entity += "\n";
     }
+// -------------------------- entity 파싱 -----------------------
   }
-  // Chunked Message, 책 p438
-  // buf()
-  //     this->setEntity(line);
+// -------------------------- done -----------------------
   this->done = true;
+  std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
 }
 // ------------------------------------------------------------------------
 
@@ -104,6 +102,7 @@ void Request::toString() const {
   // 	std::cout << YLW << entity[i] << std::endl;
   //  }
   std::cout << YLW << entity << DFT << std::endl;
+  std::cout << GRY << "Debug: Request::toString\n" << DFT;
 }
 
 void Request::parserHead() {
@@ -126,6 +125,7 @@ void Request::parserHead() {
     int pos = it->find(':');
     header[it->substr(0, pos)] = it->substr(pos + 1);
   }
+  std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
 }
 
 const bool Request::isDone() { return this->done; }
