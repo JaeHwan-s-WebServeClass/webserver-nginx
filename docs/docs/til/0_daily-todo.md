@@ -282,10 +282,25 @@
 
 ### 진행 계획
 1. 요청 메시지 read 위치 논의
+    - setRawMsg 를 전체적으로 개편?!
+    - Server 의 read/write도 개편
+        * Server는 event만 감지하며, 그 외의 일은 모두 Transaction이 하자?!
+    - parsing (configuration, entity, header) 정리!
+    - Server, Transaction, Response, Request 객체간에 어떤 역할을 할지 명확하게 정리!
+
+2. 논의 바탕으로 구현
 
 ### 결과
-[13:00 ~ 15:30] 
+1. read, write 를 transaction 으로 논의
+    1-1. 넣고 200 을 받자
+    
+2. setRawMsg chunk 와 content-length 로 구분하자.
 
+[13:30 ~ 16:00] server 와 read, method, write, transaction 구현 & 논의
+
+[16:30 ~ 18:00] transaction 구조 논의 & 수정 & 포스트맨 테스트
+
+[20:00 ~ 21:00] entity parsing 논의 - gnl 로 일단 합의
 
 <br>
 
