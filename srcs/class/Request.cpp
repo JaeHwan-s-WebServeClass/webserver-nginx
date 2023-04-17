@@ -1,8 +1,9 @@
 #include "Request.hpp"
 
-Request::Request() : raw_head(""), is_end_head(0), done(false) {}
+Request::Request() : raw_head(""), is_end_head(0), done(false), entity("") {}
 
 //---- getter/setter --------------------------------------------
+// -------------------------- 갈 부분? 갈릴 부분...? -----------------------
 void Request::setRawMsg(const char* read_msg) {
   std::istringstream buf;
   buf.str(read_msg);
@@ -18,7 +19,12 @@ void Request::setRawMsg(const char* read_msg) {
         this->raw_head += '\n';
       }
     } else {
-      break;
+      // 2. 헤드 파싱을 참고해서 Content-Length 인지 chunk 인지 확인
+      // Content-Length 이면 buf[BUFFER_SIZE]
+      // chunk 이면 첫줄 16진수 -> 10진수로 바꾼 뒤... 그 수 만큼 그 다음
+      // 읽어오기 /r/n 으로 구분 break;
+      this->entity += line;
+      this->entity += "\n";
     }
   }
   // Chunked Message, 책 p438
@@ -26,6 +32,7 @@ void Request::setRawMsg(const char* read_msg) {
   //     this->setEntity(line);
   this->done = true;
 }
+// ------------------------------------------------------------------------
 
 // void Request::setEntity(std::string line) {
 //   // content length가 있을 때
@@ -40,14 +47,16 @@ void Request::setRawMsg(const char* read_msg) {
 //       int i = 0;
 //       while(header["Content-Length"] > entity.length()) {
 //         entity += line[i++];
-//       }    
+//       }
 //     }
 //   }
 //   // content length가 없을 때
-//   else { 
+//   else {
 //     // transfer encoding이 있을 때
-//       // chunk: body를 chunk 단위로 쪼개서 보내게 되며, 다 끝나면 0으로 채워진 chunk가 오게 된다.
-//       // chunk size는 chunk의 시작부분에 있는 16진수의 값으로 size가 지정된다. (p.438)
+//       // chunk: body를 chunk 단위로 쪼개서 보내게 되며, 다 끝나면 0으로
+//       채워진 chunk가 오게 된다.
+//       // chunk size는 chunk의 시작부분에 있는 16진수의 값으로 size가
+//       지정된다. (p.438)
 //     if (header.find("Transfer-Encoding") != header.end()) {
 //     // transfer encoding이 없을 때
 //     } else {
@@ -56,11 +65,11 @@ void Request::setRawMsg(const char* read_msg) {
 
 //     this->entity += line;
 //     if (EOF 만났으면)
-//     {  
+//     {
 //       done = true;
 //     }
 //   }
-   
+
 // }
 
 const std::string& Request::getRawHead() const { return this->raw_head; }
@@ -73,9 +82,7 @@ const std::string& Request::getHttpVersion() const {
 const std::map<std::string, std::string>& Request::getHeader() const {
   return this->header;
 }
-const std::string& Request::getEntity() const {
-  return this->entity;
-}
+const std::string& Request::getEntity() const { return this->entity; }
 
 void Request::clearSetRawMsg() { this->raw_head.clear(); }
 
@@ -91,12 +98,12 @@ void Request::toString() const {
        it != header.end(); ++it) {
     std::cout << BLU << it->first << ": " << DFT << it->second << std::endl;
   }
-  std::cout << GRY << "----------------------------------------------------"
+  std::cout << GRY << "--------------------- entity -----------------------"
             << DFT << std::endl;
   //  for (int i = 0; i < entity.size(); i++) {
   // 	std::cout << YLW << entity[i] << std::endl;
   //  }
-  // std::cout << DFT << std::endl;
+  std::cout << YLW << entity << DFT << std::endl;
 }
 
 void Request::parserHead() {
@@ -121,6 +128,4 @@ void Request::parserHead() {
   }
 }
 
-const bool  Request::isDone() {
-  return this->done;
-}
+const bool Request::isDone() { return this->done; }

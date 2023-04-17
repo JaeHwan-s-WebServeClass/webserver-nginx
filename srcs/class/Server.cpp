@@ -27,7 +27,6 @@ void Server::disconnectClient(int client_fd,
 }
 
 // ---- safe functions
-// -----------------------------------------------------------------
 int Server::safeKevent(int nevents, const timespec *timeout) {
   int new_events;
 
@@ -39,28 +38,7 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
   return new_events;
 }
 
-int Server::safeRead(int fd, char *buf) {
-  int read_len;
-
-  if ((read_len = read(fd, buf, BUFFER_SIZE)) == -1) {
-    throw std::string("client read error!");
-  }
-  return read_len;
-}
-
-int Server::safeWrite(int fd, Response &response) {
-  int write_len;
-
-  if ((write_len =
-           write(fd, response.getResponseMsg().c_str(),
-                 response.getResponseMsg().size())) == -1) {
-    throw std::string("client write error!");
-  }
-  return write_len;
-}
-
 //---- main loop
-//-----------------------------------------------------------------
 void Server::run() {
   setChangeList(this->change_list, this->server_socket->getServerSocket(),
                 EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -107,14 +85,11 @@ void Server::run() {
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
         else if (this->clients.find(curr_event->ident) != this->clients.end()) {
-          char buf[BUFFER_SIZE];
-          int read_len = safeRead(curr_event->ident, buf);
-
-          if (read_len == 0) {
+          if (this->clients[curr_event->ident]->executeRead() == -1) {
             this->disconnectClient(curr_event->ident, this->clients);
           } else {
-            buf[read_len] = '\0';
-            this->clients[curr_event->ident]->executeTransaction(buf);
+            // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
+            this->clients[curr_event->ident]->executeMethod();
           }
         }
       }
@@ -126,16 +101,15 @@ void Server::run() {
         // 3-1. client에서 이벤트 발생
         if (it != clients.end()) {
           // 응답시간이 너무 길어질 때의 처리도 필요하다.
-          Response tmp_response = this->clients[curr_event->ident]->getResponse();
-          if (tmp_response.isDone()) {
-            int write_len =
-                this->safeWrite(curr_event->ident, tmp_response);
-            if (tmp_response.isDone()) {
-              this->disconnectClient(curr_event->ident, this->clients);
-            } else {
-              this->clients[curr_event->ident]->getRequest().clearSetRawMsg();
-            }
+          if (this->clients[curr_event->ident]->executeWrite() == -1) {
+            this->disconnectClient(curr_event->ident, this->clients);
           }
+          // 어떤 조건이었지??? => 아마 keepalive를 위해 사용되는 조건들
+          // if (write() == -1) {
+          //   this->disconnectClient(curr_event->ident, this->clients);
+          // } else {
+          //   this->clients[curr_event->ident]->getRequest().clearSetRawMsg();
+          // }
         }
       }
     }

@@ -1,4 +1,5 @@
 #include "Transaction.hpp"
+
 #include <exception>
 
 //---- constructor --------------------------------------------
@@ -12,12 +13,31 @@ Response &Transaction::getResponse() { return this->response; }
 
 Request &Transaction::getRequest() { return this->request; }
 
-//---- check & execute ---------------------------------------
-void Transaction::executeTransaction(const char *buf) {
-  std::cout << GRY << "Transaction: executeTransaction\n" <<  DFT;
-  this->request.setRawMsg(buf);
+//---- execute --------------------------------------------
+int Transaction::executeRead(void) {
+  char buf[BUFFER_SIZE];
+  int read_len = safeRead(this->socket_fd, buf);
+
+  if (read_len == 0) {
+    return -1;
+  } else {
+    buf[read_len] = '\0';
+    this->request.setRawMsg(buf);
+  }
+  return 0;
+}
+
+int Transaction::executeWrite(void) {
+  if (this->response.isDone() &&
+      (safeWrite(this->socket_fd, this->response) == -1)) {
+    return -1;
+  }
+  return 0;
+}
+
+int Transaction::executeMethod(void) {
   if (!this->request.isDone()) {
-    return;
+    return 0;
   }
   this->request.toString();
   int status = this->httpCheckStartLine();
@@ -30,7 +50,7 @@ void Transaction::executeTransaction(const char *buf) {
       status = this->httpDelete();
     }
   }
-  switch(status){
+  switch (status) {
     // setStatusCode 와 setStatusMsg 를 합치자?
     case 200:
       this->response.setStatusCode("200");
@@ -54,17 +74,20 @@ void Transaction::executeTransaction(const char *buf) {
       break;
   }
   this->response.setResponseMsg();
+  return 0;
 }
 
-int  Transaction::httpCheckStartLine() {
-  if (!(this->request.getMethod() == "GET" || this->request.getMethod() == "POST" ||
+//---- check sl --------------------------------------------
+int Transaction::httpCheckStartLine() {
+  if (!(this->request.getMethod() == "GET" ||
+        this->request.getMethod() == "POST" ||
         this->request.getMethod() == "DELETE")) {
-    return (501); // Not Implemented.
+    return (501);  // Not Implemented.
   }
-// method, resource, GET DELETE POST 까지 코드 진행하며 상태코드를 int 로 반환 후 switch case 로 한번에 처리
-  std::cout << "rootdir: " << this->root_dir << " " << "getUrl: " << this->request.getUrl() << std::endl;
+  // std::cout << "rootdir: " << this->root_dir << "\n"
+  // << "getUrl: " << this->request.getUrl() << std::endl;
   if (access((this->root_dir + this->request.getUrl()).c_str(), F_OK) == -1) {
-    return (404); // Not Found.
+    return (404);  // Not Found.
   }
   return (0);
 }
@@ -77,29 +100,55 @@ int Transaction::httpGet(void) {
   if (!resource) {
     return 500;
   }
-// 1. 메모리 사용량
-// std::string을 사용하여 파일을 한 번에 읽으면, 파일 크기와 같은 크기의 메모리를 사용합니다. 파일이 매우 큰 경우, 이는 메모리 부족으로 이어질 수 있습니다.
-// 2. 대용량 파일 처리 문제
-// 대용량 파일 처리에는 더 좋은 방법이 있습니다. 위의 코드는 파일 내용을 한 번에 읽어들이기 때문에, 매우 큰 파일을 처리할 때는 속도가 느려질 수 있습니다.
-// 3. 문자 인코딩 문제
-// std::string은 바이트 단위로 문자열을 처리하기 때문에, 파일의 문자 인코딩이 유니코드가 아닌 경우, 문자열이 올바르게 처리되지 않을 수 있습니다. 이 경우, 유니코드를 지원하는 std::wstring을 사용해야 합니다.
-  std::string   content((std::istreambuf_iterator<char>(resource)),
-                         std::istreambuf_iterator<char>());
-  
+  // 1. 메모리 사용량
+  // std::string을 사용하여 파일을 한 번에 읽으면, 파일 크기와 같은 크기의
+  // 메모리를 사용합니다. 파일이 매우 큰 경우, 이는 메모리 부족으로 이어질 수
+  // 있습니다.
+  // 2. 대용량 파일 처리 문제
+  // 대용량 파일 처리에는 더 좋은 방법이 있습니다. 위의 코드는 파일 내용을 한
+  // 번에 읽어들이기 때문에, 매우 큰 파일을 처리할 때는 속도가 느려질 수
+  // 있습니다.
+  // 3. 문자 인코딩 문제
+  // std::string은 바이트 단위로 문자열을 처리하기 때문에, 파일의 문자 인코딩이
+  // 유니코드가 아닌 경우, 문자열이 올바르게 처리되지 않을 수 있습니다. 이 경우,
+  // 유니코드를 지원하는 std::wstring을 사용해야 합니다.
+  std::string content((std::istreambuf_iterator<char>(resource)),
+                      std::istreambuf_iterator<char>());
+
   std::stringstream content_length;
   content_length << content.length();
- 
+
   this->response.setHeader("Content-Length", content_length.str());
   this->response.setEntity(content);
   return 200;
 }
 
 int Transaction::httpDelete(void) {
-  std::cout <<  GRY << "Transaction: httpDelete\n" << DFT;
+  std::cout << GRY << "Transaction: httpDelete\n" << DFT;
   return 200;
 }
 
 int Transaction::httpPost(void) {
-  std::cout <<  GRY << "Transaction: httpPost\n" << DFT;
+  std::cout << GRY << "Transaction: httpPost\n" << DFT;
   return 200;
+}
+
+// ---- safe functions -----------------------------------------
+int Transaction::safeRead(int fd, char *buf) {
+  int read_len;
+
+  if ((read_len = read(fd, buf, BUFFER_SIZE)) == -1) {
+    throw std::string("client read error!");
+  }
+  return read_len;
+}
+
+int Transaction::safeWrite(int fd, Response &response) {
+  int write_len;
+
+  if ((write_len = write(fd, response.getResponseMsg().c_str(),
+                         response.getResponseMsg().size())) == -1) {
+    throw std::string("client write error!");
+  }
+  return write_len;
 }

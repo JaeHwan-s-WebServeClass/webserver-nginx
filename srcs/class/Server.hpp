@@ -24,8 +24,6 @@
 #define GRY "\033[90m"
 #define DFT "\033[0;37m"
 
-#define BUFFER_SIZE 1024
-
 class Server {
  private:
   // Request 클래스를 넣어봄
@@ -65,12 +63,6 @@ class Server {
   /// @param timeout
   /// @return
   int safeKevent(int, const timespec *);
-
-  /// @brief
-  /// @param fd
-  /// @param buf
-  /// @return read size
-  int safeRead(int, char *);
 
   /// @brief
   /// @param fd
