@@ -1,10 +1,12 @@
 #include "../include/include.hpp"
 
 int hexToInt(const std::string& hex_str) {
-  int dec = 0;
+  unsigned int dec = 0;
 
   for (std::string::const_iterator it = hex_str.begin(); it != hex_str.end();
        ++it) {
+    if ((dec & 0xF0000000) != 0) throw std::string("overflow");
+
     char c = *it;
 
     if (c >= '0' && c <= '9') {
