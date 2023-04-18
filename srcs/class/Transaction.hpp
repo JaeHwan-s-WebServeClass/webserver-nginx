@@ -40,8 +40,8 @@ class Transaction {
 
   int executeRead(void);
       void  executeReadHead(void);
-      int   executeReadContentLengthEntity(void);
-      int   executeReadChunkedEntity(void);
+      void   executeReadContentLengthEntity(void);
+      void   executeReadChunkedEntity(void);
   int executeWrite(void);
   int executeMethod(void);
 

@@ -103,6 +103,15 @@ void Transaction::executeReadHead() {
     }
 }
 
+// void Transaction::executeReadContentLengthEntity() {
+//   int head_rest_len = this->read_head_len - (this->request.getRawHead().length());
+//   this->request.addContentLengthEntity(this->head_buf + this->request.getRawHead().length(), head_rest_len);
+//   int read_len = safeRead(this->socket_fd, entity_buf, MAX_BODY_SIZE);
+//   entity_buf[read_len] = '\0';
+//   this->request.addContentLengthEntity(entity_buf, read_len);
+//   this->request.setEntityDone(true);
+// }
+
 int Transaction::executeWrite(void) {
   if (this->response.getEntityDone() &&
       (safeWrite(this->socket_fd, this->response) == -1)) {
