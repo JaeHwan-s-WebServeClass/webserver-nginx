@@ -6,6 +6,7 @@
 
 #include <exception>
 #include <iostream>  //
+#include <cstring>
 
 #define RED "\033[0;31m"
 #define GRN "\033[0;32m"

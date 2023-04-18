@@ -1,7 +1,7 @@
 #include "ServerSocket.hpp"
 
 ServerSocket::ServerSocket(sa_family_t address_family, int port) {
-  memset(&(this->server_addr), 0, sizeof(server_addr));
+  std::memset(&(this->server_addr), 0, sizeof(server_addr));
   this->server_addr.sin_family = address_family;
   // htonl(INADDR_ANY) 는 주소를 지정해 주는 것으로 inet_addr( "내 시스템의 IP
   // ")로도 지정할 수 있습니다. 그러나 프로그램이 실행되는 시스템 마다 IP 가
