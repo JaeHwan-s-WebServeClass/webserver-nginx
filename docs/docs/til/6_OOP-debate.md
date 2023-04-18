@@ -283,12 +283,12 @@ method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하�
 #### step 2. content_length
 
 -   content-length 만큼 읽는다.
--   다 읽고, parsing 후 done=true
+-   다 읽고, parsing 후 entity_done=true
 
 #### step 3. chunked
 
 -   chunked를 읽고, 그 사이즈만큼 read 해야함.
--   다 읽고, parsing 후 done=true
+-   다 읽고, parsing 후 entity_done=true
 
 <br>
 
@@ -389,3 +389,85 @@ method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하�
 4.   parsing (configuration, entity, header) 정리!
 ```
 버퍼에 쌓이는 데이터를 getline 으로 한 문장씩 읽어와 파싱하는 부분을 request 객체의 setRawMsg에서 하고 있었다. 의미상 요청 받는 객체가 파싱하는게 어색했는데, 그걸 새로 만든 executeRead 로 옮겼다.
+
+
+
+
+
+
+<!-- int Transaction::executeRead(void) {
+  // if head일 때, else body일 때 
+
+  // 1. head 파싱 -----------------------
+  if (!this->request.getHeadDone()) {
+    this->read_head_len = safeRead(this->socket_fd, this->head_buf, MAX_HEAD_SIZE);
+    if (this->read_head_len == 0) {
+      return -1;
+    }
+    this->head_buf[this->read_head_len] = '\0';
+    
+    std::istringstream  read_stream;
+    read_stream.str(this->head_buf);
+
+    std::string line;
+    while (std::getline(read_stream, line, '\n')) {
+      if (line.length() == 0 || line == "\r") {
+        this->request.setHeadDone(true);
+        this->request.parserHead();
+        break;
+      } else if (!this->request.getHeadDone()) {
+        // 헤드를 한 번에 읽어오지 못하는 경우(config 의 max header size 보다 큰 데이터가 들어올 때)
+        // 에러 상황으로 간주하는 코드로 구조를 바꿈. 원래는 큰 헤더가 들어왔을 때 반복문 돌며 쪼개서 다 받음.
+        this->request.setRawHead(line + "\n");
+        if (read_stream.eof()) {
+          throw std::string("executeRead error : over max-header-size");
+        }
+      }
+    }
+    return 0;
+  } 
+  
+  // 2. entity 파싱 -----------------------
+  if (this->request.getHeadDone() && (this->request.getMethod() == "POST")) {
+    if (!this->request.getDone()) {
+      // + 2 를 하는 이유는? 47 번째, 헤드의 가장 마지막 CRLR 는 카운트하지 않기 때문에 2를 더한다.
+      int head_rest_len = this->read_head_len - (this->request.getRawHead().length() + 2);
+      //  head_buf : char[] 를 rest_buffer : int 만큼 읽으면 됨
+      
+      std::map<std::string, std::string>::const_iterator it;
+      if ((it = this->request.getHeader().find("Content-Length")) 
+          != this->request.getHeader().end()) {
+        this->request.addContentLengthEntity(this->head_buf + this->request.getRawHead().length() + 2, head_rest_len);
+      }
+      // else if (((it = this->request.getHeader().find("Transfer-Encoding"))
+      //     != this->request.getHeader().end()) && (it->second == "Chunked")) {
+      //   this->request.addChunkedEntity(this->entity_buf);
+      // } else {
+      //   throw std::string("error?");
+      // }
+
+      // TODO: 나중에 head_rest_len 이랑 read_len 이랑 더한 값과 Content_Length 값 비교하기
+      this->read_head_len = safeRead(this->socket_fd, this->entity_buf, MAX_BODY_SIZE);
+      this->entity_buf[this->read_head_len] = '\0';
+
+      if ((it = this->request.getHeader().find("Content-Length")) 
+          != this->request.getHeader().end()) {
+        this->request.addContentLengthEntity(this->entity_buf, this->read_head_len);
+      } 
+      // else if (((it = this->request.getHeader().find("Transfer-Encoding"))
+      //       != this->request.getHeader().end()) && (it->second == "Chunked")) {
+      //     this->request.addChunkedEntity(this->entity_buf);
+      // } else {
+      //   throw std::string("error?");
+      // }
+    }
+    // else {
+      // this->request.setEntityDone(true);
+    // }
+  // std::cout << GRY << "Debug: Transaction::executeRead\n";
+  }
+  this->request.setEntityDone(true);
+  return 0;
+}
+
+  -->
