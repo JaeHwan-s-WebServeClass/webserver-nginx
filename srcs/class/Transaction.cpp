@@ -18,6 +18,70 @@ int Transaction::executeRead(void) {
 
   // 1. head 파싱 -----------------------
   if (!this->request.getHeadDone()) {
+    this->executeReadHead();
+    return 0;
+  }
+
+  /**
+  if (this->request.getHeadDone() && (this->request.getMethod() == "POST")) 
+  {
+    if (!this->request.getEntityDone())
+    {
+      std::map<std::string, std::string>::const_iterator it;
+      if ((it = this->request.getHeader().find("Content-Length")) 
+          != this->request.getHeader().end()) 
+      {
+        excuteReadContentLengthEntity()
+      }
+      else if (((it = this->request.getHeader().find("Transfer-Encoding"))
+           != this->request.getHeader().end()) && (it->second == "Chunked")) 
+      {
+        excuteReadChunkedEntity()
+      }
+    }
+  */
+
+  // 2. entity 파싱 -----------------------
+  if (this->request.getHeadDone() && (this->request.getMethod() == "POST")) {
+    if (!this->request.getEntityDone()){
+      int head_rest_len = this->read_head_len - (this->request.getRawHead().length());
+      
+      std::map<std::string, std::string>::const_iterator it;
+      if ((it = this->request.getHeader().find("Content-Length")) 
+          != this->request.getHeader().end()) {
+        this->request.addContentLengthEntity(this->head_buf + this->request.getRawHead().length(), head_rest_len);
+      }
+      // else if (((it = this->request.getHeader().find("Transfer-Encoding"))
+      //     != this->request.getHeader().end()) && (it->second == "Chunked")) {
+      //   this->request.addChunkedEntity(entity_buf);
+      // } else {
+      //   throw std::string("error?");
+      // }
+
+      // TODO: 나중에 head_rest_len 이랑 read_len 이랑 더한 값과 Content_Length 값 비교하기
+      int read_len = safeRead(this->socket_fd, entity_buf, MAX_BODY_SIZE);
+      entity_buf[read_len] = '\0';
+
+      // 2-1. content-length 파싱 ----------------------------------------------
+      if ((it = this->request.getHeader().find("Content-Length")) 
+          != this->request.getHeader().end()) {
+        this->request.addContentLengthEntity(entity_buf, read_len);
+      }
+      // 2-2. chunked 파싱 -----------------------------------------------------
+        // else if (((it = this->request.getHeader().find("Transfer-Encoding"))
+        //     != this->request.getHeader().end()) && (it->second == "Chunked")) {
+        //   this->request.addChunkedEntity(entity_buf);
+      // } else {
+      //   throw std::string("error?");
+      // }
+    } 
+    this->request.setEntityDone(true);
+  // std::cout << GRY << "Debug: Transaction::executeRead\n";
+  }
+  return 0;
+}
+
+void Transaction::executeReadHead() {
     this->read_head_len = safeRead(this->socket_fd, this->head_buf, MAX_HEAD_SIZE);
     this->head_buf[this->read_head_len] = '\0';
     std::istringstream  read_stream;
@@ -37,45 +101,6 @@ int Transaction::executeRead(void) {
         }
       }
     }
-    return 0;
-  }
-
-  // 2. entity 파싱 -----------------------
-  if (this->request.getHeadDone() && (this->request.getMethod() == "GET")) {
-    if (!this->request.getEntityDone()){
-      int head_rest_len = this->read_head_len - (this->request.getRawHead().length());
-      
-      std::map<std::string, std::string>::const_iterator it;
-      if ((it = this->request.getHeader().find("Content-Length")) 
-          != this->request.getHeader().end()) {
-        this->request.addContentLengthEntity(head_buf + this->request.getRawHead().length(), head_rest_len);
-      }
-      // else if (((it = this->request.getHeader().find("Transfer-Encoding"))
-      //     != this->request.getHeader().end()) && (it->second == "Chunked")) {
-      //   this->request.addChunkedEntity(entity_buf);
-      // } else {
-      //   throw std::string("error?");
-      // }
-
-      // TODO: 나중에 head_rest_len 이랑 read_len 이랑 더한 값과 Content_Length 값 비교하기
-      int read_len = safeRead(this->socket_fd, entity_buf, MAX_BODY_SIZE);
-      entity_buf[read_len] = '\0';
-
-      if ((it = this->request.getHeader().find("Content-Length")) 
-          != this->request.getHeader().end()) {
-        this->request.addContentLengthEntity(entity_buf, read_len);
-      }
-        // else if (((it = this->request.getHeader().find("Transfer-Encoding"))
-        //     != this->request.getHeader().end()) && (it->second == "Chunked")) {
-        //   this->request.addChunkedEntity(entity_buf);
-      // } else {
-      //   throw std::string("error?");
-      // }
-    } 
-    this->request.setEntityDone(true);
-  // std::cout << GRY << "Debug: Transaction::executeRead\n";
-  }
-  return 0;
 }
 
 int Transaction::executeWrite(void) {

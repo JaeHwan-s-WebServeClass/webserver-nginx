@@ -39,6 +39,9 @@ class Transaction {
   int httpCheckStartLine(void);
 
   int executeRead(void);
+      void  executeReadHead(void);
+      int   executeReadContentLengthEntity(void);
+      int   executeReadChunkedEntity(void);
   int executeWrite(void);
   int executeMethod(void);
 

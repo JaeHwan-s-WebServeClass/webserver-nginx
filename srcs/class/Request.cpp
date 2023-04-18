@@ -21,13 +21,37 @@ void Request::addContentLengthEntity(char * buf, int read_length) {
   //}
 }
 
+// RFC7230 - 4.1.3.  Decoding Chunked
+
+//   A process for decoding the chunked transfer coding can be represented
+//   in pseudo-code as:
+
+//     length := 0
+//     read chunk-size, chunk-ext (if any), and CRLF
+//     while (chunk-size > 0) {
+//        read chunk-data and CRLF
+//        append chunk-data to decoded-body
+//        length := length + chunk-size
+//        read chunk-size, chunk-ext (if any), and CRLF
+//     }
+//     read trailer field
+//     while (trailer field is not empty) {
+//        if (trailer field is allowed to be sent in a trailer) {
+//            append trailer field to existing header fields
+//        }
+//        read trailer-field
+//     }
+//     Content-Length := length
+//     Remove "chunked" from Transfer-Encoding
+//     Remove Trailer from existing header fields
+
 void Request::addChunkedEntity(char * buf) {
 //void Request::addChunkedEntity(char * buf, int read_size) {
   //int i = 0;
   //// gnl - 딜리미터는 \r\n
   // while (i < read_size)
   //{
-  //  // 16진법 -> int size
+  //  // 16진법 -> int size // 
   //  for (; i < size; ++i) {
   //      this->entity.push_back(buf[i]);
   //  }
