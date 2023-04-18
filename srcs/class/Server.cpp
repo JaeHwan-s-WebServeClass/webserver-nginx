@@ -6,7 +6,7 @@ Server::Server(ServerSocket &server_socket) {
     throw std::string("socket() error\n" + std::string(strerror(errno)));
   }
   this->server_socket = &server_socket;
-  std::cout << GRY << "Debug: Server\n" << DFT;
+  // std::cout << GRY << "Debug: Server\n" << DFT;
 }
 
 void Server::setChangeList(std::vector<struct kevent> &change_list,
@@ -16,7 +16,7 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
 
   EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
   change_list.push_back(temp_event);
-  std::cout << GRY << "Debug: Server::setChangeList\n" << DFT;
+  // std::cout << GRY << "Debug: Server::setChangeList\n" << DFT;
 }
 
 void Server::disconnectClient(int client_fd,
@@ -26,7 +26,7 @@ void Server::disconnectClient(int client_fd,
   close(client_fd);
   clients.erase(client_fd);
   std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
-  std::cout << GRY << "Debug: Server::disconnectClient\n" << DFT;
+  // std::cout << GRY << "Debug: Server::disconnectClient\n" << DFT;
 }
 
 // ---- safe functions
@@ -38,7 +38,7 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
                   this->event_list, nevents, timeout)) == -1) {
     throw std::string("kevent() error\n" + std::string(strerror(errno)));
   }
-  std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
+  // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
 
   return new_events;
 }
@@ -119,5 +119,5 @@ void Server::run() {
       }
     }
   }
-  std::cout << GRY << "Debug: Server::run\n" << DFT;
+  // std::cout << GRY << "Debug: Server::run\n" << DFT;
 }

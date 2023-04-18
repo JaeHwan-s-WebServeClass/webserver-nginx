@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 #include "../include/include.hpp"
 #include "Request.hpp"

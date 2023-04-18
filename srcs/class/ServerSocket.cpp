@@ -16,14 +16,14 @@ ServerSocket::ServerSocket(sa_family_t address_family, int port) {
 
   std::cout << "Construct ServerSocket: Port number: "
             << this->server_addr.sin_port << std::endl;
-  std::cout << GRY << "Debug: ServerSocket::ServerSocket\n";
+  // std::cout << GRY << "Debug: ServerSocket::ServerSocket\n";
 }
 
 void ServerSocket::safeSocket(int domain, int type, int protocol) {
   if ((this->server_socket = socket(domain, type, protocol)) == -1) {
     throw std::string("socket() error\n" + std::string(strerror(errno)));
   }
-  std::cout << GRY << "Debug: ServerSocket::safeSocket\n";
+  // std::cout << GRY << "Debug: ServerSocket::safeSocket\n";
 }
 
 void ServerSocket::safeBind(void) {
@@ -32,21 +32,21 @@ void ServerSocket::safeBind(void) {
            sizeof(this->server_addr)) == -1) {
     throw std::string("bind() error\n" + std::string(strerror(errno)));
   }
-  std::cout << GRY << "Debug: ServerSocket::safeBind\n";
+  // std::cout << GRY << "Debug: ServerSocket::safeBind\n";
 }
 
 void ServerSocket::safeListen(int backlog) {
   if (listen(this->server_socket, backlog) == -1) {
     throw std::string("listen() error\n" + std::string(strerror(errno)));
   }
-  std::cout << GRY << "Debug: ServerSocket::safeListen\n";
+  // std::cout << GRY << "Debug: ServerSocket::safeListen\n";
 }
 
 void ServerSocket::setNonBlock(int socket_fd) {
   if (fcntl(socket_fd, F_SETFL, O_NONBLOCK) == -1) {
     throw std::string("fcntl() error\n" + std::string(strerror(errno)));
   }
-  std::cout << GRY << "Debug: ServerSocket::setNonBlock\n";
+  // std::cout << GRY << "Debug: ServerSocket::setNonBlock\n";
 }
 
 int ServerSocket::safeAccept(void) {
@@ -55,7 +55,7 @@ int ServerSocket::safeAccept(void) {
   if ((client_socket = accept(this->server_socket, NULL, NULL)) == -1) {
     throw std::string("accept() error\n" + std::string(strerror(errno)));
   }
-  std::cout << GRY << "Debug: ServerSocket::safeAccept\n";
+  // std::cout << GRY << "Debug: ServerSocket::safeAccept\n";
 
   return client_socket;
 }

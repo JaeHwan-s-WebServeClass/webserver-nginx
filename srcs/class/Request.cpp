@@ -1,34 +1,39 @@
 #include "Request.hpp"
 
-Request::Request() : raw_head(""), is_end_head(0), done(false), entity("") {
-  std::cout << GRY << "Debug: Request::contructor\n" << DFT;
+//---- constructor ---------------------------------------
+Request::Request() : raw_head(""), head_done(0), done(false) {
+  // std::cout << GRY << "Debug: Request::contructor\n" << DFT;
 }
 
-//---- getter/setter --------------------------------------------
-// -------------------------- 수정할 부분 -----------------------
+//---- setter --------------------------------------------
+void  Request::setHeadDone(bool type) { this->head_done = type; } // status? type?
+void  Request::setRawHead(std::string line) { this->raw_head += line; }
+void Request::setDone(bool type ) { this->done = type; }
+
+  // ---- 수정할 부분 -----------------------
 void Request::setRawMsg(const char* read_msg) {
   std::istringstream buf;
   buf.str(read_msg);
 
   std::string line;
-// -------------------------- head 파싱 -----------------------
+  // ---- head 파싱 -----------------------
   while (std::getline(buf, line, '\n')) {
   // char buf[BUFFER_SIZE];
   // int read_len = safeRead(this->socket_fd, buf);
     if (line.length() == 0 || line == "\r") {
-      this->is_end_head = true;
+      this->head_done = true;
       this->parserHead();
-    } else if (!this->is_end_head) {
+    } else if (!this->head_done) {
       this->raw_head += line;
       if (!buf.eof()) {
         this->raw_head += '\n';
       }
     }
-// -------------------------- entity 파싱 -----------------------
+  // ---- entity 파싱 -----------------------
   }
-// -------------------------- done -----------------------
+  // ---- done -----------------------
   this->done = true;
-  std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
+  // std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
 }
 // ------------------------------------------------------------------------
 
@@ -69,9 +74,10 @@ void Request::setRawMsg(const char* read_msg) {
 //   }
 
 // }
-
+//---- getter --------------------------------------------
+const bool Request::getDone() { return this->done; }
 const std::string& Request::getRawHead() const { return this->raw_head; }
-const bool& Request::getIsEndHead() const { return this->is_end_head; }
+const bool& Request::getHeadDone() const { return this->head_done; }
 const std::string& Request::getMethod() const { return this->method; }
 const std::string& Request::getUrl() const { return this->url; };
 const std::string& Request::getHttpVersion() const {
@@ -82,6 +88,8 @@ const std::map<std::string, std::string>& Request::getHeader() const {
 }
 const std::string& Request::getEntity() const { return this->entity; }
 
+
+//---- utils --------------------------------------------
 void Request::clearSetRawMsg() { this->raw_head.clear(); }
 
 void Request::toString() const {
@@ -102,7 +110,7 @@ void Request::toString() const {
   // 	std::cout << YLW << entity[i] << std::endl;
   //  }
   std::cout << YLW << entity << DFT << std::endl;
-  std::cout << GRY << "Debug: Request::toString\n" << DFT;
+  // std::cout << GRY << "Debug: Request::toString\n" << DFT;
 }
 
 void Request::parserHead() {
@@ -125,7 +133,5 @@ void Request::parserHead() {
     int pos = it->find(':');
     header[it->substr(0, pos)] = it->substr(pos + 1);
   }
-  std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
+  // std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
 }
-
-const bool Request::isDone() { return this->done; }

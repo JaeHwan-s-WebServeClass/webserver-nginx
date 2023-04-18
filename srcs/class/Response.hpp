@@ -67,7 +67,7 @@ class Response {
 
   void setResponseMsg();
   std::string getResponseMsg();
-  const bool  isDone();
+  const bool  getDone();
 };
 
 #endif

@@ -5,7 +5,7 @@
 //---- constructor --------------------------------------------
 Transaction::Transaction(int socket_fd, std::string root_dir)
     : socket_fd(socket_fd), root_dir(root_dir) {
-  std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
+  // std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
 }
 
 //---- getter ---------------------------------------------
@@ -14,55 +14,93 @@ Response &Transaction::getResponse() { return this->response; }
 Request &Transaction::getRequest() { return this->request; }
 
 //---- execute --------------------------------------------
+/*
+      1-1. head parsing이 끝나지 않은 경우
+           ㄴ 더 읽어들여야한다.
+      1-2. head parsing이 끝난 경우
+           ㄴ head가 끝났다면 2(body에 대한 parsing)로 넘어간다
+          2-1. content-length의 존재하는 경우
+               ㄴ content-length의 value를 받아와서 활용한다.
+          2-2. content-length의 존재하지 않는 경우
+               ㄴ chunk로 처리 => gnl식 처리
+    */
+
+    /* pseudo code
+    setRawMsgHead() {
+      if (head의 content-length 옵션) {
+        content-length의 길이만큼 Request의 entity 를 채워준다.
+      }
+      else if (청크일 경우) {
+      }
+      else  { Error! }
+    }
+    */
+
 int Transaction::executeRead(void) {
   char buf[BUFFER_SIZE];
   int read_len = safeRead(this->socket_fd, buf);
 
   if (read_len == 0) {
     return -1;
-  } else {
-    buf[read_len] = '\0';
-
-    /*
-      1-1. head parsing이 끝난 경우
-           ㄴ head가 끝났다면 2(body에 대한 parsing)로 넘어간다
-          2-1. content-length의 존재하는 경우
-               ㄴ content-length의 value를 받아와서 활용한다.
-          2-2. content-length의 존재하지 않는 경우
-               ㄴ chunk로 처리 => gnl식 처리
-      1-2. head parsing이 끝나지 않은 경우
-           ㄴ 더 읽어들여야한다.
-    */
-
-    /* pseudo code
-    setRawMsgHead() {
-      if (head의 content-length 옵션) {
-        content-langth의 길이만큼 Request의 entity 를 채워준다.
-      }
-      else if (청크일 경우) {
-      }
-      else  { Error! }
-    }
-
-    */
-    this->request.setRawMsg(buf);
   }
-  std::cout << GRY << "Debug: Transaction::executeRead\n";
+  buf[read_len] = '\0';
+  
+  // head 파싱 -----------------------
+  if (!this->request.getHeadDone()) {
+    std::istringstream  read_msg;
+    read_msg.str(buf);
+
+    std::string line;
+    while (std::getline(read_msg, line, '\n')) {
+      if (line.length() == 0 || line == "\r") {
+        this->request.setHeadDone(true);
+        this->request.parserHead();
+        read_msg.str().copy(buf, read_msg.gcount());
+        break;
+      } else if (!this->request.getHeadDone()) {
+        // 헤드를 한 번에 읽어오지 못하는 경우(config 의 max header size 보다 큰 데이터가 들어올 때)
+        // 에러 상황으로 간주하는 코드로 구조를 바꿈. 원래는 큰 헤더가 들어왔을 때 반복문 돌며 쪼개서 다 받음.
+        this->request.setRawHead(line + "\n");
+        if (read_msg.eof()) {
+          throw ("executeRead error : over max-header-size");
+        }
+      }
+    }
+  }
+
+  // entity 파싱 -----------------------
+  if (this->request.getHeadDone() && (this->request.getMethod() == "POST")) {
+    if (!this->request.getDone()){
+      std::map<std::string, std::string>::const_iterator it;
+      
+      if ((it = this->request.getHeader().find("Content-Length")) 
+          != this->request.getHeader().end()) {
+        
+
+      }
+      else if (((it = this->request.getHeader().find("Transfer-Encoding"))
+          != this->request.getHeader().end()) && (it->second == "Chunked")) {
+      }
+    } else {
+      this->request.setDone(true);
+    }
   return 0;
+  // std::cout << GRY << "Debug: Transaction::executeRead\n";
+  }
 }
 
 int Transaction::executeWrite(void) {
-  if (this->response.isDone() &&
+  if (this->response.getDone() &&
       (safeWrite(this->socket_fd, this->response) == -1)) {
     return -1;
   }
-  std::cout << GRY << "Debug: Transaction::executeWrite\n";
+  // std::cout << GRY << "Debug: Transaction::executeWrite\n";
 
   return 0;
 }
 
 int Transaction::executeMethod(void) {
-  if (!this->request.isDone()) {
+  if (!this->request.getDone()) {
     return 0;
   }
   this->request.toString();
@@ -100,7 +138,7 @@ int Transaction::executeMethod(void) {
       break;
   }
   this->response.setResponseMsg();
-  std::cout << GRY << "Debug: Transaction::executeMethod\n";
+  // std::cout << GRY << "Debug: Transaction::executeMethod\n";
 
   return 0;
 }
@@ -117,7 +155,7 @@ int Transaction::httpCheckStartLine() {
   if (access((this->root_dir + this->request.getUrl()).c_str(), F_OK) == -1) {
     return (404);  // Not Found.
   }
-  std::cout << GRY << "Debug: Transaction::httpCheckStartLine\n";
+  // std::cout << GRY << "Debug: Transaction::httpCheckStartLine\n";
 
   return (0);
 }
@@ -150,18 +188,18 @@ int Transaction::httpGet(void) {
 
   this->response.setHeader("Content-Length", content_length.str());
   this->response.setEntity(content);
-  std::cout << GRY << "Debug: Transaction::httpGet\n";
+  // std::cout << GRY << "Debug: Transaction::httpGet\n";
 
   return 200;
 }
 
 int Transaction::httpDelete(void) {
-  std::cout << GRY << "Transaction: httpDelete\n" << DFT;
+  // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
   return 200;
 }
 
 int Transaction::httpPost(void) {
-  std::cout << GRY << "Transaction: httpPost\n" << DFT;
+  // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
   return 200;
 }
 
@@ -172,7 +210,7 @@ int Transaction::safeRead(int fd, char *buf) {
   if ((read_len = read(fd, buf, BUFFER_SIZE)) == -1) {
     throw std::string("client read error!");
   }
-  std::cout << GRY << "Debug: Transaction::safeRead\n";
+  // std::cout << GRY << "Debug: Transaction::safeRead\n";
 
   return read_len;
 }
@@ -184,7 +222,7 @@ int Transaction::safeWrite(int fd, Response &response) {
                          response.getResponseMsg().size())) == -1) {
     throw std::string("client write error!");
   }
-  std::cout << GRY << "Debug: Transaction::safeWrite\n";
+  // std::cout << GRY << "Debug: Transaction::safeWrite\n";
 
   return write_len;
 }

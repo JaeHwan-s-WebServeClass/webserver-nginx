@@ -96,7 +96,7 @@ Server(ServerSocket &server_socket);
 private:
     std::string							raw_msg;
 
-	bool                                 is_end_head;
+	bool                                 head_done;
 	std::string                          method;
 	std::string                          url;
 	std::string                          version;

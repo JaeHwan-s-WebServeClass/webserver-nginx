@@ -13,6 +13,8 @@
 #define GET 1
 #define DELETE 2
 
+#define BUFFER_SIZE 1024
+
 #define RED "\033[0;31m"
 #define GRN "\033[0;32m"
 #define YLW "\033[0;33m"
@@ -45,40 +47,54 @@ ex)
 // webserv에서 구현해야하는 method: GET, HOST, DELETE
 
 class Request {
- private:
+private:
   // 여러가지 요청이 동시에 들어오고, 동시에 처리해야 하는 상황이 있을까?
   // 하나씩 처리한다면 raw_msg 를 clear 하면서 진행하면 되지만, 병렬처리라면
   // 어떻게 해야하는가? -> 입력은 비동기로 받지만, 처리는 동기로 하기 떄문에
   // 병렬 처리할 일이 없음.
   std::string raw_head;
 
-  bool is_end_head;
   std::string method;  // 파싱할 때 compare해서 define해둔 int 값 사용
   std::string url;
   std::string http_version;
   std::map<std::string, std::string> header;
-  std::string entity;
-
+  std::vector<char[BUFFER_SIZE]> entity;
+  bool head_done;
   bool done;
 
- public:
+public:
   Request();
 
+  // ---- setters -------------------------------------
   /// @brief set Raw Msg
   /// @param update
   /// @return
   void setRawMsg(const char *);
-//   void setEntity(std::string);
+  // void setEntity(std::string);
+  
+  /// @brief set Is End Head
+  /// @param type
+  /// @return
+  void setHeadDone(bool);
+  
+  /// @brief set Raw Head
+  /// @param line
+  /// @return
+  void setRawHead(std::string);
+
+  void setDone(bool);
  
+  // ---- getters -------------------------------------
   const std::string &getRawHead() const;
-  const bool &getIsEndHead() const;
+  const bool &getHeadDone() const;
   const std::string &getMethod() const;
   const std::string &getUrl() const;
   const std::string &getHttpVersion() const;
   const std::map<std::string, std::string> &getHeader() const;
   const std::string &getEntity() const;
-  const bool isDone();
+  const bool getDone();
 
+// ---- utils -----------------------------------------
   void clearSetRawMsg();
   void parserHead();
   void toString() const;
