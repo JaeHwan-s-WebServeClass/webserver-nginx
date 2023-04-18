@@ -46,7 +46,7 @@ class Response {
   std::string status_msg;
   std::map<std::string, std::string> header;
   std::string entity;
-  bool done;
+  bool entity_done;
 
   int event_fl;
 
@@ -67,7 +67,7 @@ class Response {
 
   void setResponseMsg();
   std::string getResponseMsg();
-  const bool  getDone();
+  const bool  getEntityDone();
 };
 
 #endif

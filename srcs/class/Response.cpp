@@ -7,7 +7,7 @@ Response::Response()
       status_msg(""),
       entity(""),
       response_msg(""),
-      done(false) {
+      entity_done(false) {
   // std::cout << GRY << "Debug: Response::contructor\n" << DFT;
 }
 
@@ -47,13 +47,13 @@ void Response::setResponseMsg() {
   }
   this->response_msg += "\r\n" + this->entity + "\r\n\r\n";
   std::cout << "response msg: " << this->response_msg << std::endl;
-  this->done = true;
+  this->entity_done = true;
   // std::cout << GRY << "Debug: Response::setResponseMsg\n" << DFT;
 }
 
-const bool Response::getDone() {
-  // std::cout << GRY << "Debug: Response::getDone\n" << DFT;
-  return this->done;
+const bool Response::getEntityDone() {
+  // std::cout << GRY << "Debug: Response::getEntityDone\n" << DFT;
+  return this->entity_done;
 }
 
 //---- getter ---------------------------------------------------

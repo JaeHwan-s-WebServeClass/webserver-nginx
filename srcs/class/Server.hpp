@@ -26,15 +26,12 @@
 
 class Server {
  private:
-  // Request 클래스를 넣어봄
   std::map<int, Transaction *> clients;
   int kq;
   struct kevent event_list[8];
   std::vector<struct kevent> change_list;
 
   ServerSocket *server_socket;
-  // mockup response 를 위해 임시로 해놓음
-  // Response                      *response;
 
  public:
   Server(ServerSocket &server_socket);

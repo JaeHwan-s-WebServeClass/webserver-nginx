@@ -1,81 +1,41 @@
 #include "Request.hpp"
+#include <cstring>
 
 //---- constructor ---------------------------------------
-Request::Request() : raw_head(""), head_done(0), done(false) {
+Request::Request() : raw_head(""), head_done(0), entity_done(false) {
+  entity.reserve(256);
   // std::cout << GRY << "Debug: Request::contructor\n" << DFT;
 }
 
 //---- setter --------------------------------------------
-void  Request::setHeadDone(bool type) { this->head_done = type; } // status? type?
-void  Request::setRawHead(std::string line) { this->raw_head += line; }
-void Request::setDone(bool type ) { this->done = type; }
+void Request::setRawHead(std::string line) { this->raw_head += line; }
+void Request::setHeadDone(bool type) { this->head_done = type; } // status? type?
+void Request::setEntityDone(bool type ) { this->entity_done = type; }
 
-  // ---- 수정할 부분 -----------------------
-void Request::setRawMsg(const char* read_msg) {
-  std::istringstream buf;
-  buf.str(read_msg);
-
-  std::string line;
-  // ---- head 파싱 -----------------------
-  while (std::getline(buf, line, '\n')) {
-  // char buf[BUFFER_SIZE];
-  // int read_len = safeRead(this->socket_fd, buf);
-    if (line.length() == 0 || line == "\r") {
-      this->head_done = true;
-      this->parserHead();
-    } else if (!this->head_done) {
-      this->raw_head += line;
-      if (!buf.eof()) {
-        this->raw_head += '\n';
-      }
+void Request::addContentLengthEntity(char * buf, int read_length) {
+  //if (entity.size() < read_length) {
+    std::cout << "addContentLengthEntity buf: " << buf << std::endl;
+    for (int i = 0; i < read_length; ++i) {
+      this->entity.push_back(buf[i]);
     }
-  // ---- entity 파싱 -----------------------
-  }
-  // ---- done -----------------------
-  this->done = true;
-  // std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
+  //}
 }
-// ------------------------------------------------------------------------
 
-// void Request::setEntity(std::string line) {
-//   // content length가 있을 때
-//   if (header.find("Content-Length") != header.end()) {
-//     if (entity.size() == header["Content_Length"]) {
-//       done = true;
-//     }
-//     if (header["Content-Length"] >= (entity.length() + line.length()))
-//       this->entity += line;
-//     else if (header["Content-Length"] < (entity.length() + line.length()))
-//     {
-//       int i = 0;
-//       while(header["Content-Length"] > entity.length()) {
-//         entity += line[i++];
-//       }
-//     }
-//   }
-//   // content length가 없을 때
-//   else {
-//     // transfer encoding이 있을 때
-//       // chunk: body를 chunk 단위로 쪼개서 보내게 되며, 다 끝나면 0으로
-//       채워진 chunk가 오게 된다.
-//       // chunk size는 chunk의 시작부분에 있는 16진수의 값으로 size가
-//       지정된다. (p.438)
-//     if (header.find("Transfer-Encoding") != header.end()) {
-//     // transfer encoding이 없을 때
-//     } else {
+void Request::addChunkedEntity(char * buf) {
+//void Request::addChunkedEntity(char * buf, int read_size) {
+  //int i = 0;
+  //// gnl - 딜리미터는 \r\n
+  // while (i < read_size)
+  //{
+  //  // 16진법 -> int size
+  //  for (; i < size; ++i) {
+  //      this->entity.push_back(buf[i]);
+  //  }
+  //}
 
-//     }
-
-//     this->entity += line;
-//     if (EOF 만났으면)
-//     {
-//       done = true;
-//     }
-//   }
-
-// }
+}
 //---- getter --------------------------------------------
-const bool Request::getDone() { return this->done; }
+const bool Request::getEntityDone() { return this->entity_done; }
 const std::string& Request::getRawHead() const { return this->raw_head; }
 const bool& Request::getHeadDone() const { return this->head_done; }
 const std::string& Request::getMethod() const { return this->method; }
@@ -86,8 +46,8 @@ const std::string& Request::getHttpVersion() const {
 const std::map<std::string, std::string>& Request::getHeader() const {
   return this->header;
 }
-const std::string& Request::getEntity() const { return this->entity; }
 
+const std::vector<char> & Request::getEntity() const { return this->entity; }
 
 //---- utils --------------------------------------------
 void Request::clearSetRawMsg() { this->raw_head.clear(); }
@@ -106,10 +66,13 @@ void Request::toString() const {
   }
   std::cout << GRY << "--------------------- entity -----------------------"
             << DFT << std::endl;
-  //  for (int i = 0; i < entity.size(); i++) {
-  // 	std::cout << YLW << entity[i] << std::endl;
-  //  }
-  std::cout << YLW << entity << DFT << std::endl;
+   for (int i = 0; i < entity.size(); i++) {
+  	std::cout << YLW << entity[i];
+   }
+  std::cout << DFT << std::endl;
+  std::cout << GRY << "----------------------------------------------------"
+            << DFT << std::endl;
+  // std::cout << YLW << entity << DFT << std::endl;
   // std::cout << GRY << "Debug: Request::toString\n" << DFT;
 }
 
@@ -117,17 +80,14 @@ void Request::parserHead() {
   std::vector<std::string> tmp_head;
   std::vector<std::string> tmp_start_line;
 
-  // 개행기준으로 split하고
+  // 개행기준으로 split후 space 기준으로 start line split
   tmp_head = ft::split(this->raw_head, '\n');
-
-  // 시작줄은 space 기준으로 split
   tmp_start_line = ft::split(tmp_head[0], ' ');
   this->method = tmp_start_line[0];
   this->url = tmp_start_line[1];
   this->http_version = tmp_start_line[2];
 
-  // header를 처리하는 부분
-  // colon(:)을 찾아서 그 전까지는 key에 넣고 뒤의 부분은 value에 넣도록 합시다
+  // header를 처리
   for (std::vector<std::string>::iterator it = tmp_head.begin() + 1;
        it != tmp_head.end(); ++it) {
     int pos = it->find(':');

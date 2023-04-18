@@ -58,20 +58,14 @@ private:
   std::string url;
   std::string http_version;
   std::map<std::string, std::string> header;
-  std::vector<char[BUFFER_SIZE]> entity;
+  std::vector<char> entity;
   bool head_done;
-  bool done;
+  bool entity_done;
 
 public:
   Request();
 
   // ---- setters -------------------------------------
-  /// @brief set Raw Msg
-  /// @param update
-  /// @return
-  void setRawMsg(const char *);
-  // void setEntity(std::string);
-  
   /// @brief set Is End Head
   /// @param type
   /// @return
@@ -82,8 +76,11 @@ public:
   /// @return
   void setRawHead(std::string);
 
-  void setDone(bool);
- 
+  void setEntityDone(bool);
+
+  void addContentLengthEntity(char *, int);
+  void addChunkedEntity(char *);
+
   // ---- getters -------------------------------------
   const std::string &getRawHead() const;
   const bool &getHeadDone() const;
@@ -91,8 +88,8 @@ public:
   const std::string &getUrl() const;
   const std::string &getHttpVersion() const;
   const std::map<std::string, std::string> &getHeader() const;
-  const std::string &getEntity() const;
-  const bool getDone();
+  const std::vector<char> &getEntity() const;
+  const bool getEntityDone();
 
 // ---- utils -----------------------------------------
   void clearSetRawMsg();
