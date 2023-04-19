@@ -1,4 +1,4 @@
-# 객체 지향 프로그래밍을 시도해보기 위한 논의
+# 구현을 위한 논의
 
 ## 1.
 
@@ -251,7 +251,7 @@ method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하�
 
 요청 메시지의 head (시작줄 & 헤더) 파싱을 마무리하고, entity 파싱을 해야할 차례다..! 쉬울 줄 알았던 entity 파싱... 생각치 못한 entity 의 특징이 있었다. <br>
 
-#### 특징 1. entity 의 내용은 두 가지 종류로 나뉜다.
+#### 특징. entity 의 내용은 두 가지 종류로 나뉜다.
 
 -   Chunked
 
@@ -267,10 +267,10 @@ method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하�
 
 <br>
 
-#### 특징 2. chunked 로 올 경우, 내용을 역순으로 받아온다.
-
+ <!-- #### 특징 2. chunked 로 올 경우, 내용을 역순으로 받아온다. 
+ 
 -   참고<br>
-    <img src="https://user-images.githubusercontent.com/85930183/232204412-d04d520b-2184-44eb-bc38-18532a18deea.png" width='80%'>
+    <img src="https://user-images.githubusercontent.com/85930183/232204412-d04d520b-2184-44eb-bc38-18532a18deea.png" width='80%'> -->
 
 <br>
 
@@ -306,12 +306,11 @@ method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하�
 
 <br>
 
-#### 6-3-2. 역순으로 들어오는 chunk 로 들어오는 데이터
+<!-- #### 6-3-2. 역순으로 들어오는 chunk 로 들어오는 데이터
 
 -   chunked 는 데이터가 역순으로 들어오기 때문에, 읽으면서 바른 순서로 돌려야한다.
-    -   stack 이나 queue 자료구조에 대한 이야기도 했으나, 매번 chunk 값을 해석해서 그만큼 read 한다면 필요하지 않을 수도 있을 것 같다. 추후에 다시 논의가 필요하다.
+    -   stack 이나 queue 자료구조에 대한 이야기도 했으나, 매번 chunk 값을 해석해서 그만큼 read 한다면 필요하지 않을 수도 있을 것 같다. 추후에 다시 논의가 필요하다. -->
 
-<br>
 <br>
 
 ### 6-4. 결론
@@ -390,88 +389,82 @@ method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하�
 ```
 버퍼에 쌓이는 데이터를 getline 으로 한 문장씩 읽어와 파싱하는 부분을 request 객체의 setRawMsg에서 하고 있었다. 의미상 요청 받는 객체가 파싱하는게 어색했는데, 그걸 새로 만든 executeRead 로 옮겼다.
 
+---
 
+## 7. [2023.04.18(화)]
 
+6 번까지 논의 후 본격적으로 head 와 entity 파싱을 시작했고 여러가지 방법에 대해 논의했다.
 
+여러가지 방법 중, config 파일에 `max_head_size` 와 `max_body_size` 옵션을 설정하는 방법을 선택했다. 이 방법의 특징은 head 나 body 의 크기가 max size 보다 클 경우 에러 상황으로 간주한다는 것이다. ( ❗️단, chunked 일 경우 max_body_size 의 제한을 무시하고 모두 받아온다. )
 
+이제 `max_head_size` 와 `max_body_size` 를 어떻게 활용할지 논의했다.
 
-<!-- int Transaction::executeRead(void) {
-  // if head일 때, else body일 때 
+<br>
 
-  // 1. head 파싱 -----------------------
-  if (!this->request.getHeadDone()) {
-    this->read_head_len = safeRead(this->socket_fd, this->head_buf, MAX_HEAD_SIZE);
-    if (this->read_head_len == 0) {
-      return -1;
+### 7-1. 논의
+
+논의의 큰 틀은 이렇다.
+
+1. transaction 클래스에 max_head_size 와 max_body_size 로 멤버 변수 버퍼를 만들어 파싱.
+
+    ```c++
+    class transaction {
+      private:
+        ...
+        head_buf[max_head_size];
+        entity_buf[max_body_size];
+        ...
     }
-    this->head_buf[this->read_head_len] = '\0';
-    
-    std::istringstream  read_stream;
-    read_stream.str(this->head_buf);
+    ```
 
-    std::string line;
-    while (std::getline(read_stream, line, '\n')) {
-      if (line.length() == 0 || line == "\r") {
-        this->request.setHeadDone(true);
-        this->request.parserHead();
-        break;
-      } else if (!this->request.getHeadDone()) {
-        // 헤드를 한 번에 읽어오지 못하는 경우(config 의 max header size 보다 큰 데이터가 들어올 때)
-        // 에러 상황으로 간주하는 코드로 구조를 바꿈. 원래는 큰 헤더가 들어왔을 때 반복문 돌며 쪼개서 다 받음.
-        this->request.setRawHead(line + "\n");
-        if (read_stream.eof()) {
-          throw std::string("executeRead error : over max-header-size");
-        }
-      }
-    }
-    return 0;
-  } 
+2. buffer_size 로 다 읽어온 후 max_head_size 와 max_body_size 크기로 예외처리하기
+
+    ```c++
+      buf[BUFFER_SIZE];
+      ...
+      전체 요청메시지 파싱
+      ...
+      if (head 크기 > max_head_size || entity size > max_body_size)
+        throw error;
+    ```
+
+<br>
+
+### 7-2. 각 방법의 특징
+
+#### 7-2-1. 1번
+1. 헤드와 바디가 max size 를 벋어나는 즉시 에러처리를 할 수 있다.
+2. 한 번만 read 한다.
+3. transactioin 객체를 생성하면, max 크기만큼의 head_buf 와 entity_buf 가 메모리를 차지한다.
+
+#### 7-2-1. 2번
+1. 1번에 비해 차지하는 메모리가 적다.
+2. 여러번 read 하며 head 와 entity 파싱을 해야한다.
+3. 모두 read 한 후에 max size 를 비교하여 에러처리한다.
+
+<br>
+
+### 7-3. 결론
+우리는 1번에서 3번째 특징이 매우 큰 단점이라고 생각했다. 클라이언트의 생애주기동안 max 사이즈 크기의 버퍼를 가지고 있는게 불필요한 메모리 차지로 보였기 때문이다.
+
+그래서 2번 방식으로 진행하기로 결정했다.
+
+---
+
+<!-- * entity 파싱 방법
+  string 이 아닌 char 로... CRLF 로 짤라 읽기
+  chunked 는 정순으로 받아온다. 1. 크게 받기 2. vector 하나만 사용하기 3. 받을 때마다 처리하기 -->
+
+## 8. [2023.04.18(화)]
+
+### 8-1. 상황
+chunked entity 파싱 구현에 생각보다 까다로운 녀석이 있다. 우리는 우리가 정한 size 만큼 버퍼에 요청 메시지를 담아오며 파싱을 하는데, 다음과 같은 상황이 생길 수 있다.
+
+[❗️ 사전지식] chunked 와 메시지는 \r\n 으로 구분한다.
+
+1. 버퍼 안에 헤드와 바디(entity) 데이터가 같이 있을 때<br>
+  `buf = headdata\r\n\r\n5\r\nhello`
+
+2. 버퍼가 `\r` 에서 끝났을 때
   
-  // 2. entity 파싱 -----------------------
-  if (this->request.getHeadDone() && (this->request.getMethod() == "POST")) {
-    if (!this->request.getDone()) {
-      // + 2 를 하는 이유는? 47 번째, 헤드의 가장 마지막 CRLR 는 카운트하지 않기 때문에 2를 더한다.
-      int head_rest_len = this->read_head_len - (this->request.getRawHead().length() + 2);
-      //  head_buf : char[] 를 rest_buffer : int 만큼 읽으면 됨
-      
-      std::map<std::string, std::string>::const_iterator it;
-      if ((it = this->request.getHeader().find("Content-Length")) 
-          != this->request.getHeader().end()) {
-        this->request.addContentLengthEntity(this->head_buf + this->request.getRawHead().length() + 2, head_rest_len);
-      }
-      // else if (((it = this->request.getHeader().find("Transfer-Encoding"))
-      //     != this->request.getHeader().end()) && (it->second == "Chunked")) {
-      //   this->request.addChunkedEntity(this->entity_buf);
-      // } else {
-      //   throw std::string("error?");
-      // }
-
-      // TODO: 나중에 head_rest_len 이랑 read_len 이랑 더한 값과 Content_Length 값 비교하기
-      this->read_head_len = safeRead(this->socket_fd, this->entity_buf, MAX_BODY_SIZE);
-      this->entity_buf[this->read_head_len] = '\0';
-
-      if ((it = this->request.getHeader().find("Content-Length")) 
-          != this->request.getHeader().end()) {
-        this->request.addContentLengthEntity(this->entity_buf, this->read_head_len);
-      } 
-      // else if (((it = this->request.getHeader().find("Transfer-Encoding"))
-      //       != this->request.getHeader().end()) && (it->second == "Chunked")) {
-      //     this->request.addChunkedEntity(this->entity_buf);
-      // } else {
-      //   throw std::string("error?");
-      // }
-    }
-    // else {
-      // this->request.setEntityDone(true);
-    // }
-  // std::cout << GRY << "Debug: Transaction::executeRead\n";
-  }
-  this->request.setEntityDone(true);
-  return 0;
-}
-
-  -->
-
-  <!-- 전체를 읽어온 뒤, 파싱 한 후에 max_body_size 와 max_head_size 로 예외처리하기. chunked 는 max_body_size 신경쓰지않기 -->
-
-  <!-- chunked 는 정순으로 받아온다. 1. 크게 받기 2. vector 하나만 사용하기 3. 받을 때마다 처리하기 -->
+### 8-2. 사용할 자료구조
