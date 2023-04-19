@@ -8,6 +8,8 @@
 #include <algorithm>
 
 #include "../include/include.hpp"
+#include "../include/define.hpp"
+
 #include "Request.hpp"
 #include "Response.hpp"
 
@@ -22,10 +24,6 @@ class Transaction {
 
   Response response;
   Request request;
-  
-  int read_head_len;
-  char head_buf[MAX_HEAD_SIZE];
-  char entity_buf[MAX_BODY_SIZE];
 
  public:
   /// @brief Transaction 생성자
@@ -39,9 +37,9 @@ class Transaction {
   int httpCheckStartLine(void);
 
   int executeRead(void);
-      void  executeReadHead(void);
-      void   executeReadContentLengthEntity(void);
-      void   executeReadChunkedEntity(void);
+      int  executeReadHead(char *, int);
+      void  executeReadContentLengthEntity(void);
+      void  executeReadChunkedEntity(void);
   int executeWrite(void);
   int executeMethod(void);
 
