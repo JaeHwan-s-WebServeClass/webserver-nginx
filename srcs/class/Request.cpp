@@ -12,10 +12,10 @@ void Request::setRawHead(std::string line) { this->raw_head += line; }
 void Request::setHeadDone(bool type) { this->head_done = type; } // status? type?
 void Request::setEntityDone(bool type ) { this->entity_done = type; }
 
-void Request::addContentLengthEntity(char * buf, int read_length) {
+void Request::addContentLengthEntity(char * buf, int read_len) {
   //if (entity.size() < read_length) {
-    std::cout << "addContentLengthEntity buf: " << buf << std::endl;
-    for (int i = 0; i < read_length; ++i) {
+    //std::cout << "addContentLengthEntity buf: " << buf << std::endl;
+    for (int i = 0; i < read_len; ++i) {
       this->entity.push_back(buf[i]);
     }
   //}
@@ -45,18 +45,33 @@ void Request::addContentLengthEntity(char * buf, int read_length) {
 //     Remove "chunked" from Transfer-Encoding
 //     Remove Trailer from existing header fields
 
-void Request::addChunkedEntity(char * buf) {
-//void Request::addChunkedEntity(char * buf, int read_size) {
-  //int i = 0;
-  //// gnl - 딜리미터는 \r\n
-  // while (i < read_size)
-  //{
-  //  // 16진법 -> int size // 
-  //  for (; i < size; ++i) {
-  //      this->entity.push_back(buf[i]);
-  //  }
-  //}
+void Request::addChunkedEntity(char * buf, int read_len) {
+// read buf ->(parsing).\r\n -> request.entity(vec)
+  int i = 0;
+  std::string hex_str;
+  int chunk_size;
+  bool mode = CHUNK_SIZE; // size or entity
 
+  while(i < read_len) {
+    if (mode == CHUNK_SIZE) {
+      // buf를 /r/n 을 딜리미터로 파싱해서, hex_str 을 구해야함   
+      if (buf[i] != '\r' && buf[i + 1] && buf[i + 1] != '\n') {
+        hex_str += buf[i];
+      } else if (buf[i] == '\r' && buf[i + 1] && buf[i + 1] == '\n') {
+        chunk_size = ft::hexToInt(hex_str); // FIXME overflow 문제 처리
+        mode = CHUNK_ENTITY;
+      }
+    } else {
+      while (chunk_size) {
+      // buf[index] ++ 하면서 chunk_size 만큼 vector 로 옮겨주기?
+      }
+      mode = CHUNK_SIZE; 
+      chunk_size = 0;
+      --chunk_size;
+    }
+    ++i;
+  }
+  // 청크사이즈만큼 다 읽은 후 바로 다음이 0\r\n 일 때 끝
 }
 //---- getter --------------------------------------------
 const bool Request::getEntityDone() { return this->entity_done; }
@@ -64,14 +79,10 @@ const std::string& Request::getRawHead() const { return this->raw_head; }
 const bool& Request::getHeadDone() const { return this->head_done; }
 const std::string& Request::getMethod() const { return this->method; }
 const std::string& Request::getUrl() const { return this->url; };
-const std::string& Request::getHttpVersion() const {
-  return this->http_version;
-}
-const std::map<std::string, std::string>& Request::getHeader() const {
-  return this->header;
-}
-
+const std::string& Request::getHttpVersion() const { return this->http_version; }
+const std::map<std::string, std::string>& Request::getHeader() const { return this->header; }
 const std::vector<char> & Request::getEntity() const { return this->entity; }
+const size_t Request::getEntitySize() const { return this->entity.size(); }
 
 //---- utils --------------------------------------------
 void Request::clearSetRawMsg() { this->raw_head.clear(); }

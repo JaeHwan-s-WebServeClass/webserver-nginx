@@ -67,7 +67,7 @@ public:
   void setEntityDone(bool);
 
   void addContentLengthEntity(char *, int);
-  void addChunkedEntity(char *);
+  void addChunkedEntity(char *, int);
 
   // ---- getters -------------------------------------
   const std::string &getRawHead() const;
@@ -78,6 +78,7 @@ public:
   const std::map<std::string, std::string> &getHeader() const;
   const std::vector<char> &getEntity() const;
   const bool getEntityDone();
+  const size_t getEntitySize() const ;
 
 // ---- utils -----------------------------------------
   void clearSetRawMsg();
