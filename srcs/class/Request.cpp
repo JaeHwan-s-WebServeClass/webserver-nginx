@@ -98,7 +98,6 @@ void Request::toString() const {
   std::cout << DFT << std::endl;
   std::cout << GRY << "----------------------------------------------------"
             << DFT << std::endl;
-  // std::cout << YLW << entity << DFT << std::endl;
   // std::cout << GRY << "Debug: Request::toString\n" << DFT;
 }
 
@@ -117,7 +116,7 @@ void Request::parserHead() {
   for (std::vector<std::string>::iterator it = tmp_head.begin() + 1;
        it != tmp_head.end(); ++it) {
     int pos = it->find(':');
-    header[it->substr(0, pos)] = it->substr(pos + 2);
+    header[it->substr(0, pos)] = ft::trim(it->substr(pos + 1));
   }
   // std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
 }

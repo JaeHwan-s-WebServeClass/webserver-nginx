@@ -2,18 +2,21 @@
 
 #include <stdlib.h>
 
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
-#include <exception>
+#include <cctype>
 namespace ft {
 
 void errorHandler(std::string);
 void parser(std::string);
 std::vector<std::string> split(std::string, char);
 int hexToInt(const std::string& hex_str);
+std::string trim(std::string str);
+
 struct ServerConfig {
   int listen;
   std::vector<std::string> server_name;

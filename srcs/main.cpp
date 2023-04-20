@@ -23,10 +23,11 @@
 #include "./class/Request.hpp"
 
 //-------------------------------------------------------------------------------------//
-int main(void) {
+int main(int argc, char *argv[]) {
   try {
     // step 1 - server socket : socket, bind, listen, fcntl
-    ServerSocket server_socket(AF_INET, 8080);
+    // atoi 수정 필요함
+    ServerSocket server_socket(AF_INET, std::atoi(argv[1]));
 
     // step 2 - init kqueue
     Server server(server_socket);

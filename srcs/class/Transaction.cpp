@@ -23,8 +23,6 @@ int Transaction::executeRead(void) {
   int read_len = safeRead(this->socket_fd, buf, BUFFER_SIZE);
   int head_rest_len = 0;
 
-  // if head일 때, else body일 때
-
   // 1. head 파싱 -----------------------
   if (!this->request.getHeadDone()) {
     head_rest_len = this->executeReadHead(buf, read_len);
@@ -33,22 +31,17 @@ int Transaction::executeRead(void) {
     // if (this->request.getRawHead().length() > MAX_HEAD_SIZE)
     //   throw std::string("error : executeRead : over max head size\n");
   }
-  
 
   // 2. entity 파싱 -----------------------
   if (this->request.getHeadDone() && (this->request.getMethod() == "GET")) {
-    std::cout << RED << "(41)here is entity parsing\n" << DFT;
     if (!this->request.getEntityDone()) {
-      std::map<std::string, std::string>::const_iterator it =
-          this->request.getHeader().find("Content-Length");
-      std::map<std::string, std::string>::const_iterator it2 =
-          this->request.getHeader().find("Transfer-Encoding");
+      std::map<std::string, std::string>::const_iterator it;
 
       // content length 일 때
       //!= this->request.getHeader().end()
-      if (it->first == "Content-Length") {
-        // DEBUG
-        std::cout << RED << "(49)here is Content-Length \n" << DFT;
+      if ((it = this->request.getHeader().find("Content-Length")) !=
+          this->request.getHeader().end()) {
+            
         // content_length 맴버 변수에 대충 저장 -> request 클래스에 변수 추가 및
         // headParse에서 처리
         // this->content_length = std::atoi(it->second.c_str());
@@ -71,8 +64,9 @@ int Transaction::executeRead(void) {
         // else if (this->request.getEntitySize() > MAX_BODY_SIZE)
         // error_handle;
 
-      } else if ((it2->first == "Transfer-Encoding") &&
-                 (it2->second == "Chunked\r")) {
+      } else if (((it = this->request.getHeader().find("Transfer-Encoding")) !=
+                  this->request.getHeader().end()) &&
+                 (it->second == "Chunked")) {
         // DEBUG
         std::cout << RED << "(76)here is chunked \n" << DFT;
         if (head_rest_len) {
@@ -103,9 +97,17 @@ int Transaction::executeReadHead(char *buf, int read_len) {
   std::string line;
   while (std::getline(read_stream, line, '\n')) {
     if (line.length() == 0 || line == "\r") {
-      this->request.setRawHead(line + "\n");
       this->request.setHeadDone(true);
+
+      // DEBUG
+      std::cout << GRY << "-------------------- raw head ----------------------"
+                << DFT << std::endl;
+      std::cout << GRY << this->request.getRawHead() << DFT << std::endl;
+      std::cout << GRY << "----------------------------------------------------"
+                << DFT << std::endl;
+
       this->request.parserHead();
+      this->request.setRawHead(line + "\n");
       break;
     } else if (!this->request.getHeadDone()) {
       this->request.setRawHead(line + "\n");
