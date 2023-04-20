@@ -117,7 +117,7 @@ void Request::parserHead() {
   for (std::vector<std::string>::iterator it = tmp_head.begin() + 1;
        it != tmp_head.end(); ++it) {
     int pos = it->find(':');
-    header[it->substr(0, pos)] = it->substr(pos + 1);
+    header[it->substr(0, pos)] = it->substr(pos + 2);
   }
   // std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
 }

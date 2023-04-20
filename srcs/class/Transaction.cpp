@@ -19,7 +19,7 @@ Request &Transaction::getRequest() { return this->request; }
 //---- execute --------------------------------------------
 int Transaction::executeRead(void) {
   // BUFFER_SIZE + 1을 할 것인가에 대한 논의
-  char buf[BUFFER_SIZE];
+  char buf[BUFFER_SIZE + 1];
   int read_len = safeRead(this->socket_fd, buf, BUFFER_SIZE);
   int head_rest_len = 0;
 
@@ -32,9 +32,8 @@ int Transaction::executeRead(void) {
     // 세팅된 헤드가 max head size 보다 클 경우, error throw
     // if (this->request.getRawHead().length() > MAX_HEAD_SIZE)
     //   throw std::string("error : executeRead : over max head size\n");
-
-    // return 0;
   }
+  
 
   // 2. entity 파싱 -----------------------
   if (this->request.getHeadDone() && (this->request.getMethod() == "GET")) {
@@ -44,11 +43,6 @@ int Transaction::executeRead(void) {
           this->request.getHeader().find("Content-Length");
       std::map<std::string, std::string>::const_iterator it2 =
           this->request.getHeader().find("Transfer-Encoding");
-
-      std::cout << "it : " << it->first << '\n';
-      std::cout << "it : " << it->second << '\n';
-      std::cout << "it2 : " << it2->first << '\n';
-      std::cout << "it2 : " << it2->second << '\n';
 
       // content length 일 때
       //!= this->request.getHeader().end()
