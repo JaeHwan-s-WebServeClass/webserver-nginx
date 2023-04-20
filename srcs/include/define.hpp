@@ -7,8 +7,8 @@
 #define GRY "\033[90m"
 #define DFT "\033[0;37m"
 
-#define MAX_HEAD_SIZE 512
-#define MAX_BODY_SIZE 512
+#define MAX_HEAD_SIZE 1024
+#define MAX_BODY_SIZE 1024
 #define BUFFER_SIZE 1024
 
 #define CHUNK_SIZE 0

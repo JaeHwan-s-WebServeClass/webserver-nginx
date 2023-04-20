@@ -21,12 +21,16 @@ void Request::setHeadDone(bool type) {
 void Request::setEntityDone(bool type) { this->entity_done = type; }
 
 void Request::addContentLengthEntity(char* buf, int read_len) {
-  // if (entity.size() < read_length) {
-  // std::cout << "addContentLengthEntity buf: " << buf << std::endl;
   for (int i = 0; i < read_len; ++i) {
     this->entity.push_back(buf[i]);
   }
-  //}
+  if (this->getEntitySize() == this->getContentLength()) {
+    this->setEntityDone(true);
+  } else if (this->getEntitySize() > this->getContentLength()) {
+    throw std::string("Error: Transaction: Request Entity Over Content-Length");
+  }
+  // 아래 코드대신, kevent 에서 timeout 처리하기
+  // else if (this->request.getEntitySize < getContentLength())
 }
 
 void Request::addChunkedEntity(char* buf, size_t read_len) {
@@ -61,7 +65,7 @@ void Request::addChunkedEntity(char* buf, size_t read_len) {
   }
 }
 //---- getter --------------------------------------------
-const bool Request::getEntityDone() { return this->entity_done; }
+const bool Request::getEntityDone() const { return this->entity_done; }
 const std::string& Request::getRawHead() const { return this->raw_head; }
 const bool& Request::getHeadDone() const { return this->head_done; }
 const std::string& Request::getMethod() const { return this->method; }
@@ -74,6 +78,14 @@ const std::map<std::string, std::string>& Request::getHeader() const {
 }
 const std::vector<char>& Request::getEntity() const { return this->entity; }
 const size_t Request::getEntitySize() const { return this->entity.size(); }
+const int Request::getContentLength() const {
+  int content_length;
+  std::stringstream ss;
+
+  ss << this->header.find("Content-Length")->second;
+  ss >> content_length;
+  return content_length;
+}
 
 //---- utils --------------------------------------------
 void Request::clearSetRawMsg() { this->raw_head.clear(); }

@@ -65,7 +65,6 @@ class Request {
   /// @param line
   /// @return
   void setRawHead(std::string);
-
   void setEntityDone(bool);
 
   void addContentLengthEntity(char *, int);
@@ -79,8 +78,9 @@ class Request {
   const std::string &getHttpVersion() const;
   const std::map<std::string, std::string> &getHeader() const;
   const std::vector<char> &getEntity() const;
-  const bool getEntityDone();
+  const bool getEntityDone() const;
   const size_t getEntitySize() const;
+  const int getContentLength() const;
 
   // ---- utils -----------------------------------------
   void clearSetRawMsg();

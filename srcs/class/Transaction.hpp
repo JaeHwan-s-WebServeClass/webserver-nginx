@@ -3,13 +3,12 @@
 
 #include <unistd.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <algorithm>
 
-#include "../include/include.hpp"
 #include "../include/define.hpp"
-
+#include "../include/include.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 
@@ -37,9 +36,8 @@ class Transaction {
   int httpCheckStartLine(void);
 
   int executeRead(void);
-  int  executeReadHead(char *, int);
-  void  executeReadContentLengthEntity(void);
-  void  executeReadChunkedEntity(void);
+  int executeReadHead(char *, int);
+  void executeReadEntity(char *, int, int);
   int executeWrite(void);
   int executeMethod(void);
 
