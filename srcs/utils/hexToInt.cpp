@@ -1,6 +1,6 @@
 #include "../include/include.hpp"
 
-int hexToInt(const std::string& hex_str) {
+int ft::hexToInt(const std::string& hex_str) {
   unsigned int dec = 0;
 
   for (std::string::const_iterator it = hex_str.begin(); it != hex_str.end();

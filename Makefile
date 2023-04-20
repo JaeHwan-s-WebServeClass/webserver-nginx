@@ -9,7 +9,8 @@ SRC_NAME 	=	Server.cpp \
 
 UTILS_DIR 	:=	./srcs/utils/
 UTILS_NAME 	=	split.cpp \
-				errorhandler.cpp
+				errorhandler.cpp \
+				hexToInt.cpp
 
 SRC 		=	$(addprefix $(SRC_DIR),$(SRC_NAME)) \
 				$(addprefix $(UTILS_DIR),$(UTILS_NAME)) 

@@ -1,77 +1,64 @@
 #include "Request.hpp"
+
 #include <cstring>
 
 //---- constructor ---------------------------------------
-Request::Request() : raw_head(""), head_done(0), entity_done(false) {
+Request::Request()
+    : raw_head(""),
+      head_done(0),
+      entity_done(false),
+      chunk_size(0),
+      hex_str("") {
   entity.reserve(256);
   // std::cout << GRY << "Debug: Request::contructor\n" << DFT;
 }
 
 //---- setter --------------------------------------------
 void Request::setRawHead(std::string line) { this->raw_head += line; }
-void Request::setHeadDone(bool type) { this->head_done = type; } // status? type?
-void Request::setEntityDone(bool type ) { this->entity_done = type; }
+void Request::setHeadDone(bool type) {
+  this->head_done = type;
+}  // status? type?
+void Request::setEntityDone(bool type) { this->entity_done = type; }
 
-void Request::addContentLengthEntity(char * buf, int read_len) {
-  //if (entity.size() < read_length) {
-    //std::cout << "addContentLengthEntity buf: " << buf << std::endl;
-    for (int i = 0; i < read_len; ++i) {
-      this->entity.push_back(buf[i]);
-    }
+void Request::addContentLengthEntity(char* buf, int read_len) {
+  // if (entity.size() < read_length) {
+  // std::cout << "addContentLengthEntity buf: " << buf << std::endl;
+  for (int i = 0; i < read_len; ++i) {
+    this->entity.push_back(buf[i]);
+  }
   //}
 }
 
-// RFC7230 - 4.1.3.  Decoding Chunked
+void Request::addChunkedEntity(char* buf, size_t read_len) {
+  size_t i = 0;
 
-//   A process for decoding the chunked transfer coding can be represented
-//   in pseudo-code as:
-
-//     length := 0
-//     read chunk-size, chunk-ext (if any), and CRLF
-//     while (chunk-size > 0) {
-//        read chunk-data and CRLF
-//        append chunk-data to decoded-body
-//        length := length + chunk-size
-//        read chunk-size, chunk-ext (if any), and CRLF
-//     }
-//     read trailer field
-//     while (trailer field is not empty) {
-//        if (trailer field is allowed to be sent in a trailer) {
-//            append trailer field to existing header fields
-//        }
-//        read trailer-field
-//     }
-//     Content-Length := length
-//     Remove "chunked" from Transfer-Encoding
-//     Remove Trailer from existing header fields
-
-void Request::addChunkedEntity(char * buf, int read_len) {
-// read buf ->(parsing).\r\n -> request.entity(vec)
-  int i = 0;
-  std::string hex_str;
-  int chunk_size;
-  bool mode = CHUNK_SIZE; // size or entity
-
-  while(i < read_len) {
-    if (mode == CHUNK_SIZE) {
-      // buf를 /r/n 을 딜리미터로 파싱해서, hex_str 을 구해야함   
-      if (buf[i] != '\r' && buf[i + 1] && buf[i + 1] != '\n') {
-        hex_str += buf[i];
-      } else if (buf[i] == '\r' && buf[i + 1] && buf[i + 1] == '\n') {
-        chunk_size = ft::hexToInt(hex_str); // FIXME overflow 문제 처리
-        mode = CHUNK_ENTITY;
+  while (i < read_len) {
+    if (chunk_size == 0) {
+      hex_str += buf[i];
+      if (hex_str.back() == '\n') {
+        hex_str.pop_back();
+        hex_str.pop_back();
+        chunk_size = ft::hexToInt(hex_str);
+        std::cout << "chunk_size: " << chunk_size << "\n";
+        if (chunk_size == 0) {
+          this->setEntityDone(true);
+          return;
+        } else if (chunk_size < 0) {
+          throw std::string("Error: Request:: Chunk size overflow");
+        }
+        chunk_size += 2;
+        hex_str = "";
       }
     } else {
-      while (chunk_size) {
-      // buf[index] ++ 하면서 chunk_size 만큼 vector 로 옮겨주기?
-      }
-      mode = CHUNK_SIZE; 
-      chunk_size = 0;
+      entity.push_back(buf[i]);
       --chunk_size;
+      if (chunk_size == 0) {
+        entity.pop_back();
+        entity.pop_back();
+      }
     }
     ++i;
   }
-  // 청크사이즈만큼 다 읽은 후 바로 다음이 0\r\n 일 때 끝
 }
 //---- getter --------------------------------------------
 const bool Request::getEntityDone() { return this->entity_done; }
@@ -79,9 +66,13 @@ const std::string& Request::getRawHead() const { return this->raw_head; }
 const bool& Request::getHeadDone() const { return this->head_done; }
 const std::string& Request::getMethod() const { return this->method; }
 const std::string& Request::getUrl() const { return this->url; };
-const std::string& Request::getHttpVersion() const { return this->http_version; }
-const std::map<std::string, std::string>& Request::getHeader() const { return this->header; }
-const std::vector<char> & Request::getEntity() const { return this->entity; }
+const std::string& Request::getHttpVersion() const {
+  return this->http_version;
+}
+const std::map<std::string, std::string>& Request::getHeader() const {
+  return this->header;
+}
+const std::vector<char>& Request::getEntity() const { return this->entity; }
 const size_t Request::getEntitySize() const { return this->entity.size(); }
 
 //---- utils --------------------------------------------
@@ -101,9 +92,9 @@ void Request::toString() const {
   }
   std::cout << GRY << "--------------------- entity -----------------------"
             << DFT << std::endl;
-   for (int i = 0; i < entity.size(); i++) {
-  	std::cout << YLW << entity[i];
-   }
+  for (int i = 0; i < entity.size(); i++) {
+    std::cout << YLW << entity[i];
+  }
   std::cout << DFT << std::endl;
   std::cout << GRY << "----------------------------------------------------"
             << DFT << std::endl;

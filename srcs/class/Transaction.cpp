@@ -1,9 +1,10 @@
 #include "Transaction.hpp"
+
 #include <exception>
 
 // Todo
-// 1. content_length 변수 추가 
-// 2. MAX_(HEAD,BODY)_SIZE 조건문 
+// 1. content_length 변수 추가
+// 2. MAX_(HEAD,BODY)_SIZE 조건문
 
 //---- constructor --------------------------------------------
 Transaction::Transaction(int socket_fd, std::string root_dir)
@@ -18,56 +19,50 @@ Request &Transaction::getRequest() { return this->request; }
 //---- execute --------------------------------------------
 int Transaction::executeRead(void) {
   // BUFFER_SIZE + 1을 할 것인가에 대한 논의
-  char  buf[BUFFER_SIZE];
-  int   read_len = safeRead(this->socket_fd, buf, BUFFER_SIZE);
-  int   head_rest_len = 0;
+  char buf[BUFFER_SIZE];
+  int read_len = safeRead(this->socket_fd, buf, BUFFER_SIZE);
+  int head_rest_len = 0;
 
-  // if head일 때, else body일 때 
+  // if head일 때, else body일 때
 
   // 1. head 파싱 -----------------------
   if (!this->request.getHeadDone()) {
     head_rest_len = this->executeReadHead(buf, read_len);
-    
+
     // 세팅된 헤드가 max head size 보다 클 경우, error throw
     // if (this->request.getRawHead().length() > MAX_HEAD_SIZE)
     //   throw std::string("error : executeRead : over max head size\n");
-    
-    return 0;
+
+    // return 0;
   }
 
-  /**
-  if (this->request.getHeadDone() && (this->request.getMethod() == "POST")) 
-  {
-    if (!this->request.getEntityDone())
-    {
-      std::map<std::string, std::string>::const_iterator it;
-      if ((it = this->request.getHeader().find("Content-Length")) 
-          != this->request.getHeader().end()) 
-      {
-        excuteReadContentLengthEntity()
-      }
-      else if (((it = this->request.getHeader().find("Transfer-Encoding"))
-           != this->request.getHeader().end()) && (it->second == "Chunked")) 
-      {
-        excuteReadChunkedEntity()
-      }
-    }
-  */
-
   // 2. entity 파싱 -----------------------
-  if (this->request.getHeadDone() && (this->request.getMethod() == "POST")) {
-    if (!this->request.getEntityDone()){
-      std::map<std::string, std::string>::const_iterator it;
-      
-	    // content length 일 때
-      if ((it = this->request.getHeader().find("Content-Length")) 
-          != this->request.getHeader().end()) {
-		    // content_length 맴버 변수에 대충 저장 -> request 클래스에 변수 추가 및 headParse에서 처리
+  if (this->request.getHeadDone() && (this->request.getMethod() == "GET")) {
+    std::cout << RED << "(41)here is entity parsing\n" << DFT;
+    if (!this->request.getEntityDone()) {
+      std::map<std::string, std::string>::const_iterator it =
+          this->request.getHeader().find("Content-Length");
+      std::map<std::string, std::string>::const_iterator it2 =
+          this->request.getHeader().find("Transfer-Encoding");
+
+      std::cout << "it : " << it->first << '\n';
+      std::cout << "it : " << it->second << '\n';
+      std::cout << "it2 : " << it2->first << '\n';
+      std::cout << "it2 : " << it2->second << '\n';
+
+      // content length 일 때
+      //!= this->request.getHeader().end()
+      if (it->first == "Content-Length") {
+        // DEBUG
+        std::cout << RED << "(49)here is Content-Length \n" << DFT;
+        // content_length 맴버 변수에 대충 저장 -> request 클래스에 변수 추가 및
+        // headParse에서 처리
         // this->content_length = std::atoi(it->second.c_str());
 
-        // 47 - 51 : entity 채우는 부분	
+        // 47 - 51 : entity 채우는 부분
         if (head_rest_len) {
-          this->request.addContentLengthEntity(buf + this->request.getRawHead().length(), head_rest_len);
+          this->request.addContentLengthEntity(
+              buf + this->request.getRawHead().length(), head_rest_len);
         } else {
           this->request.addContentLengthEntity(buf, read_len);
         }
@@ -77,62 +72,66 @@ int Transaction::executeRead(void) {
         // if (this->request.getEntitySize() == this->content_length) {
         //   this->request.setEntityDone(true);
         // } else if (this->request.getEntitySize() > this->content_length) {
-		    // 			// error_handle;
+        // 			// error_handle;
         // }
         // else if (this->request.getEntitySize() > MAX_BODY_SIZE)
         // error_handle;
 
-      } else if (((it = this->request.getHeader().find("Transfer-Encoding"))
-          != this->request.getHeader().end()) && (it->second == "Chunked")) {
+      } else if ((it2->first == "Transfer-Encoding") &&
+                 (it2->second == "Chunked\r")) {
+        // DEBUG
+        std::cout << RED << "(76)here is chunked \n" << DFT;
         if (head_rest_len) {
-          this->request.addChunkedEntity(buf + this->request.getRawHead().length(), head_rest_len);
+          this->request.addChunkedEntity(
+              buf + this->request.getRawHead().length(), head_rest_len);
         } else {
           this->request.addChunkedEntity(buf, read_len);
         }
-      } 
+      }
       // else {
       //   throw std::string("error?");
       // }
     }
-    this->request.setEntityDone(true);
-  // std::cout << GRY << "Debug: Transaction::executeRead\n";
+    // this->request.setEntityDone(true);
+    // std::cout << GRY << "Debug: Transaction::executeRead\n";
   }
   return 0;
 }
 
-int Transaction::executeReadHead(char * buf, int read_len) {
-// 들어오는 데이터가 텍스트가 아닐수도있어 필요가 없?
-// 헤드는 무조건 텍스트로 들어오지 않을까요?
-// 터미널에서 보내는게 아니어서 상관없을거같아요..
-    buf[read_len] = '\0';
-    std::istringstream  read_stream;
-    read_stream.str(buf);
+int Transaction::executeReadHead(char *buf, int read_len) {
+  // 들어오는 데이터가 텍스트가 아닐수도있어 필요가 없?
+  // 헤드는 무조건 텍스트로 들어오지 않을까요?
+  // 터미널에서 보내는게 아니어서 상관없을거같아요..
+  buf[read_len] = '\0';
+  std::istringstream read_stream;
+  read_stream.str(buf);
 
-    std::string line;
-    while (std::getline(read_stream, line, '\n')) {
-      if (line.length() == 0 || line == "\r") {
-        this->request.setRawHead(line + "\n");
-        this->request.setHeadDone(true);
-        this->request.parserHead();
-        break;
-      } else if (!this->request.getHeadDone()) {
-        this->request.setRawHead(line + "\n");
-        if (read_stream.eof()) {
-          throw std::string("executeRead error : over max-header-size");
-        }
+  std::string line;
+  while (std::getline(read_stream, line, '\n')) {
+    if (line.length() == 0 || line == "\r") {
+      this->request.setRawHead(line + "\n");
+      this->request.setHeadDone(true);
+      this->request.parserHead();
+      break;
+    } else if (!this->request.getHeadDone()) {
+      this->request.setRawHead(line + "\n");
+      if (read_stream.eof()) {
+        throw std::string("executeRead error : over max-header-size");
       }
     }
-	// 읽은 head가 max-head-size에 맞는지 확인
-	
-    return (read_len - this->request.getRawHead().length());
+  }
+  // 읽은 head가 max-head-size에 맞는지 확인
+
+  return (read_len - this->request.getRawHead().length());
 }
 
 // void Transaction::executeReadContentLengthEntity() {
-//   int head_rest_len = this->read_head_len - (this->request.getRawHead().length());
-//   this->request.addContentLengthEntity(this->head_buf + this->request.getRawHead().length(), head_rest_len);
-//   int read_len = safeRead(this->socket_fd, entity_buf, MAX_BODY_SIZE);
-//   entity_buf[read_len] = '\0';
-//   this->request.addContentLengthEntity(entity_buf, read_len);
+//   int head_rest_len = this->read_head_len -
+//   (this->request.getRawHead().length());
+//   this->request.addContentLengthEntity(this->head_buf +
+//   this->request.getRawHead().length(), head_rest_len); int read_len =
+//   safeRead(this->socket_fd, entity_buf, MAX_BODY_SIZE); entity_buf[read_len]
+//   = '\0'; this->request.addContentLengthEntity(entity_buf, read_len);
 //   this->request.setEntityDone(true);
 // }
 
@@ -146,12 +145,12 @@ int Transaction::executeWrite(void) {
 }
 
 int Transaction::executeMethod(void) {
-  if ((this->request.getMethod() == "POST" && !this->request.getEntityDone())
-    || ((this->request.getMethod() != "POST") && !this->request.getHeadDone())) {
+  if ((this->request.getMethod() == "POST" && !this->request.getEntityDone()) ||
+      ((this->request.getMethod() != "POST") && !this->request.getHeadDone())) {
     return 0;
   }
 
-  //DEBUG
+  // DEBUG
   this->request.toString();
 
   int status = this->httpCheckStartLine();
