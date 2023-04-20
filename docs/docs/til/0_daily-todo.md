@@ -340,5 +340,26 @@
 
 ***
 
+## [19일차] 2023.04.20 (목)
 
+### 진행 계획
+1. entity chunked 파싱 구현
+2. port 파라미터로 받기
+3. Header parsing
+    3-1. value 에서 앞부분 whitespace 제거
+    3-2. value 에서 뒷부분 CR 제거
+4. Transfer executeRead 에서 entity parsing 부분 함수로 묶기
+    4-1. entity 길이 유효성 검사(content_length 와 max_body_size 비교)
+### 결과
+
+[13:40 ~ 18:00] entity chunked 파싱 구현 및 postman 테스트
+
+[19:30 ~ 20:00] 큰 데이터를 보내면 abort 발생하는 에러 픽스
+
+[20:00 ~ 21:30] 2 ~ 4 진행
+
+
+<br>
+
+***
 
