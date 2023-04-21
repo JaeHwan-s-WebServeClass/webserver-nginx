@@ -55,4 +55,7 @@ class ServerSocket {
   int safeAccept(void);
 
   int getServerSocket(void);
+
+  public:
+    int getPort();
 };

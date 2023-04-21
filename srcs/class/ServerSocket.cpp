@@ -22,6 +22,8 @@ ServerSocket::ServerSocket(sa_family_t address_family, int port) {
   // std::cout << GRY << "Debug: ServerSocket::ServerSocket\n";
 }
 
+int ServerSocket::getPort() {return this->port;}
+
 //---- safe function ----------------------------------------------
 void ServerSocket::safeSocket(int domain, int type, int protocol) {
   if ((this->server_socket = socket(domain, type, protocol)) == -1) {
