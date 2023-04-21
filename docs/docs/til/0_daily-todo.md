@@ -363,3 +363,35 @@
 
 ***
 
+## [20일차] 2023.04.21 (금)
+
+### 진행 계획
+1. multiple socket 구현
+2. 각종 bug FIX
+
+### 결과
+
+[13:00 ~ 14:30] 'multiple server 란?' 에 대한 개념 논의
+
+[14:00 ~ 15:00] 천하제일 multiple socket 구현 - jnam 이 함
+
+(❗️ read 와 write error 발생 ❗️)  
+write error는 고질적으로 발생해왔음..  
+근데..read error가 생겼다.....!?  
+
+
+[15:00 ~ 18:00] 
+
+* read 에러 고침  
+**↘︎ how to fix**  
+multiple server를 만들면서 iterator를 사용하는 for문을 추가함. 그 과정에서 executeRead()가 반복문 안에 잘못 들어가 있었음.  
+
+  
+[19:00 ~ 20:00]
+* write 에러의 원인이 sigpipe 였다는 것을 존재를 앎 (exit status code 가 141)  
+**↘︎ how to fix**  
+recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 cycle이 끝나면 해당 client disconnect 처리  
+
+<br>
+
+***
