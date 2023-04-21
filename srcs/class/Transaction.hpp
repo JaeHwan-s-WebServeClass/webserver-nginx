@@ -2,6 +2,8 @@
 #define TRANSACTION_HPP
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #include <algorithm>
 #include <fstream>
