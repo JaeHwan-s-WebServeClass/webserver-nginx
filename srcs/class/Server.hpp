@@ -25,10 +25,13 @@ class Server {
   struct kevent event_list[8];
   std::vector<struct kevent> change_list;
 
-  ServerSocket *server_socket;
+  // ServerSocket *server_socket;
+  std::vector<ServerSocket *> server_socket;
 
  public:
-  Server(ServerSocket &server_socket);
+  /// @param server_socket
+  // Server(ServerSocket &);
+  Server(std::vector<ServerSocket *>);
 
   /// @brief
   /// @param change_list

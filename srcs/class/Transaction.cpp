@@ -23,6 +23,10 @@ int Transaction::executeRead(void) {
   int read_len = safeRead(this->socket_fd, buf, BUFFER_SIZE);
   int head_rest_len = 0;
 
+  if (read_len == -1) {
+    return -1;
+  }
+
   // 1. head 파싱 -----------------------
   if (!this->request.getHeadDone()) {
     head_rest_len = this->executeReadHead(buf, read_len);
@@ -208,22 +212,26 @@ int Transaction::httpPost(void) {
 
 // ---- safe functions -----------------------------------------
 int Transaction::safeRead(int fd, char *buf, int size) {
-  int read_len;
+  int recv_len;
 
-  if ((read_len = read(fd, buf, size)) == -1) {
-    throw std::string("client read error!");
+  signal(SIGPIPE, SIG_IGN);
+  if ((recv_len = recv(fd, buf, size, 0)) == -1) {
+    std::cerr << RED << "client read error!\n" << DFT;
   }
+  signal(SIGPIPE, SIG_DFL);
   // std::cout << GRY << "Debug: Transaction::safeRead\n";
-  return read_len;
+  return recv_len;
 }
 
 int Transaction::safeWrite(int fd, Response &response) {
-  int write_len;
+  int send_len;
 
-  if ((write_len = write(fd, response.getResponseMsg().c_str(),
-                         response.getResponseMsg().size())) == -1) {
-    throw std::string("client write error!");
+  signal(SIGPIPE, SIG_IGN);
+  if ((send_len = send(fd, response.getResponseMsg().c_str(),
+                       response.getResponseMsg().size(), 0)) == -1) {
+    std::cerr << RED << "client write error!\n" << DFT;
   }
+  signal(SIGPIPE, SIG_DFL);
   // std::cout << GRY << "Debug: Transaction::safeWrite\n";
-  return write_len;
+  return send_len;
 }

@@ -468,3 +468,16 @@ chunked entity 파싱 구현에 생각보다 까다로운 녀석이 있다. 우�
 2. 버퍼가 `\r` 에서 끝났을 때
   
 ### 8-2. 사용할 자료구조
+
+## 9. [2023.04.21(금)]
+
+### 9-1. 상황
+try to get multiple socket in server...
+### 9-2. 사용할 자료구조
+
+
+## 10. [2023.04.21(금)]
+
+### 10-1. 상황
+sigpipe 발생 시 read 와 write 에서 sig ignore 후 return -1 하여 서버에서 disconnect 하도록 하기
+### 10-2. 사용할 자료구조

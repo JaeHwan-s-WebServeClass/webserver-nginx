@@ -1,14 +1,27 @@
 #include "Server.hpp"
 
+// ---- constructors
 // Server 생성자에서 소캣 연결을 하는게 좋을지 아니면 따로 할지 고민중
-Server::Server(ServerSocket &server_socket) {
+// Server::Server(ServerSocket &server_socket) {
+//   if ((this->kq = kqueue()) == -1) {
+//     throw std::string("socket() error\n" + std::string(strerror(errno)));
+//   }
+//   this->server_socket.push_back(&server_socket);
+//   // std::cout << GRY << "Debug: Server\n" << DFT;
+// }
+
+Server::Server(std::vector<ServerSocket *> server_socket) {
   if ((this->kq = kqueue()) == -1) {
     throw std::string("socket() error\n" + std::string(strerror(errno)));
   }
-  this->server_socket = &server_socket;
+  std::vector<ServerSocket *>::const_iterator it = server_socket.begin();
+  for (; it != server_socket.end(); it++) {
+    this->server_socket.push_back(*it);
+  }
   // std::cout << GRY << "Debug: Server\n" << DFT;
 }
 
+// ---- utils
 void Server::setChangeList(std::vector<struct kevent> &change_list,
                            uintptr_t ident, int16_t filter, uint16_t flags,
                            uint32_t fflags, intptr_t data, void *udata) {
@@ -45,15 +58,20 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
 
 //---- main loop
 void Server::run() {
-  setChangeList(this->change_list, this->server_socket->getServerSocket(),
-                EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+  std::vector<ServerSocket *>::const_iterator it = this->server_socket.begin();
+  for (; it != this->server_socket.end(); it++) {
+    setChangeList(this->change_list, (*it)->getServerSocket(), EVFILT_READ,
+                  EV_ADD | EV_ENABLE, 0, 0, NULL);
+  }
+
+  // setChangeList(this->change_list, this->server_socket->getServerSockest(),
+  //               EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 
   int new_events;
   struct kevent *curr_event;
 
-  while (42) {
+  while (1) {
     new_events = safeKevent(8, NULL);
-
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
@@ -62,9 +80,14 @@ void Server::run() {
 
       // 1. 들어온 신호가 error일 경우
       if (curr_event->flags & EV_ERROR) {
-        if (curr_event->ident == this->server_socket->getServerSocket()) {
-          throw std::string("server socket error");
-        } else {
+        std::vector<ServerSocket *>::const_iterator it =
+            this->server_socket.begin();
+        for (; it != this->server_socket.end(); it++) {
+          if (curr_event->ident == (*it)->getServerSocket()) {
+            throw std::string("server socket error");
+          }
+        }
+        if (it == this->server_socket.end()) {
           throw std::string("client socket error");
           this->disconnectClient(curr_event->ident, this->clients);
         }
@@ -72,24 +95,32 @@ void Server::run() {
       // 2. 감지된 이벤트가 read일 경우
       else if (curr_event->filter == EVFILT_READ) {
         // 2-1. server 에게 connect 요청이 온 경우 => accept()
-        if (curr_event->ident == this->server_socket->getServerSocket()) {
-          int client_socket;
+        int client_socket;
+        std::vector<ServerSocket *>::const_iterator it =
+            this->server_socket.begin();
+        for (; it != this->server_socket.end(); it++) {
+          if (curr_event->ident == (*it)->getServerSocket()) {
+            // int client_socket;
 
-          client_socket = this->server_socket->safeAccept();
-          std::cout << GRN << "accept new client: " << client_socket << DFT
-                    << std::endl;
-          fcntl(client_socket, F_SETFL, O_NONBLOCK);
+            // std::cout << RED << "accept : server soc fd: "<< (*it)->getPort()
+            // << std::endl;
 
-          setChangeList(this->change_list, client_socket, EVFILT_READ,
-                        EV_ADD | EV_ENABLE, 0, 0, NULL);
-          setChangeList(this->change_list, client_socket, EVFILT_WRITE,
-                        EV_ADD | EV_ENABLE, 0, 0, NULL);
-          // value 를 초기화하는 과정
-          this->clients[client_socket] =
-              new Transaction(client_socket, "./rootdir/test");
+            client_socket = (*it)->safeAccept();
+            std::cout << GRN << "accept new client: " << client_socket << DFT
+                      << std::endl;
+            fcntl(client_socket, F_SETFL, O_NONBLOCK);
+
+            setChangeList(this->change_list, client_socket, EVFILT_READ,
+                          EV_ADD | EV_ENABLE, 0, 0, NULL);
+            setChangeList(this->change_list, client_socket, EVFILT_WRITE,
+                          EV_ADD | EV_ENABLE, 0, 0, NULL);
+            // value 를 초기화하는 과정
+            this->clients[client_socket] =
+                new Transaction(client_socket, "./rootdir/test");
+            break;
+          }
         }
-        // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
-        else if (this->clients.find(curr_event->ident) != this->clients.end()) {
+        if (this->clients.find(curr_event->ident) != this->clients.end()) {
           if (this->clients[curr_event->ident]->executeRead() == -1) {
             this->disconnectClient(curr_event->ident, this->clients);
           } else {
@@ -97,6 +128,7 @@ void Server::run() {
             this->clients[curr_event->ident]->executeMethod();
           }
         }
+        // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
       }
       // 3. 감지된 이벤트가 write일 경우 => write()
       else if (curr_event->filter == EVFILT_WRITE) {
