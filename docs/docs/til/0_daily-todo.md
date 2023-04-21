@@ -246,9 +246,120 @@
 
 ***
 
+## [14일차] 2023.04.13 (목)
+
+### 진행 계획
+1. method 구현 (get, post, delete)
+
+### 결과
+[13:00 ~ 14:45] nginx conf 파일 분석
+
+[15:20 ~ 18:00] GET method 구현
+-> entity 받아오는 부분 구현... chunk 등장...
+
+<br>
+
+***
+
+## [15일차] 2023.04.14 (금)
+
+### 진행 계획
+1. method 구현 (get, post, delete)
+2. 테스트하기
+
+### 결과
+[13:00 ~ 15:30] GET 구현
+
+[16:00 ~ 17:00] Method 유효성 검사 및 Transaction 객체 및 GET 수정
+
+[17:00 ~ 18:20] 요청 메시지 entity 파싱 논의
+
+<br>
+
+***
+
+## [16일차] 2023.04.17 (월)
+
+### 진행 계획
+1. 요청 메시지 read 위치 논의
+    - setRawMsg 를 전체적으로 개편?!
+    - Server 의 read/write도 개편
+        * Server는 event만 감지하며, 그 외의 일은 모두 Transaction이 하자?!
+    - parsing (configuration, entity, header) 정리!
+    - Server, Transaction, Response, Request 객체간에 어떤 역할을 할지 명확하게 정리!
+
+2. 논의 바탕으로 구현
+
+### 결과
+1. read, write 를 transaction 으로 논의
+    1-1. 넣고 200 을 받자
+    
+2. setRawMsg chunk 와 content-length 로 구분하자.
+
+[13:30 ~ 16:00] server 와 read, method, write, transaction 구현 & 논의
+
+[16:30 ~ 18:00] transaction 구조 논의 & 수정 & 포스트맨 테스트
+
+[20:00 ~ 21:00] entity parsing 논의 - gnl 로 일단 합의
+
+<br>
+
+***
+
+## [17일차] 2023.04.18 (화)
+
+### 진행 계획
+1. entity 파싱 구현
+
+### 결과
+
+[13:00 ~ 14:50] entity 파싱 방법 논의... 자료구조... 할당 논의
+
+[15:10 ~ 16:00] 똑같은 논의... entity 파싱 방법 논의... 자료구조... 할당
+
+[16:20 ~ 17:50] head 파싱 후 Content-Length 일 때 entity 처리 구현
+
+[19:30 ~ 20:30] 이전까지 구현한 코드 리팩토링
+
+[20:30 ~ 21:00] entity 파싱 chunk 부분 수도 코드 작성
+
+<br>
+
+***
+
+## [18일차] 2023.04.19 (수)
+
+### 진행 계획
+1. entity 파싱 구현
+
+### 결과
+
+[13:00 ~ 17:00] head 와 entity 파싱 재논의 및 구현
+
+<br>
+
+***
+
+## [19일차] 2023.04.20 (목)
+
+### 진행 계획
+1. entity chunked 파싱 구현
+2. port 파라미터로 받기
+3. Header parsing
+    3-1. value 에서 앞부분 whitespace 제거
+    3-2. value 에서 뒷부분 CR 제거
+4. Transfer executeRead 에서 entity parsing 부분 함수로 묶기
+    4-1. entity 길이 유효성 검사(content_length 와 max_body_size 비교)
+### 결과
+
+[13:40 ~ 18:00] entity chunked 파싱 구현 및 postman 테스트
+
+[19:30 ~ 20:00] 큰 데이터를 보내면 abort 발생하는 에러 픽스
+
+[20:00 ~ 21:30] 2 ~ 4 진행
 
 
+<br>
 
-
-
+***
 

@@ -7,18 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "../include/define.hpp"
 #include "../include/include.hpp"
-
-#define POST 0
-#define GET 1
-#define DELETE 2
-
-#define RED "\033[0;31m"
-#define GRN "\033[0;32m"
-#define YLW "\033[0;33m"
-#define BLU "\033[0;36m"
-#define GRY "\033[90m"
-#define DFT "\033[0;37m"
 
 // head : 시작줄, header
 // body : entity, body
@@ -48,41 +38,54 @@ class Request {
  private:
   // 여러가지 요청이 동시에 들어오고, 동시에 처리해야 하는 상황이 있을까?
   // 하나씩 처리한다면 raw_msg 를 clear 하면서 진행하면 되지만, 병렬처리라면
-  // 어떻게 해야하는가? -> 입력은 비동기로 받지만, 처리는 동기로 하기 떄문에 병렬 처리할 일이 없음.
+  // 어떻게 해야하는가? -> 입력은 비동기로 받지만, 처리는 동기로 하기 떄문에
+  // 병렬 처리할 일이 없음.
   std::string raw_head;
 
-  bool is_end_head;
   std::string method;  // 파싱할 때 compare해서 define해둔 int 값 사용
   std::string url;
   std::string http_version;
   std::map<std::string, std::string> header;
-  std::vector<std::string> entity;
+  std::vector<char> entity;
+  bool head_done;
+  bool entity_done;
+  int chunk_size;
+  std::string hex_str;
 
  public:
   Request();
 
-  /// @brief set Raw Msg
-  /// @param update
+  // ---- setters -------------------------------------
+  /// @brief set Is End Head
+  /// @param type
   /// @return
-  void setRawMsg(const char *);
+  void setHeadDone(bool);
 
-  /// @brief get Raw Msg
-  /// @param
-  /// @return rawmsg
-  std::string getRawMsg();
-
-  /// @brief clear Raw Msg buf
-  /// @param
+  /// @brief set Raw Head
+  /// @param line
   /// @return
+  void setRawHead(std::string);
+  void setEntityDone(bool);
+
+  void addContentLengthEntity(char *, int);
+  void addChunkedEntity(char buf[BUFFER_SIZE], size_t read_len);
+
+  // ---- getters -------------------------------------
+  const std::string &getRawHead() const;
+  const bool &getHeadDone() const;
+  const std::string &getMethod() const;
+  const std::string &getUrl() const;
+  const std::string &getHttpVersion() const;
+  const std::map<std::string, std::string> &getHeader() const;
+  const std::vector<char> &getEntity() const;
+  const bool getEntityDone() const;
+  const size_t getEntitySize() const;
+  const int getContentLength() const;
+
+  // ---- utils -----------------------------------------
   void clearSetRawMsg();
-
-  /// @brief parse head
-  /// @return
   void parserHead();
-
-  /// @brief convert to string
-  /// @return
-  void toString();
+  void toString() const;
 };
 
 #endif

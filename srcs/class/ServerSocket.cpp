@@ -1,7 +1,7 @@
 #include "ServerSocket.hpp"
 
 ServerSocket::ServerSocket(sa_family_t address_family, int port) {
-  memset(&(this->server_addr), 0, sizeof(server_addr));
+  std::memset(&(this->server_addr), 0, sizeof(server_addr));
   this->server_addr.sin_family = address_family;
   // htonl(INADDR_ANY) 는 주소를 지정해 주는 것으로 inet_addr( "내 시스템의 IP
   // ")로도 지정할 수 있습니다. 그러나 프로그램이 실행되는 시스템 마다 IP 가
@@ -16,13 +16,14 @@ ServerSocket::ServerSocket(sa_family_t address_family, int port) {
 
   std::cout << "Construct ServerSocket: Port number: "
             << this->server_addr.sin_port << std::endl;
+  // std::cout << GRY << "Debug: ServerSocket::ServerSocket\n";
 }
 
 void ServerSocket::safeSocket(int domain, int type, int protocol) {
   if ((this->server_socket = socket(domain, type, protocol)) == -1) {
     throw std::string("socket() error\n" + std::string(strerror(errno)));
   }
-  std::cout << "safeSocket Done!!" << std::endl;
+  // std::cout << GRY << "Debug: ServerSocket::safeSocket\n";
 }
 
 void ServerSocket::safeBind(void) {
@@ -31,21 +32,21 @@ void ServerSocket::safeBind(void) {
            sizeof(this->server_addr)) == -1) {
     throw std::string("bind() error\n" + std::string(strerror(errno)));
   }
-  std::cout << "safeBind Done!!" << std::endl;
+  // std::cout << GRY << "Debug: ServerSocket::safeBind\n";
 }
 
 void ServerSocket::safeListen(int backlog) {
   if (listen(this->server_socket, backlog) == -1) {
     throw std::string("listen() error\n" + std::string(strerror(errno)));
   }
-  std::cout << "safeListen Done!!" << std::endl;
+  // std::cout << GRY << "Debug: ServerSocket::safeListen\n";
 }
 
 void ServerSocket::setNonBlock(int socket_fd) {
   if (fcntl(socket_fd, F_SETFL, O_NONBLOCK) == -1) {
     throw std::string("fcntl() error\n" + std::string(strerror(errno)));
   }
-  std::cout << "setNonBlock Done!!" << std::endl;
+  // std::cout << GRY << "Debug: ServerSocket::setNonBlock\n";
 }
 
 int ServerSocket::safeAccept(void) {
@@ -54,10 +55,9 @@ int ServerSocket::safeAccept(void) {
   if ((client_socket = accept(this->server_socket, NULL, NULL)) == -1) {
     throw std::string("accept() error\n" + std::string(strerror(errno)));
   }
-  std::cout << "safeAccept Done!!" << std::endl;
+  // std::cout << GRY << "Debug: ServerSocket::safeAccept\n";
+
   return client_socket;
 }
 
-int ServerSocket::getServerSocket() {
-  return this->server_socket;
-}
+int ServerSocket::getServerSocket() { return this->server_socket; }

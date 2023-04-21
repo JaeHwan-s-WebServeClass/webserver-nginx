@@ -6,6 +6,8 @@
 
 #include <exception>
 #include <iostream>  //
+#include <cstring>
+#include "../include/define.hpp"
 
 class ServerSocket {
  private:
@@ -17,7 +19,7 @@ class ServerSocket {
   /// @param  domain PF_INET
   /// @param  type socket_stream
   /// @param  protocol 0
-  /// @return 
+  /// @return
   void safeSocket(int, int, int);
 
   /// @brief

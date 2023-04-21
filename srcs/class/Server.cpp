@@ -1,19 +1,12 @@
 #include "Server.hpp"
 
-#include <sys/_types/_int16_t.h>
-#include <sys/_types/_intptr_t.h>
-#include <sys/event.h>
-#include <sys/fcntl.h>
-
-#include "Request.hpp"
-#include "ServerSocket.hpp"
-
 // Server 생성자에서 소캣 연결을 하는게 좋을지 아니면 따로 할지 고민중
 Server::Server(ServerSocket &server_socket) {
   if ((this->kq = kqueue()) == -1) {
     throw std::string("socket() error\n" + std::string(strerror(errno)));
   }
   this->server_socket = &server_socket;
+  // std::cout << GRY << "Debug: Server\n" << DFT;
 }
 
 void Server::setChangeList(std::vector<struct kevent> &change_list,
@@ -23,19 +16,20 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
 
   EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
   change_list.push_back(temp_event);
+  // std::cout << GRY << "Debug: Server::setChangeList\n" << DFT;
 }
 
 void Server::disconnectClient(int client_fd,
-                              std::map<int, Request *> &clients) {
+                              std::map<int, Transaction *> &clients) {
   delete clients[client_fd];
   // system("leaks webserv | grep total");
   close(client_fd);
   clients.erase(client_fd);
   std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
+  // std::cout << GRY << "Debug: Server::disconnectClient\n" << DFT;
 }
 
 // ---- safe functions
-// -----------------------------------------------------------------
 int Server::safeKevent(int nevents, const timespec *timeout) {
   int new_events;
 
@@ -44,30 +38,12 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
                   this->event_list, nevents, timeout)) == -1) {
     throw std::string("kevent() error\n" + std::string(strerror(errno)));
   }
+  // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
+
   return new_events;
 }
 
-int Server::safeRead(int fd, char *buf) {
-  int read_len;
-
-  if ((read_len = read(fd, buf, BUFFER_SIZE)) == -1) {
-    throw std::string("client read error!");
-  }
-  return read_len;
-}
-
-int Server::safeWrite(int fd) {
-  int write_len;
-
-  if ((write_len = write(fd, this->clients[fd]->getRawMsg().c_str(),
-                         this->clients[fd]->getRawMsg().size())) == -1) {
-    throw std::string("client write error!");
-  }
-  return write_len;
-}
-
 //---- main loop
-//-----------------------------------------------------------------
 void Server::run() {
   setChangeList(this->change_list, this->server_socket->getServerSocket(),
                 EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -109,50 +85,39 @@ void Server::run() {
           setChangeList(this->change_list, client_socket, EVFILT_WRITE,
                         EV_ADD | EV_ENABLE, 0, 0, NULL);
           // value 를 초기화하는 과정
-          this->clients[client_socket] = new Request();
-          this->response = new Response();
+          this->clients[client_socket] =
+              new Transaction(client_socket, "./rootdir/test");
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
         else if (this->clients.find(curr_event->ident) != this->clients.end()) {
-          char buf[BUFFER_SIZE];
-          int read_len = safeRead(curr_event->ident, buf);
-
-          if (read_len == 0) {
+          if (this->clients[curr_event->ident]->executeRead() == -1) {
             this->disconnectClient(curr_event->ident, this->clients);
           } else {
-            buf[read_len] = '\0';
-            this->clients[curr_event->ident]->setRawMsg(buf);
-            std::cout << GRN << "received data from " << curr_event->ident
-                      << DFT << std::endl;
-            // std::cout << GRY << "received data from " << curr_event->ident
-            //           << ": \n"
-            //           << DFT << this->clients[curr_event->ident]->getRawMsg()
-            //           << std::endl;
+            // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
+            this->clients[curr_event->ident]->executeMethod();
           }
         }
       }
       // 3. 감지된 이벤트가 write일 경우 => write()
       else if (curr_event->filter == EVFILT_WRITE) {
-        std::map<int, Request *>::iterator it = clients.find(curr_event->ident);
+        std::map<int, Transaction *>::iterator it =
+            clients.find(curr_event->ident);
 
         // 3-1. client에서 이벤트 발생
         if (it != clients.end()) {
-          if (this->clients[curr_event->ident]->getRawMsg() != "") {
-            // int write_len = safeWrite(curr_event->ident);
-
-            this->clients[curr_event->ident]->toString();
-            // tmp response 출력해보기
-            std::cout << YLW << "response: \n"
-                      << DFT << this->response->getResponseMsg() << std::endl;
-            int write_len = this->response->safeWrite(curr_event->ident);
-            if (write_len == -1) {
-              this->disconnectClient(curr_event->ident, this->clients);
-            } else {
-              this->clients[curr_event->ident]->clearSetRawMsg();
-            }
+          // 응답시간이 너무 길어질 때의 처리도 필요하다.
+          if (this->clients[curr_event->ident]->executeWrite() == -1) {
+            this->disconnectClient(curr_event->ident, this->clients);
           }
+          // 어떤 조건이었지??? => 아마 keepalive를 위해 사용되는 조건들
+          // if (write() == -1) {
+          //   this->disconnectClient(curr_event->ident, this->clients);
+          // } else {
+          //   this->clients[curr_event->ident]->getRequest().clearSetRawMsg();
+          // }
         }
       }
     }
   }
+  // std::cout << GRY << "Debug: Server::run\n" << DFT;
 }

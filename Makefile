@@ -1,21 +1,24 @@
 NAME 		:=	webserv
 
-SRC_DIR 	:=	./class/
+SRC_DIR 	:=	./srcs/class/
 SRC_NAME 	=	Server.cpp \
 				ServerSocket.cpp \
 				Request.cpp \
-				Response.cpp
+				Response.cpp \
+				Transaction.cpp
 
-UTILS_DIR 	:=	./utils/
+UTILS_DIR 	:=	./srcs/utils/
 UTILS_NAME 	=	split.cpp \
-				errorhandler.cpp
+				errorhandler.cpp \
+				hexToInt.cpp \
+				trim.cpp
 
 SRC 		=	$(addprefix $(SRC_DIR),$(SRC_NAME)) \
 				$(addprefix $(UTILS_DIR),$(UTILS_NAME)) 
-				
+
 OBJ 		=	$(SRC:.c=.o)
 
-INCLUDE		:=	-I./include/
+INCLUDE		:=	-I./srcs/include/
 CC 			:=	c++
 #CXXFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
 CXXFLAGS 	:=	
@@ -31,7 +34,7 @@ all : $(NAME)
 #re : fclean all
 
 $(NAME): $(OBJ)
-	$(CC) $(CFLAGS) $(INCLUDE) $(OBJ) main.cpp -o $@
+	$(CC) $(CFLAGS) $(INCLUDE) $(OBJ) ./srcs/main.cpp -o $@
 
 .PHONY : all clean fclean
 

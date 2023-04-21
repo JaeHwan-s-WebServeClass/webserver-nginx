@@ -18,6 +18,6 @@ nav:
     - '3_simple-configuration-parser': til/3_simple-configuration-parser.md
     - '4_terminal-input-issue': til/4_terminal-input-issue.md
     - '5_doxygen': til/5_doxygen.md
-    - '6_OOP-debate': til/6_OOP-debate.md
+    - '6_debate': til/6_debate.md
     - '7_requestmsg_parsing' : til/7_requestmsg_parsing.md
     - '8_response_msg_mockup_test' : til/8_response_msg_mockup_test.md

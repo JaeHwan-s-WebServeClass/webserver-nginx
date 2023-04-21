@@ -11,17 +11,7 @@
 #include <vector>
 
 #include "../include/include.hpp"
-
-#define POST 0
-#define GET 1
-#define DELETE 2
-
-#define RED "\033[0;31m"
-#define GRN "\033[0;32m"
-#define YLW "\033[0;33m"
-#define BLU "\033[0;36m"
-#define GRY "\033[90m"
-#define DFT "\033[0;37m"
+#include "../include/define.hpp"
 
 /* Response 리턴할 형식
     <버전> <상태 코드> <상태 메시지>
@@ -46,7 +36,8 @@ class Response {
   std::string status_msg;
   std::map<std::string, std::string> header;
   std::string entity;
-  // std::vector<std::string> entity;
+  bool entity_done;
+
   int event_fl;
 
  public:
@@ -58,15 +49,15 @@ class Response {
   void setHeader(std::string, std::string);
   void setEntity(std::string);
 
-  //   void getHttpVersion();
-  //   void getStatusCode();
-  //   void getStatusMsg();
-  //   void getHeader();
-  //   void getEntity();
+    // void getHttpVersion();
+    // void getStatusCode();
+    // void getStatusMsg();
+    // void getHeader();
+    // void getEntity();
 
-  int safeWrite(int fd);
   void setResponseMsg();
   std::string getResponseMsg();
+  const bool  getEntityDone();
 };
 
 #endif
