@@ -67,9 +67,8 @@ void Server::run() {
   int new_events;
   struct kevent *curr_event;
 
-  while (42) {
+  while (1) {
     new_events = safeKevent(8, NULL);
-
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
@@ -97,6 +96,8 @@ void Server::run() {
           if (curr_event->ident == (*it)->getServerSocket()) {
             // int client_socket;
 
+            // std::cout << RED << "accept : server soc fd: "<< (*it)->getPort() << std::endl;
+
             client_socket = (*it)->safeAccept();
             std::cout << GRN << "accept new client: " << client_socket << DFT
                       << std::endl;
@@ -109,15 +110,17 @@ void Server::run() {
             // value 를 초기화하는 과정
             this->clients[client_socket] =
                 new Transaction(client_socket, "./rootdir/test");
+            break;
           }
-          else if (this->clients.find(curr_event->ident) != this->clients.end()) {
-            if (this->clients[curr_event->ident]->executeRead() == -1) {
-              this->disconnectClient(curr_event->ident, this->clients);
-            } else {
-              // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
-              this->clients[curr_event->ident]->executeMethod();
-            }
+        }
+        if (this->clients.find(curr_event->ident) != this->clients.end()) {
+          if (this->clients[curr_event->ident]->executeRead() == -1) {
+            this->disconnectClient(curr_event->ident, this->clients);
+          } else {
+            // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
+            this->clients[curr_event->ident]->executeMethod();
           }
+          // break;
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
       }
