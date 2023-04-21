@@ -13,6 +13,8 @@ class ServerSocket {
  private:
   int server_socket;
   struct sockaddr_in server_addr;
+  
+  int port;
 
  private:
   /// @brief 소켓 생성하는 함수

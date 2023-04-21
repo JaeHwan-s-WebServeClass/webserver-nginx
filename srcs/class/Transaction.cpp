@@ -210,6 +210,7 @@ int Transaction::httpPost(void) {
 int Transaction::safeRead(int fd, char *buf, int size) {
   int read_len;
 
+  std::cout << "Read fd: " << fd << std::endl;
   if ((read_len = read(fd, buf, size)) == -1) {
     throw std::string("client read error!");
   }
@@ -220,6 +221,7 @@ int Transaction::safeRead(int fd, char *buf, int size) {
 int Transaction::safeWrite(int fd, Response &response) {
   int write_len;
 
+  std::cout << "Write fd: " << fd << std::endl;
   if ((write_len = write(fd, response.getResponseMsg().c_str(),
                          response.getResponseMsg().size())) == -1) {
     throw std::string("client write error!");

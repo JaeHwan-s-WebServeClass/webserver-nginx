@@ -1,5 +1,6 @@
 #include "ServerSocket.hpp"
 
+//---- constructor ----------------------------------------------
 ServerSocket::ServerSocket(sa_family_t address_family, int port) {
   std::memset(&(this->server_addr), 0, sizeof(server_addr));
   this->server_addr.sin_family = address_family;
@@ -7,6 +8,8 @@ ServerSocket::ServerSocket(sa_family_t address_family, int port) {
   // ")로도 지정할 수 있습니다. 그러나 프로그램이 실행되는 시스템 마다 IP 가
   // 다를 것이므로 주소 지정을 고정 IP로 하지 않고 htonl( INADDR_ANY) 를
   // 사용하는 것이 편리합니다.
+  this->port = port;
+
   this->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   this->server_addr.sin_port = htons(port);
   this->safeSocket(address_family, SOCK_STREAM, 0);
@@ -19,6 +22,7 @@ ServerSocket::ServerSocket(sa_family_t address_family, int port) {
   // std::cout << GRY << "Debug: ServerSocket::ServerSocket\n";
 }
 
+//---- safe function ----------------------------------------------
 void ServerSocket::safeSocket(int domain, int type, int protocol) {
   if ((this->server_socket = socket(domain, type, protocol)) == -1) {
     throw std::string("socket() error\n" + std::string(strerror(errno)));
@@ -30,6 +34,7 @@ void ServerSocket::safeBind(void) {
   if (bind(this->server_socket,
            reinterpret_cast<struct sockaddr *>(&this->server_addr),
            sizeof(this->server_addr)) == -1) {
+    std::cout << "socket fd : " << this->port << std::endl;
     throw std::string("bind() error\n" + std::string(strerror(errno)));
   }
   // std::cout << GRY << "Debug: ServerSocket::safeBind\n";

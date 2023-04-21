@@ -5,7 +5,16 @@ Server::Server(ServerSocket &server_socket) {
   if ((this->kq = kqueue()) == -1) {
     throw std::string("socket() error\n" + std::string(strerror(errno)));
   }
-  this->server_socket = &server_socket;
+  this->server_socket.push_back(&server_socket);
+  // std::cout << GRY << "Debug: Server\n" << DFT;
+}
+
+Server::Server(ServerSocket &server_socket1, ServerSocket &server_socket2) {
+  if ((this->kq = kqueue()) == -1) {
+    throw std::string("socket() error\n" + std::string(strerror(errno)));
+  }
+  this->server_socket.push_back(&server_socket1);
+  this->server_socket.push_back(&server_socket2);
   // std::cout << GRY << "Debug: Server\n" << DFT;
 }
 
@@ -45,8 +54,15 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
 
 //---- main loop
 void Server::run() {
-  setChangeList(this->change_list, this->server_socket->getServerSocket(),
+  
+  std::vector<ServerSocket *>::const_iterator it = this->server_socket.begin();
+  for (; it != this->server_socket.end(); it++) {
+    setChangeList(this->change_list, (*it)->getServerSocket(),
                 EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+  }
+
+  // setChangeList(this->change_list, this->server_socket->getServerSockest(),
+  //               EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 
   int new_events;
   struct kevent *curr_event;
@@ -62,9 +78,12 @@ void Server::run() {
 
       // 1. 들어온 신호가 error일 경우
       if (curr_event->flags & EV_ERROR) {
-        if (curr_event->ident == this->server_socket->getServerSocket()) {
-          throw std::string("server socket error");
-        } else {
+        std::vector<ServerSocket *>::const_iterator it = this->server_socket.begin();
+        for (; it != this->server_socket.end(); it++) {
+          if (curr_event->ident == (*it)->getServerSocket()) {
+            throw std::string("server socket error");
+          }         
+        } if (it == this->server_socket.end()) {
           throw std::string("client socket error");
           this->disconnectClient(curr_event->ident, this->clients);
         }
@@ -72,31 +91,35 @@ void Server::run() {
       // 2. 감지된 이벤트가 read일 경우
       else if (curr_event->filter == EVFILT_READ) {
         // 2-1. server 에게 connect 요청이 온 경우 => accept()
-        if (curr_event->ident == this->server_socket->getServerSocket()) {
-          int client_socket;
+        int client_socket;
+        std::vector<ServerSocket *>::const_iterator it = this->server_socket.begin();
+        for (; it != this->server_socket.end(); it++) {
+          if (curr_event->ident == (*it)->getServerSocket()) {
+            // int client_socket;
 
-          client_socket = this->server_socket->safeAccept();
-          std::cout << GRN << "accept new client: " << client_socket << DFT
-                    << std::endl;
-          fcntl(client_socket, F_SETFL, O_NONBLOCK);
+            client_socket = (*it)->safeAccept();
+            std::cout << GRN << "accept new client: " << client_socket << DFT
+                      << std::endl;
+            fcntl(client_socket, F_SETFL, O_NONBLOCK);
 
-          setChangeList(this->change_list, client_socket, EVFILT_READ,
-                        EV_ADD | EV_ENABLE, 0, 0, NULL);
-          setChangeList(this->change_list, client_socket, EVFILT_WRITE,
-                        EV_ADD | EV_ENABLE, 0, 0, NULL);
-          // value 를 초기화하는 과정
-          this->clients[client_socket] =
-              new Transaction(client_socket, "./rootdir/test");
-        }
-        // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
-        else if (this->clients.find(curr_event->ident) != this->clients.end()) {
-          if (this->clients[curr_event->ident]->executeRead() == -1) {
-            this->disconnectClient(curr_event->ident, this->clients);
-          } else {
-            // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
-            this->clients[curr_event->ident]->executeMethod();
+            setChangeList(this->change_list, client_socket, EVFILT_READ,
+                          EV_ADD | EV_ENABLE, 0, 0, NULL);
+            setChangeList(this->change_list, client_socket, EVFILT_WRITE,
+                          EV_ADD | EV_ENABLE, 0, 0, NULL);
+            // value 를 초기화하는 과정
+            this->clients[client_socket] =
+                new Transaction(client_socket, "./rootdir/test");
+          }
+          else if (this->clients.find(curr_event->ident) != this->clients.end()) {
+            if (this->clients[curr_event->ident]->executeRead() == -1) {
+              this->disconnectClient(curr_event->ident, this->clients);
+            } else {
+              // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
+              this->clients[curr_event->ident]->executeMethod();
+            }
           }
         }
+        // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
       }
       // 3. 감지된 이벤트가 write일 경우 => write()
       else if (curr_event->filter == EVFILT_WRITE) {
