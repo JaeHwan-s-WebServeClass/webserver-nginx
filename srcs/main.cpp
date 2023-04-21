@@ -28,8 +28,11 @@ int main(void) {
     // step 1 - server socket : socket, bind, listen, fcntl
     ServerSocket server_socket1(AF_INET, 8080);
     ServerSocket server_socket2(AF_INET, 4242);
+    std::vector<ServerSocket *> socket_vec;
+    socket_vec.push_back(&server_socket1);
+    socket_vec.push_back(&server_socket2);
     // step 2 - init kqueue
-    Server server(server_socket1, server_socket2);
+    Server server(socket_vec);
 
     // step 3 - main loop
     server.run();

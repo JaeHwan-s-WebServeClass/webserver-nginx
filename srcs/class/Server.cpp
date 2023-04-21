@@ -1,23 +1,27 @@
 #include "Server.hpp"
 
+// ---- constructors
 // Server 생성자에서 소캣 연결을 하는게 좋을지 아니면 따로 할지 고민중
-Server::Server(ServerSocket &server_socket) {
+// Server::Server(ServerSocket &server_socket) {
+//   if ((this->kq = kqueue()) == -1) {
+//     throw std::string("socket() error\n" + std::string(strerror(errno)));
+//   }
+//   this->server_socket.push_back(&server_socket);
+//   // std::cout << GRY << "Debug: Server\n" << DFT;
+// }
+
+Server::Server(std::vector<ServerSocket *> server_socket) {
   if ((this->kq = kqueue()) == -1) {
     throw std::string("socket() error\n" + std::string(strerror(errno)));
   }
-  this->server_socket.push_back(&server_socket);
-  // std::cout << GRY << "Debug: Server\n" << DFT;
-}
-
-Server::Server(ServerSocket &server_socket1, ServerSocket &server_socket2) {
-  if ((this->kq = kqueue()) == -1) {
-    throw std::string("socket() error\n" + std::string(strerror(errno)));
+  std::vector<ServerSocket *>::const_iterator it = server_socket.begin();
+  for (; it != server_socket.end(); it++) {
+    this->server_socket.push_back(*it);
   }
-  this->server_socket.push_back(&server_socket1);
-  this->server_socket.push_back(&server_socket2);
   // std::cout << GRY << "Debug: Server\n" << DFT;
 }
 
+// ---- utils
 void Server::setChangeList(std::vector<struct kevent> &change_list,
                            uintptr_t ident, int16_t filter, uint16_t flags,
                            uint32_t fflags, intptr_t data, void *udata) {

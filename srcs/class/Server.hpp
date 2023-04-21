@@ -29,8 +29,9 @@ class Server {
   std::vector<ServerSocket *> server_socket;
 
  public:
-  Server(ServerSocket &server_socket);
-  Server(ServerSocket &server_socket1, ServerSocket &server_socket2);
+  /// @param server_socket
+  // Server(ServerSocket &);
+  Server(std::vector<ServerSocket *>);
 
   /// @brief
   /// @param change_list
