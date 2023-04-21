@@ -54,11 +54,10 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
 
 //---- main loop
 void Server::run() {
-  
   std::vector<ServerSocket *>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
-    setChangeList(this->change_list, (*it)->getServerSocket(),
-                EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+    setChangeList(this->change_list, (*it)->getServerSocket(), EVFILT_READ,
+                  EV_ADD | EV_ENABLE, 0, 0, NULL);
   }
 
   // setChangeList(this->change_list, this->server_socket->getServerSockest(),
@@ -77,12 +76,14 @@ void Server::run() {
 
       // 1. 들어온 신호가 error일 경우
       if (curr_event->flags & EV_ERROR) {
-        std::vector<ServerSocket *>::const_iterator it = this->server_socket.begin();
+        std::vector<ServerSocket *>::const_iterator it =
+            this->server_socket.begin();
         for (; it != this->server_socket.end(); it++) {
           if (curr_event->ident == (*it)->getServerSocket()) {
             throw std::string("server socket error");
-          }         
-        } if (it == this->server_socket.end()) {
+          }
+        }
+        if (it == this->server_socket.end()) {
           throw std::string("client socket error");
           this->disconnectClient(curr_event->ident, this->clients);
         }
@@ -91,12 +92,14 @@ void Server::run() {
       else if (curr_event->filter == EVFILT_READ) {
         // 2-1. server 에게 connect 요청이 온 경우 => accept()
         int client_socket;
-        std::vector<ServerSocket *>::const_iterator it = this->server_socket.begin();
+        std::vector<ServerSocket *>::const_iterator it =
+            this->server_socket.begin();
         for (; it != this->server_socket.end(); it++) {
           if (curr_event->ident == (*it)->getServerSocket()) {
             // int client_socket;
 
-            // std::cout << RED << "accept : server soc fd: "<< (*it)->getPort() << std::endl;
+            // std::cout << RED << "accept : server soc fd: "<< (*it)->getPort()
+            // << std::endl;
 
             client_socket = (*it)->safeAccept();
             std::cout << GRN << "accept new client: " << client_socket << DFT
@@ -120,7 +123,6 @@ void Server::run() {
             // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
             this->clients[curr_event->ident]->executeMethod();
           }
-          // break;
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
       }
