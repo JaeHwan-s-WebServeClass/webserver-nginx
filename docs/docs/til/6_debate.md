@@ -389,6 +389,8 @@ method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하�
 ```
 버퍼에 쌓이는 데이터를 getline 으로 한 문장씩 읽어와 파싱하는 부분을 request 객체의 setRawMsg에서 하고 있었다. 의미상 요청 받는 객체가 파싱하는게 어색했는데, 그걸 새로 만든 executeRead 로 옮겼다.
 
+<br>
+
 ---
 
 ## 7. [2023.04.18(화)]
@@ -449,35 +451,56 @@ method, resource 유효성 검사 코드와 GET DELETE POST 코드를 진행하�
 
 그래서 2번 방식으로 진행하기로 결정했다.
 
+<br>
+
+
 ---
 
-<!-- * entity 파싱 방법
-  string 이 아닌 char 로... CRLF 로 짤라 읽기
-  chunked 는 정순으로 받아온다. 1. 크게 받기 2. vector 하나만 사용하기 3. 받을 때마다 처리하기 -->
-
-## 8. [2023.04.18(화)]
-
+## 8. [2023.04.21(금)] multiple socket 처리!
 ### 8-1. 상황
-chunked entity 파싱 구현에 생각보다 까다로운 녀석이 있다. 우리는 우리가 정한 size 만큼 버퍼에 요청 메시지를 담아오며 파싱을 하는데, 다음과 같은 상황이 생길 수 있다.
+요청 메시지 파싱을 마치고, config 파일 파싱을 진행했다. config 에는 server 블록이 여러개 존재할 수 있는데 어떤 의미인지에 대해 논의했다.
 
-[❗️ 사전지식] chunked 와 메시지는 \r\n 으로 구분한다.
+우리가 만든 server 에 여러 개의 포트가 연결될 수 있다는 의미로 의견을 합쳤다. 즉, 연결된 모든 포트로 클라이언트들과 트랜잭션(요청과 응답)을 처리할 수 있다.
 
-1. 버퍼 안에 헤드와 바디(entity) 데이터가 같이 있을 때<br>
-  `buf = headdata\r\n\r\n5\r\nhello`
+코드 수정이 필요했다. 현재 코드는 server_socket 하나로 포트 하나만 할당해서 소켓을 server 에 연결한다. server_socket 을 여러 개로 생성해서 server 에 연결해야한다.
 
-2. 버퍼가 `\r` 에서 끝났을 때
-  
-### 8-2. 사용할 자료구조
+<br>
 
-## 9. [2023.04.21(금)]
+### 8-2. 결론
+vector 를 사용해서 여러개의 server_socket 을 넣고, server 에 연결했다.
+* 사용한 자료구조 <br>
+    `std::vector<ServerSocket *> server_socket;`
+
+
+<br>
+
+---
+## 9. [2023.04.21(금)] read & write error
 
 ### 9-1. 상황
-try to get multiple socket in server...
-### 9-2. 사용할 자료구조
+multiple sockets 이 작동하도록 코드를 모두 구현한 후, 포스트맨으로 테스트를 진행하는 과정에서 read 와 write 에러가 발생하며 프로그램이 종료됐다.
 
+### 9-2. 에러 픽스
 
-## 10. [2023.04.21(금)]
+#### 9-2-1. read 에러
+**↘︎ how to fix**  
+multiple server 를 만들면서 iterator 를 사용하는 for 문을 추가했었다. 그 과정에서 executeRead() 가 반복문 안에 잘못 들어가 있어서 error 가 발생했었다.
+executeRead() 를 for 문 밖으로 옮겨서 고쳤다.
 
-### 10-1. 상황
-sigpipe 발생 시 read 와 write 에서 sig ignore 후 return -1 하여 서버에서 disconnect 하도록 하기
-### 10-2. 사용할 자료구조
+<br>
+
+#### 9-2-2. write 에러
+**↘︎ how to fix**
+1.  `echo $?` 를 통해 exit status code 가 141 이라는 걸 확인했다. 141 상태 코드는 sigpipe 와 관련이 있었다.
+
+    ```
+    141의 경우, 이는 SIGPIPE 신호에 의해 프로세스가 종료되었음을 나타냅니다. SIGPIPE는 파이프로 연결된 프로세스 간에 데이터를 전송할 때 발생할 수 있는 오류를 나타내는 신호입니다.
+
+    예를 들어, 프로세스 A가 파이프로 연결된 프로세스 B에게 데이터를 보내는데 B가 이를 처리하지 않아 파이프 버퍼가 가득 차면, A는 SIGPIPE 신호를 받아서 종료됩니다.
+
+    따라서 141의 경우는 파이프 연결 중에 오류가 발생하여 종료된 상황을 나타내는 것입니다. 이 상황에서는 파이프 연결을 확인하고 오류를 수정해야 합니다.
+    ```
+
+2. 서버가 클라이언트의 요청에 대한 응답을 한 후, 클라이언트는 서버와 connect 를 종료하는데 서버는 소캣(파이프)를 통해 클라이언트에 write 하려고 계속해서 시도하고, 이 시도는 처리되지 않아 발생하는 에러였다.
+
+3. recv, send 함수 앞/뒤로 SIGPIPE를 ignore 로 처리했다. <br> 하나의 트랜잭션  cycle이 끝나면 해당 server 에서 client disconnect 하며 해결했다.
