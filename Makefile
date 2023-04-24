@@ -1,27 +1,32 @@
-NAME 		:=	webserv
+NAME		:=	webserv
 
-SRC_DIR 	:=	./srcs/class/
-SRC_NAME 	=	Server.cpp \
+SRC_MAIN 	:=	./srcs/main.cpp
+
+CLASS_DIR 	:=	./srcs/class/
+CLASS_NAME 	=	Server.cpp \
 				ServerSocket.cpp \
 				Request.cpp \
 				Response.cpp \
-				Transaction.cpp
+				Transaction.cpp \
+				ServerConfig.cpp
 
 UTILS_DIR 	:=	./srcs/utils/
 UTILS_NAME 	=	split.cpp \
 				errorhandler.cpp \
 				hexToInt.cpp \
-				trim.cpp
+				trim.cpp \
+				printVector.cpp
 
-SRC 		=	$(addprefix $(SRC_DIR),$(SRC_NAME)) \
+SRC 		=	$(SRC_MAIN) \
+				$(addprefix $(CLASS_DIR),$(CLASS_NAME)) \
 				$(addprefix $(UTILS_DIR),$(UTILS_NAME)) 
 
 OBJ 		=	$(SRC:.c=.o)
 
 INCLUDE		:=	-I./srcs/include/
 CC 			:=	c++
-#CXXFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
-CXXFLAGS 	:=	
+#CPPFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
+CPPFLAGS 	:=	
 
 all : $(NAME)
 
@@ -34,9 +39,11 @@ all : $(NAME)
 #re : fclean all
 
 $(NAME): $(OBJ)
-	$(CC) $(CFLAGS) $(INCLUDE) $(OBJ) ./srcs/main.cpp -o $@
+	$(CC) $(CPPFLAGS) $(INCLUDE) $(OBJ) -o $@
 
 .PHONY : all clean fclean
 
-%.c : %.o
-	$(CC) $(CXXFLAGS) $(INCLUDE) $@ -o $^
+#%.c : %.o
+#	$(CC) $(CXXFLAGS) $(INCLUDE) $@ -o $^
+%.o : %.c
+	$(CC) $(CPPFLAGS) $(INCLUDE) -c $< -o $@
