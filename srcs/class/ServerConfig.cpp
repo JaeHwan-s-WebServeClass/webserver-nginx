@@ -50,9 +50,9 @@ void ServerConfig::setDirective(std::string key, std::vector<std::string> value)
 
 void ServerConfig::setLocation(const std::string map_key, const std::string key, const std::vector<std::string>& value) { 
 	if (key == "root") {
-		this->locations[map_key].root = value.front();
+          this->locations[map_key].root = value.front();
 	} else if (key == "autoindex") {
-		if (value.front() == "on") {
+ 		if (value.front() == "on") {
 			this->locations[map_key].autoindex = true;
 		} else if(value.front() == "off") {
 			this->locations[map_key].autoindex = false;

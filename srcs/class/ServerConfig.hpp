@@ -76,7 +76,7 @@ public:
 		// int i = 1;
 
 		// for (; it1 != config.end(); it1++) {
-			std::cout << "-------- server config --------\n";
+			std::cout << "------------ server config ------------\n";
 			std::cout << "listen: " << this->getListen() << std::endl ;
 			std::cout << "server_name: ";
 			ft::printVector(this->getServerName());
@@ -93,6 +93,6 @@ public:
 			std::cout << "\n";
 			// i++;
 		// }
-		std::cout << "----------------------------------\n";
+		// std::cout << "----------------------------------\n";
 	}
 };

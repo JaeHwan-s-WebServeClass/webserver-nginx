@@ -504,3 +504,9 @@ executeRead() 를 for 문 밖으로 옮겨서 고쳤다.
 2. 서버가 클라이언트의 요청에 대한 응답을 한 후, 클라이언트는 서버와 connect 를 종료하는데 서버는 소캣(파이프)를 통해 클라이언트에 write 하려고 계속해서 시도하고, 이 시도는 처리되지 않아 발생하는 에러였다.
 
 3. recv, send 함수 앞/뒤로 SIGPIPE를 ignore 로 처리했다. <br> 하나의 트랜잭션  cycle이 끝나면 해당 server 에서 client disconnect 하며 해결했다.
+
+<br>
+
+## 10. [2023.04.24(월)] config
+server_name??
+### 10-1. 상황

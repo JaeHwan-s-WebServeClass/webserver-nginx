@@ -2,17 +2,18 @@
 #include "include/webserv.hpp"
 
 // ---- parsing ---------------------------------------------------
-std::string isLocation(std::string& line, ServerConfig &tmp_conf) {
+int isLocation(std::string& line, ServerConfig &tmp_conf, std::string * location_key) {
     std::vector<std::string> location = ft::split(line, '\t');
 	if (location.front() != "location") {
-		return "";
+		return 0;
 	}
 	
 	std::vector<std::string> key = ft::split(location.back(), ' ');
     if (key.back() != "{") {
-        return "";
+        return 0;
     }
-  	return key.front();
+    *location_key = key.front();
+  	return 1;
 }
 
 void goParsing(ServerConfig &tmp_conf, std::string& line, std::string& location_key, bool server_fl, bool location_fl) {
@@ -23,7 +24,7 @@ void goParsing(ServerConfig &tmp_conf, std::string& line, std::string& location_
   value = ft::split(vec.back(), ' ');
 
   if (server_fl == true && location_fl == true) {
-    tmp_conf.setLocation(location_key, key, vec);
+    tmp_conf.setLocation(location_key, key, value);
   } else if (server_fl == true && location_fl == false) {
     tmp_conf.setDirective(key, value);
   } else {
@@ -51,7 +52,7 @@ std::vector<ServerConfig> parseConfig(char *config_file) {
           continue;
       } else if (line == "server {") {
           server_fl = true;
-      } else if ((location_key = isLocation(line, tmp_conf)) != "") {
+      } else if (isLocation(line, tmp_conf, &location_key)) {
           tmp_conf.setLocationDefault(location_key);
           location_fl = true;
       } else if (server_fl == true && location_fl == true && line == "}") {
@@ -64,7 +65,7 @@ std::vector<ServerConfig> parseConfig(char *config_file) {
         if (line.back() != ';') {
           throw std::string("Error: parseConf: Missing Semicolon");
         }
-        line = ft::trim(line, ";");
+        line = ft::trim(line, ';');
         goParsing(tmp_conf, line, location_key, server_fl, location_fl);
       }
   }
@@ -78,9 +79,13 @@ int main(int argc, char **argv) {
   try {
     // step 1 - config file parsing and server setting
     std::vector<ServerConfig> config = parseConfig(argv[1]);
-    config[0].printConfig(config);
-    config[1].printConfig(config);
     
+    // DEBUG
+    int tmp_cnt = 2;
+    for (int i = 0; i < tmp_cnt; i++) {
+      config[i].printConfig(config);
+    }
+    std::cout << "---------------------------------------\n";
     // step 2 - server socket : socket, bind, listen, fcntl
     ServerSocket server_socket1(AF_INET, 8080);
     ServerSocket server_socket2(AF_INET, 4242);

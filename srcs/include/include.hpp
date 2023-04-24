@@ -22,7 +22,7 @@ std::vector<std::string> split(std::string, std::string);
 int hexToInt(const std::string& hex_str);
 
 std::string trim(std::string str);
-std::string trim(std::string str, std::string whitespace);
+std::string trim(std::string str, char);
 
 void	printVector(const std::vector<std::string> &vec);
 

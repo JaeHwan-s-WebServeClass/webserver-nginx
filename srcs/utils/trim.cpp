@@ -5,17 +5,18 @@ std::string ft::trim(std::string str) {
   std::string::size_type pos = str.find_first_not_of(whitespace);
 
   str.erase(0, str.find_first_not_of(whitespace));
-  while (isspace(str[str.length() - 1]))
+  while (isspace(str.back()))
     str.erase(str.find_last_not_of(whitespace) + 1, str[str.length() - 1]);
   return str;
 }
 
-std::string ft::trim(std::string str, std::string whitespace) {
-  whitespace += " \t\r\n\f\v";
+std::string ft::trim(std::string str, char dlim) {
+  std::string whitespace = " \t\r\n\f\v";
   std::string::size_type pos = str.find_first_not_of(whitespace);
 
+  whitespace += dlim;
   str.erase(0, str.find_first_not_of(whitespace));
-  while (isspace(str[str.length() - 1]))
+  while (isspace(str.back()) || str.back() == dlim)
     str.erase(str.find_last_not_of(whitespace) + 1, str[str.length() - 1]);
   return str;
 }

@@ -21,7 +21,7 @@ SRC 		=	$(SRC_MAIN) \
 				$(addprefix $(CLASS_DIR),$(CLASS_NAME)) \
 				$(addprefix $(UTILS_DIR),$(UTILS_NAME)) 
 
-OBJ 		=	$(SRC:.c=.o)
+OBJ 		=	$(SRC:.cpp=.o)
 
 INCLUDE		:=	-I./srcs/include/
 CC 			:=	c++
@@ -30,13 +30,13 @@ CPPFLAGS 	:=
 
 all : $(NAME)
 
-#clean :
-#	rm -f *.o ./class/*.o ./utils/*.o
+clean :
+	rm -f *.o ./srcs/class/*.o ./srcs/utils/*.o ./srcs/*.o
 
-#fclean : clean
-#	rm -f $(NAME)
+fclean : clean
+	rm -f $(NAME)
 
-#re : fclean all
+re : fclean all
 
 $(NAME): $(OBJ)
 	$(CC) $(CPPFLAGS) $(INCLUDE) $(OBJ) -o $@
@@ -45,5 +45,5 @@ $(NAME): $(OBJ)
 
 #%.c : %.o
 #	$(CC) $(CXXFLAGS) $(INCLUDE) $@ -o $^
-%.o : %.c
+%.o : %.cpp
 	$(CC) $(CPPFLAGS) $(INCLUDE) -c $< -o $@
