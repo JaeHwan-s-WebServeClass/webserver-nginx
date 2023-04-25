@@ -109,3 +109,39 @@ void ServerConfig::setDefault() {
 	this->client_max_head_size = 1024;
 	root = "/rootdir";
 }
+
+// ---- utils ----------------------------------------------------
+void	ServerConfig::printLocation(const t_location &location) {
+	std::cout << "    autoindex: " << location.autoindex << std::endl ;
+	std::cout << "    root: " << location.root << std::endl ;
+	std::cout << "    index: ";
+	ft::printVector(location.index);
+	std::cout << "    GET: " << location.GET << std::endl ;
+	std::cout << "    POST: " << location.POST << std::endl ;
+	std::cout << "    DELETE: " << location.DELETE << std::endl ;
+}
+
+void	ServerConfig::printConfig(const std::vector<ServerConfig> &config) {
+	std::vector<ServerConfig>::const_iterator it1 = config.begin();
+	// int i = 1;
+
+	// for (; it1 != config.end(); it1++) {
+		std::cout << "------------ server config ------------\n";
+		std::cout << "listen: " << this->getListen() << std::endl ;
+		std::cout << "server_name: ";
+		ft::printVector(this->getServerName());
+		std::cout << "error_page: ";
+		ft::printVector(this->getErrorPage());
+		std::cout << "client_max_head_size: " << this->getClientMaxHeadSize() << std::endl ;
+		std::cout << "client_max_body_size: " << this->getClientMaxBodySize() << std::endl ;
+		std::cout << "root: " << this->getRoot() << std::endl ;
+		std::cout << "location: " << std::endl ;
+		std::map<std::string, t_location>::const_iterator it2 = this->getLocation().begin();
+		for (; it2 != this->getLocation().end(); it2++) {
+			printLocation(it2->second);
+		}
+		std::cout << "\n";
+		// i++;
+	// }
+	// std::cout << "----------------------------------\n";
+}

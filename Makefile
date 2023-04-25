@@ -2,6 +2,9 @@ NAME		:=	webserv
 
 SRC_MAIN 	:=	./srcs/main.cpp
 
+PARSER_DIR 	:=	./srcs/parser/
+PARSER_NAME 	=	parser.cpp \
+
 CLASS_DIR 	:=	./srcs/class/
 CLASS_NAME 	=	Server.cpp \
 				ServerSocket.cpp \
@@ -18,6 +21,7 @@ UTILS_NAME 	=	split.cpp \
 				printVector.cpp
 
 SRC 		=	$(SRC_MAIN) \
+				$(addprefix $(PARSER_DIR),$(PARSER_NAME)) \
 				$(addprefix $(CLASS_DIR),$(CLASS_NAME)) \
 				$(addprefix $(UTILS_DIR),$(UTILS_NAME)) 
 
