@@ -1,8 +1,8 @@
-## configuration file rules
+# configuration file rules
 
 ***
 
-### general rules
+## general rules
 
 1. semicolon(;) 포함하기 (없으면 error 처리)
 
@@ -28,8 +28,8 @@
 7. bracket {}:
 
 ***
-
-### parsing
+<!-- 
+## parsing
 
 - getline으로 받아왔을 때 우선적으로 처리할 것:
     - 아예 비어있는 줄이 들어오게 되면 skip
@@ -55,4 +55,4 @@
     b. tab 기준 split
     c. space 기준 split
 
-ㄴ 3번을 먼저할지 4번을 먼저할지
+ㄴ 3번을 먼저할지 4번을 먼저할지 -->

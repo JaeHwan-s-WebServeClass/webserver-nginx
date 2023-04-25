@@ -507,6 +507,70 @@ executeRead() 를 for 문 밖으로 옮겨서 고쳤다.
 
 <br>
 
-## 10. [2023.04.24(월)] config
-server_name??
+---
+
+## 10. [2023.04.24(월)] config 파싱
+
 ### 10-1. 상황
+이전에 진행하다 이중 location 처리와 각종 에러 처리에 대한 고민으로 구현을 잠시 미웠던 config 파일 파싱을 재개했다.
+파싱을 하기 위해 크게 두 가지 결정을 해야한다.
+
+1. config 파일 규칙 정하기
+2. 파싱 구조 정하기
+
+자세한 내용은 config-general-rules 페이지에 정리가 되어있다.
+
+### 10-1-1. config 파일 규칙
+config 파일 규칙을 어떻게 해야할까? nginx 를 참고하며 웹서버 구현을 진행하긴 했지만, nginx config 까지 규칙을 따라할 필요는 없다고 의견이 모였다. 우리는 우리만의 nginx 규칙을 정하자!
+
+다음 규칙들을 정했다. (자세한 내용은 config-general-rules 을 참고)
+
+```
+1. semicolon(;) 포함
+2. bracket {} 적용
+3. directive - key 와 value 는 '\t' 을, value 들은 ' ' 를 delimiter 로 나누기
+4. location - 다중 location 처리 X
+5. directory: `/dir_name`의 형식으로
+...
+```
+
+❗️ 예외처리는 `{}` 유효성 검사만 진행하기로 했다.
+
+<br>
+
+### 10-1-2. 파싱 구조 정하기
+파일을 어떤 구조로 파싱해야할까 논의했다. `{}` 유효성 검사는 진행하기로 했기 때문에 함께 고려해야했다.
+location 도 `{}` 가 있기 때문에 server 의 `{}` 와 구분할 수 있어야한다.
+
+1. `{` 과 `}` 를 delimiter 로 server 와 location 을 구분하고 split 하는 방식
+2. `{` 과 `}` 의 짝을 맞춰가며 server 와 location 을 구분하고 내용을 한 줄씩 split 하는 방식
+3. 서버와 location 의 `{` 과 `}` 를 flag 설정하여 분기를 나눈 뒤 한 줄씩 split 하는 방식
+
+3 가지 방식을 논의했다. yichoi 가 3 번째 방식 수도코드를 구현했는데, 가독성도 좋고 불필요한 자료구조를 사용할 필요가 없어보여서 그대로 진행하기로 했다.
+
+
+```c++
+while (std::getline()) {
+    if (line == "server {") {
+        server_fl = true;
+    } else if (isLocation()) {
+        location_fl = true;
+    } else if (server_fl == true && location_fl == true && line == "}") {
+        location_fl = false;
+    } else if (server_fl == true && location_fl == false && line == "}") {
+        server_fl = false;
+        config_data.push_back();
+    } else {
+        goParsing();
+    }
+}
+```
+
+<br>
+
+### 10-2. 후기
+파싱으로 몇 일동안 고생할 줄 알았는데, 하루만에 끝냈다니... 훌륭한 하루였다 👍
+
+---
+
+## 11. [2023.04.25(화)] 
