@@ -1,18 +1,38 @@
-
-#include <iostream>
-#include <sstream>
-#include <vector>
-
 #include "../include/include.hpp"
 
-std::vector<std::string> ft::split(std::string input, char dlim)
-{
+std::vector<std::string> ft::split(std::string input, char dlim) {
 	std::vector<std::string>    result;
 	std::stringstream           ss;
 	std::string                 str_buf;
 
 	ss.str(input);			
-	while (getline(ss, str_buf, dlim))
+	while (getline(ss, str_buf, dlim)) {
 		result.push_back(str_buf);
+  }
+	return result;
+}
+
+std::vector<std::string> ft::split(std::string input, std::string dlim) {
+	std::vector<std::string>    result;
+	std::stringstream           ss(input);
+	std::string                 str_buf;
+	size_t 						          dlim_len = dlim.length();
+
+	while (1) {
+		size_t pos = input.find(dlim);
+		if (pos == std::string::npos) {
+      // delimiter not found
+			result.push_back(input);
+			break;
+		} else if (pos == 0) {
+      // delimiter at the beginning
+			input = input.substr(dlim_len);
+			continue;
+		} else {
+      // delimiter found
+			result.push_back(input.substr(0, pos));
+			input = input.substr(pos + dlim_len);
+		}
+	}
 	return result;
 }

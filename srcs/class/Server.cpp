@@ -1,22 +1,10 @@
 #include "Server.hpp"
 
 // ---- constructors
-// Server 생성자에서 소캣 연결을 하는게 좋을지 아니면 따로 할지 고민중
-// Server::Server(ServerSocket &server_socket) {
-//   if ((this->kq = kqueue()) == -1) {
-//     throw std::string("socket() error\n" + std::string(strerror(errno)));
-//   }
-//   this->server_socket.push_back(&server_socket);
-//   // std::cout << GRY << "Debug: Server\n" << DFT;
-// }
 
-Server::Server(std::vector<ServerSocket *> server_socket) {
+Server::Server(std::vector<ServerSocket> & server_socket) : server_socket(server_socket) {
   if ((this->kq = kqueue()) == -1) {
-    throw std::string("socket() error\n" + std::string(strerror(errno)));
-  }
-  std::vector<ServerSocket *>::const_iterator it = server_socket.begin();
-  for (; it != server_socket.end(); it++) {
-    this->server_socket.push_back(*it);
+    throw std::string("Error: Server: constructor\n" + std::string(strerror(errno)));
   }
   // std::cout << GRY << "Debug: Server\n" << DFT;
 }
@@ -49,7 +37,7 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
   if ((new_events =
            kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
                   this->event_list, nevents, timeout)) == -1) {
-    throw std::string("kevent() error\n" + std::string(strerror(errno)));
+    throw std::string("Error: Server: safeKevent\n" + std::string(strerror(errno)));
   }
   // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
 
@@ -58,9 +46,9 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
 
 //---- main loop
 void Server::run() {
-  std::vector<ServerSocket *>::const_iterator it = this->server_socket.begin();
+  std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
-    setChangeList(this->change_list, (*it)->getServerSocket(), EVFILT_READ,
+    setChangeList(this->change_list, it->getServerSocket(), EVFILT_READ,
                   EV_ADD | EV_ENABLE, 0, 0, NULL);
   }
 
@@ -80,15 +68,15 @@ void Server::run() {
 
       // 1. 들어온 신호가 error일 경우
       if (curr_event->flags & EV_ERROR) {
-        std::vector<ServerSocket *>::const_iterator it =
+        std::vector<ServerSocket>::const_iterator it =
             this->server_socket.begin();
         for (; it != this->server_socket.end(); it++) {
-          if (curr_event->ident == (*it)->getServerSocket()) {
-            throw std::string("server socket error");
+          if (curr_event->ident == it->getServerSocket()) {
+            throw std::string("Error: Server: run: server socket error");
           }
         }
         if (it == this->server_socket.end()) {
-          throw std::string("client socket error");
+          throw std::string("Error: Server: run: client socket error");
           this->disconnectClient(curr_event->ident, this->clients);
         }
       }
@@ -96,16 +84,16 @@ void Server::run() {
       else if (curr_event->filter == EVFILT_READ) {
         // 2-1. server 에게 connect 요청이 온 경우 => accept()
         int client_socket;
-        std::vector<ServerSocket *>::const_iterator it =
+        std::vector<ServerSocket>::const_iterator it =
             this->server_socket.begin();
         for (; it != this->server_socket.end(); it++) {
-          if (curr_event->ident == (*it)->getServerSocket()) {
+          if (curr_event->ident == it->getServerSocket()) {
             // int client_socket;
 
             // std::cout << RED << "accept : server soc fd: "<< (*it)->getPort()
             // << std::endl;
 
-            client_socket = (*it)->safeAccept();
+            client_socket = it->safeAccept();
             std::cout << GRN << "accept new client: " << client_socket << DFT
                       << std::endl;
             fcntl(client_socket, F_SETFL, O_NONBLOCK);

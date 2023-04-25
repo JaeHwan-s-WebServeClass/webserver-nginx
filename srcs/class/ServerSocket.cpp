@@ -56,7 +56,7 @@ void ServerSocket::setNonBlock(int socket_fd) {
   // std::cout << GRY << "Debug: ServerSocket::setNonBlock\n";
 }
 
-int ServerSocket::safeAccept(void) {
+int ServerSocket::safeAccept(void) const {
   int client_socket;
 
   if ((client_socket = accept(this->server_socket, NULL, NULL)) == -1) {
@@ -67,4 +67,4 @@ int ServerSocket::safeAccept(void) {
   return client_socket;
 }
 
-int ServerSocket::getServerSocket() { return this->server_socket; }
+int ServerSocket::getServerSocket() const { return this->server_socket; }
