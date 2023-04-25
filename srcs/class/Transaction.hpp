@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <cstdio>
 
 #include "../include/define.hpp"
 #include "../include/include.hpp"
@@ -19,7 +20,8 @@ class Transaction {
  private:
   // root_dir 위치는 실행파일 기준으로
   int socket_fd;  // client 랑 연결된 socket fd
-  std::string root_dir;
+  //std::string root_dir;
+  t_step flag;
   //  std::string another_path = "";
   // 요청 시작줄의 경로에 하위경로를 붙여서 파일이 있는지 확인하고...
   Transaction();
@@ -34,11 +36,15 @@ class Transaction {
   /// @param server_config
   Transaction(int, const ServerConfig &);
 
+  // ---- getter/setter -----------------------
   Response &getResponse();
   Request &getRequest();
+  const int & getFlag() const;
 
+  t_step setFlag(t_step);
+
+  // ---- check/execute -----------------------
   int checkResource(void);
-  int httpCheckStartLine(void);
 
   int executeRead(void);
   int executeReadHead(char *, int);

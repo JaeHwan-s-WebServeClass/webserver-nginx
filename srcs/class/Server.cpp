@@ -120,15 +120,23 @@ void Server::run() {
           }
         }
         if (this->clients.find(curr_event->ident) != this->clients.end()) {
-          if (this->clients[curr_event->ident]->executeRead() == -1) {
+          int read_len = this->clients[curr_event->ident]->executeRead();
+          if (read_len == -1) {
             this->disconnectClient(curr_event->ident, this->clients);
-          } else {
+          } 
+          // 한번만 호출되야 한다 => if ()
+          //  file fd 세팅하는 부분
+          if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
+              int file_fd = this->clients[curr_event->ident]->checkResource();
+              fcntl(file_fd, F_SETFL, O_NONBLOCK);
+              setChangeList(this->change_list, file_fd , EVFILT_READ,
+                          EV_ADD | EV_ENABLE, 0, 0, this->clients[curr_event->ident]);
+            }
             // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
-            this->clients[curr_event->ident]->executeMethod();
+            // this->clients[curr_event->ident]->executeMethod();
             // file_fd = this->clients[curr_event->ident]->executeMethod();
             // setChangeList(file_fd)??
           }
-        }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
       }
       // 3. 감지된 이벤트가 write일 경우 => write()

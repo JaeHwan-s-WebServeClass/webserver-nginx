@@ -14,3 +14,13 @@
 #define CHUNK_SIZE 0
 #define CHUNK_ENTITY 1
 
+typedef enum step {
+    START,
+	REQUEST_HEAD,
+	REQUEST_ENTITY,
+	REQUEST_DONE,
+	FILE_OPEN,
+	FILE_DONE,
+	RESPONSE_DONE
+} t_step;
+

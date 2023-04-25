@@ -5,13 +5,16 @@
 
 //---- constructor --------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig & server_config)
-    : socket_fd(socket_fd), server_config(server_config) {
+    : socket_fd(socket_fd), server_config(server_config), request(this->flag) {
   // std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
 }
 
 //---- getter ---------------------------------------------
 Response &Transaction::getResponse() { return this->response; }
 Request &Transaction::getRequest() { return this->request; }
+
+//---- setter ---------------------------------------------
+
 
 //---- execute --------------------------------------------
 int Transaction::executeRead(void) {
@@ -23,18 +26,22 @@ int Transaction::executeRead(void) {
   if (read_len == -1) {
     return -1;
   }
-
   // 1. head 파싱 -----------------------
-  if (!this->request.getHeadDone()) {
+  if (this->flag == START) {
     head_rest_len = this->executeReadHead(buf, read_len);
   }
   // 2. entity 파싱 -----------------------
-  if (this->request.getHeadDone() && (this->request.getMethod() == "GET")) {
-    if (!this->request.getEntityDone()) {
+  if (this->flag == REQUEST_HEAD && (this->request.getMethod() == "GET")) {
+    if (this->flag < REQUEST_ENTITY) {
       this->executeReadEntity(buf, read_len, head_rest_len);
     }
     // std::cout << GRY << "Debug: Transaction::executeRead\n";
   }
+
+  if ((this->request.getMethod() == "POST" && this->flag == REQUEST_ENTITY) 
+       || (this->request.getMethod() != "POST" && this->flag == REQUEST_HEAD)) {
+      this->setFlag(REQUEST_DONE);
+  } 
   return 0;
 }
 
@@ -49,7 +56,7 @@ int Transaction::executeReadHead(char *buf, int read_len) {
   std::string line;
   while (std::getline(read_stream, line, '\n')) {
     if (line.length() == 0 || line == "\r") {
-      this->request.setHeadDone(true);
+      this->flag == REQUEST_HEAD;
 
       // DEBUG
       std::cout << GRY << "-------------------- raw head ----------------------"
@@ -61,7 +68,7 @@ int Transaction::executeReadHead(char *buf, int read_len) {
       this->request.parserHead();
       this->request.setRawHead(line + "\n");
       break;
-    } else if (!this->request.getHeadDone()) {
+    } else if (this->flag == START) {
       this->request.setRawHead(line + "\n");
       if (read_stream.eof()) {
         throw std::string("executeRead error : over max-header-size");
@@ -108,7 +115,7 @@ void Transaction::executeReadEntity(char *buf, int read_len,
 }
 
 int Transaction::executeWrite(void) {
-  if (this->response.getEntityDone() &&
+  if (this->flag == REQUEST_ENTITY &&
       (safeWrite(this->socket_fd, this->response) == -1)) {
     return -1;
   }
@@ -117,13 +124,21 @@ int Transaction::executeWrite(void) {
 }
 
 int Transaction::executeMethod(void) {
-  if ((this->request.getMethod() == "POST" && !this->request.getEntityDone()) ||
-      ((this->request.getMethod() != "POST") && !this->request.getHeadDone())) {
+
+
+  if ((this->request.getMethod() == "POST" && this->flag < REQUEST_ENTITY) ||
+      ((this->request.getMethod() != "POST") && this->flag < REQUEST_HEAD)) {
     return 0;
   }
 
   // DEBUG
   this->request.toString();
+  // allow method check
+  if (!(this->request.getMethod() == "GET" ||
+      this->request.getMethod() == "POST" ||
+      this->request.getMethod() == "DELETE")) {
+    return (501);  // Not Implemented.
+  }
 
   // defineUrl();
   int status = std::atoi(this->response.getStatusCode().c_str()); // startLine 해석 (resource 정의)
@@ -166,58 +181,45 @@ int Transaction::executeMethod(void) {
   return 0;
 }
 
-//---- check sl --------------------------------------------
-int Transaction::httpCheckStartLine() {
-  // HOST 헤더를 분석하여 매칭되는 서버네임 블록 찾기? 
-  //if (this->server_config.getServerName() ) //curl --resolve 로 server_name 으로 요청할 때
+// function 1 : return file_fd
+int Transaction::checkResource() {
+	int file_fd;
 
-  // 마지막에 /가 있는지를 확인해서
-    // 있다면 - 디렉토리: 
-      // autoindex를 확인해서
-      // on: 인덱스 파일을 찾지 못한 경우 해당 디렉토리의 파일목록을 자동으로 생성하여 보여준다.
-      // off: 
-        // index 가 설정 되어있고 인덱스 파일을 찾지 못한 경우 error page를 보여준다.
-        // index 가 없다면 error
-    // 없다면 - 파일: 
-      // 파일 앞 경로를 찾는다.
+	std::string request_location;
+	std::string request_filename = "";
+	std::string resource;
+	// 요청이 디렉토리 일 경우
+	if (this->request.getUrl().back() == '/') {
+		// autoindex가 있는지 확인 후 해당 로직 처리
 
-  std::string request_location;
-  std::string request_filename = "";
-
-  // 요청이 디렉토리일 경우
-  if (this->request.getUrl().back() == '/') {
-    // autoindex가 있는지 확인 후 해당 로직 처리
-
-  } else {
-      std::size_t pos = this->request.getUrl().find_last_of("/");
-      if (pos == std::string::npos) {
-        return (404);
-      }
-      request_location = this->request.getUrl().substr(0, pos);
-      request_filename = this->request.getUrl().substr(pos);
-  }
-
-  // 185 line 일 때도 여기가 수행되어버린다..? 괜춘한가?
-
-  std::map<std::string, ServerConfig::t_location>::const_iterator config_location;
-  if ((config_location = this->server_config.getLocation().find(request_location)) != this->server_config.getLocation().end()) {
-    std::string loc_root = config_location->second.root;
-    if (access((server_config.getRoot() + loc_root + request_filename).c_str(), F_OK) == -1) {
-      return (404);  // cannot found request_filename
-    }
-
-  } else {
-    return (404); // Invalid directory :cannot found reqeust_location
-  }
-
-  // allow method 인지 확인
-  if (!(this->request.getMethod() == "GET" ||
-        this->request.getMethod() == "POST" ||
-        this->request.getMethod() == "DELETE")) {
-    return (501);  // Not Implemented.
-  }
-  // std::cout << GRY << "Debug: Transaction::httpCheckStartLine\n";
-  return (0);
+	// 요청이 파일 일 경우
+	} else {
+		std::size_t pos = this->request.getUrl().find_last_of("/");
+		if (pos == std::string::npos) {
+			this->response.setStatusCode("404");
+			//  TODO 에러 파일 받아와서 등록하기
+			std::cout << "checkResouce :: return error page fd\n";
+			//file_fd = std::fopen(, )._file;
+			//return ("404.html");
+		}
+		request_location = this->request.getUrl().substr(0, pos);
+		request_filename = this->request.getUrl().substr(pos);
+	}
+	std::map<std::string, ServerConfig::t_location>::const_iterator config_location;
+	if ((config_location = this->server_config.getLocation().find(request_location)) != this->server_config.getLocation().end()) {
+		std::string loc_root = config_location->second.root;
+		resource = server_config.getRoot() + loc_root + request_filename;
+		if (access(resource.c_str(), F_OK) == -1) {
+		//  TODO 에러 파일 받아와서 등록하기
+			std::cout << "checkResouce :: return error page fd\n";  // cannot found request_filename
+		}
+		file_fd = std::fopen(resource.c_str(), "r+")->_file;
+    this->setFlag(FILE_OPEN);
+	} else {
+		//  TODO 에러 파일 받아와서 등록하기
+		std::cout << "checkResouce :: return error page fd\n"; // Invalid directory :cannot found reqeust_location
+	}
+    return (file_fd);
 }
 
 //---- HTTP methods --------------------------------------------

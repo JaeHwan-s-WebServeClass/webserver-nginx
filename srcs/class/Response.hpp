@@ -56,7 +56,7 @@ class Response {
   const std::map<std::string, std::string> getHeader() const;
   const std::string getEntity() const;
   const std::string getResponseMsg() const;
-  const bool getEntityDone() const;
+  //const bool getEntityDone() const;
 
 };
 
