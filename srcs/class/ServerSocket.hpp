@@ -24,11 +24,6 @@ class ServerSocket {
   /// @return
   void safeSocket(int, int, int);
 
-  /// @brief
-  /// @param
-  /// @param
-  /// @param
-  /// @return
   void safeBind(void);
 
   /// @brief
@@ -47,14 +42,9 @@ class ServerSocket {
   /// @return
   void setNonBlock(int);
 
-  /// @brief
-  /// @param
-  /// @param
-  /// @param
-  /// @return
-  int safeAccept(void);
+  int safeAccept(void) const;
 
-  int getServerSocket(void);
+  int getServerSocket(void) const;
 
   public:
     int getPort();
