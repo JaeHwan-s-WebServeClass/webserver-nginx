@@ -571,6 +571,55 @@ while (std::getline()) {
 ### 10-2. 후기
 파싱으로 몇 일동안 고생할 줄 알았는데, 하루만에 끝냈다니... 훌륭한 하루였다 👍
 
+<br>
+
 ---
 
-## 11. [2023.04.25(화)] 
+## 11. [2023.04.25(화)] config location 처리
+
+### 11-1. location 처리 방법
+config 파일의 location 을 처리해야한다. location 처리를 위한 location rule 을 정했다. 우리는 요청 메시지에 넘어오는 url 을 2 가지 종류로 나눴고, config 에 있는 location 관련 구성요소는 3 가지로 나눴다.
+
+<img src="https://user-images.githubusercontent.com/85930183/234232858-8aa422a4-3b85-439e-893d-333a34971c1d.png" width="90%">
+
+( ❗️ localhost:80 은 요청 메시지로 넘어온 데이터에 없기 때문에 나누지 않았다.)
+
+#### 11-1-1. 요청 메시지
+1. request_location <br>
+
+    * `/example` : 찾을 파일의 위치를 의미
+
+2. request_filename <br>
+
+    * `/index.html` : 찾을 파일을 의미 
+
+
+#### 11-1-2. config
+3. docroot <br>
+
+    * `root` : server 의 root 위치를 의미
+
+
+4. config_location
+
+    * `map<string, t_location> 의 string` : location 블록의 key 를 의미
+
+5. loc_root
+
+    * `t_location 내부의 root` : location 블록의 value 를 의미
+
+
+### 11-2. config location 처리 방법
+a. 1 과 4 를 비교해서 같은 경우, 4로 map 안에서 5 를 찾는다.
+
+b. 3(docroot) + 5(locroot) + 2(reqest_filename) 으로 만든다.
+
+c. access 를 이용해서 b 에서 만든 위치가 접근 가능한지 확인한다.
+
+<br>
+
+### 11-3. 논의 사진
+
+<img src="https://user-images.githubusercontent.com/85930183/234231482-585545f6-1664-4b41-97a3-4a4af5dc6409.jpeg" width="70%">
+
+<img src="https://user-images.githubusercontent.com/85930183/234231516-38e7df29-d5b6-47e7-807c-89145b5326c9.jpeg" width="70%">
