@@ -35,7 +35,7 @@ CPPFLAGS 	:=
 all : $(NAME)
 
 clean :
-	rm -f *.o ./srcs/class/*.o ./srcs/utils/*.o ./srcs/*.o
+	rm -f *.o ./srcs/class/*.o ./srcs/utils/*.o ./srcs/*.o ./srcs/parser/*.o
 
 fclean : clean
 	rm -f $(NAME)

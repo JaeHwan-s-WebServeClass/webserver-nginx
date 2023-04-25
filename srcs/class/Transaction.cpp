@@ -2,13 +2,10 @@
 
 #include <exception>
 
-// Todo
-// 1. content_length 변수 추가
-// 2. MAX_(HEAD,BODY)_SIZE 조건문
 
 //---- constructor --------------------------------------------
-Transaction::Transaction(int socket_fd, std::string root_dir)
-    : socket_fd(socket_fd), root_dir(root_dir) {
+Transaction::Transaction(int socket_fd, const ServerConfig & server_config)
+    : socket_fd(socket_fd), server_config(server_config) {
   // std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
 }
 
@@ -128,7 +125,10 @@ int Transaction::executeMethod(void) {
   // DEBUG
   this->request.toString();
 
-  int status = this->httpCheckStartLine();
+  // defineUrl();
+  int status = std::atoi(this->response.getStatusCode().c_str()); // startLine 해석 (resource 정의)
+
+  // resource를 open / resource가 없는 경우 or Method가 없는 경우
   if (!status) {
     if (this->request.getMethod() == "GET") {
       status = this->httpGet();
@@ -151,7 +151,7 @@ int Transaction::executeMethod(void) {
       break;
     case 500:
       this->response.setStatusCode("500");
-      this->response.setStatusMsg("Internal Server Error :");
+      this->response.setStatusMsg("Internal Server Error :l");
       break;
     case 501:
       this->response.setStatusCode("501");
@@ -168,13 +168,53 @@ int Transaction::executeMethod(void) {
 
 //---- check sl --------------------------------------------
 int Transaction::httpCheckStartLine() {
+  // HOST 헤더를 분석하여 매칭되는 서버네임 블록 찾기? 
+  //if (this->server_config.getServerName() ) //curl --resolve 로 server_name 으로 요청할 때
+
+  // 마지막에 /가 있는지를 확인해서
+    // 있다면 - 디렉토리: 
+      // autoindex를 확인해서
+      // on: 인덱스 파일을 찾지 못한 경우 해당 디렉토리의 파일목록을 자동으로 생성하여 보여준다.
+      // off: 
+        // index 가 설정 되어있고 인덱스 파일을 찾지 못한 경우 error page를 보여준다.
+        // index 가 없다면 error
+    // 없다면 - 파일: 
+      // 파일 앞 경로를 찾는다.
+
+  std::string request_location;
+  std::string request_filename = "";
+
+  // 요청이 디렉토리일 경우
+  if (this->request.getUrl().back() == '/') {
+    // autoindex가 있는지 확인 후 해당 로직 처리
+
+  } else {
+      std::size_t pos = this->request.getUrl().find_last_of("/");
+      if (pos == std::string::npos) {
+        return (404);
+      }
+      request_location = this->request.getUrl().substr(0, pos);
+      request_filename = this->request.getUrl().substr(pos);
+  }
+
+  // 185 line 일 때도 여기가 수행되어버린다..? 괜춘한가?
+
+  std::map<std::string, ServerConfig::t_location>::const_iterator config_location;
+  if ((config_location = this->server_config.getLocation().find(request_location)) != this->server_config.getLocation().end()) {
+    std::string loc_root = config_location->second.root;
+    if (access((server_config.getRoot() + loc_root + request_filename).c_str(), F_OK) == -1) {
+      return (404);  // cannot found request_filename
+    }
+
+  } else {
+    return (404); // Invalid directory :cannot found reqeust_location
+  }
+
+  // allow method 인지 확인
   if (!(this->request.getMethod() == "GET" ||
         this->request.getMethod() == "POST" ||
         this->request.getMethod() == "DELETE")) {
     return (501);  // Not Implemented.
-  }
-  if (access((this->root_dir + this->request.getUrl()).c_str(), F_OK) == -1) {
-    return (404);  // Not Found.
   }
   // std::cout << GRY << "Debug: Transaction::httpCheckStartLine\n";
   return (0);
@@ -183,7 +223,10 @@ int Transaction::httpCheckStartLine() {
 //---- HTTP methods --------------------------------------------
 int Transaction::httpGet(void) {
   std::cout << GRY << "Transaction: httpGet\n" << DFT;
-  std::ifstream resource(root_dir + this->request.getUrl());
+  std::ifstream resource(this->server_config.getRoot() + this->request.getUrl()); // server_config? rootdir?
+
+// buf[BUFFER_SIZE] 함수 지역변수
+// int file_all_read_flag 트랜잭션 멤버 변수?
 
   if (!resource) {
     return 500;

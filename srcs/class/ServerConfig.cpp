@@ -6,7 +6,7 @@ ServerConfig::ServerConfig() {
 }
 
 ServerConfig::ServerConfig(const char *path) {
-	
+	//
 }
 
 // ---- getters ---------------------------------------------------
@@ -16,6 +16,9 @@ const std::vector<std::string>& ServerConfig::getErrorPage() const { return this
 int ServerConfig::getClientMaxBodySize() const { return this->client_max_body_size; }
 int ServerConfig::getClientMaxHeadSize() const { return this->client_max_head_size; }
 const std::string& ServerConfig::getRoot() const { return this->root; }
+const bool ServerConfig::getGET() const { this->GET; }
+const bool ServerConfig::getPOST() const { this->POST; }
+const bool ServerConfig::getDELETE() const { this->DELETE; }
 const std::map<std::string, ServerConfig::t_location>& ServerConfig::getLocation() const { return this->locations; }
 
 // ---- setters ---------------------------------------------------
@@ -25,8 +28,6 @@ void ServerConfig::setErrorPage(const std::vector<std::string>& value) { error_p
 void ServerConfig::setClientMaxBodySize(int value) { client_max_body_size = value; }
 void ServerConfig::setClientMaxHeadSize(int value) { client_max_head_size = value; }
 void ServerConfig::setRoot(const std::string& value) { root = value; }
-
-
 
 void ServerConfig::setDirective(std::string key, std::vector<std::string> value) {
   if (key == "listen") {
@@ -43,7 +44,29 @@ void ServerConfig::setDirective(std::string key, std::vector<std::string> value)
     this->setClientMaxHeadSize(std::atoi(value.front().c_str()));
   } else if (key == "root") {
     this->setRoot(value.front());
-  } else {
+  } else if (key == "allow") {
+		std::vector<std::string>::const_iterator it = value.begin();
+		for(; it != value.end(); it++) {
+			if (*it == "GET") {
+				this->GET = true;
+			} else if (*it == "POST") {
+				this->POST = true;
+			} else if (*it == "DELETE") {
+				this->DELETE = true;
+			}
+	    }
+    } else if (key == "deny") {
+        std::vector<std::string>::const_iterator it = value.begin();
+		for(; it != value.end(); it++) {
+			if (*it == "GET") {
+				this->GET = false;
+			} else if (*it == "POST") {
+				this->POST = false;
+			} else if (*it == "DELETE") {
+				this->DELETE = false;
+			} 
+		}
+	} else {
     throw std::string("Error: setDirective: Invalid Element");
   }
 }
@@ -107,6 +130,9 @@ void ServerConfig::setDefault() {
 	this->error_page.push_back("/501.html");
 	this->client_max_body_size = 1024;
 	this->client_max_head_size = 1024;
+	this->GET = true;
+	this->POST = true;
+	this->DELETE = true;
 	root = "/rootdir";
 }
 

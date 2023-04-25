@@ -13,6 +13,7 @@
 #include "../include/include.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "ServerConfig.hpp"
 
 class Transaction {
  private:
@@ -25,16 +26,18 @@ class Transaction {
 
   Response response;
   Request request;
+  const ServerConfig & server_config;
 
  public:
   /// @brief Transaction 생성자
   /// @param socket_fd
-  /// @param root_dir
-  Transaction(int, std::string);
+  /// @param server_config
+  Transaction(int, const ServerConfig &);
 
   Response &getResponse();
   Request &getRequest();
 
+  int checkResource(void);
   int httpCheckStartLine(void);
 
   int executeRead(void);

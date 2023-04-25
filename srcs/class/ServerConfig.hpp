@@ -12,11 +12,11 @@
 #include "../include/include.hpp"
 
 class ServerConfig {
-private:
+public:
 	typedef struct s_location {
 		std::string 				root;
-		bool						autoindex;
 		std::vector<std::string> 	index;
+		bool						autoindex;
 		bool						GET;
 		bool						POST;
 		bool						DELETE;
@@ -29,6 +29,9 @@ private:
   int                       client_max_body_size;
   int 						client_max_head_size;
   std::string				root;
+	bool						GET;
+	bool						POST;
+	bool						DELETE;
   std::map<std::string, t_location>	locations;
 
 public:
@@ -42,6 +45,9 @@ public:
 	int getClientMaxBodySize() const;
 	int getClientMaxHeadSize() const;
 	const std::string& getRoot() const;
+	const bool getGET() const;
+	const bool getPOST() const;
+	const bool getDELETE() const;
 	const std::map<std::string, t_location>& getLocation() const;
 
 	// ---- setters ------------------------------

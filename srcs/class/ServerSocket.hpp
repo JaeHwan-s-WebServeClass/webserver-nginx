@@ -47,5 +47,5 @@ class ServerSocket {
   int getServerSocket(void) const;
 
   public:
-    int getPort();
+    int getPort() const ;
 };

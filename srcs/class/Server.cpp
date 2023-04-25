@@ -1,8 +1,15 @@
 #include "Server.hpp"
 
+
 // ---- constructors
 
-Server::Server(std::vector<ServerSocket> & server_socket) : server_socket(server_socket) {
+Server::Server(std::vector<ServerConfig> & server_config): server_config(server_config) {
+    std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
+    // TODO 같은 포트 여러개 들어올 때 예외처리
+    for(; it != this->server_config.end(); it++) {
+      ServerSocket tmp_socket(AF_INET, (*it).getListen());
+      this->server_socket.push_back(tmp_socket);
+    }
   if ((this->kq = kqueue()) == -1) {
     throw std::string("Error: Server: constructor\n" + std::string(strerror(errno)));
   }
@@ -48,12 +55,14 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
 void Server::run() {
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
+    //  FIXME: udata 추가하기
     setChangeList(this->change_list, it->getServerSocket(), EVFILT_READ,
                   EV_ADD | EV_ENABLE, 0, 0, NULL);
   }
 
-  // setChangeList(this->change_list, this->server_socket->getServerSockest(),
-  //               EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+// const int x = 10; // 변수를 선언하고 초기화합니다.
+// const int& ref1 = x; // 참조를 선언하고 초기화합니다.
+// int& ref2 = const_cast<int&>(ref1); // const-ness를 제거합니다.
 
   int new_events;
   struct kevent *curr_event;
@@ -88,11 +97,6 @@ void Server::run() {
             this->server_socket.begin();
         for (; it != this->server_socket.end(); it++) {
           if (curr_event->ident == it->getServerSocket()) {
-            // int client_socket;
-
-            // std::cout << RED << "accept : server soc fd: "<< (*it)->getPort()
-            // << std::endl;
-
             client_socket = it->safeAccept();
             std::cout << GRN << "accept new client: " << client_socket << DFT
                       << std::endl;
@@ -103,8 +107,15 @@ void Server::run() {
             setChangeList(this->change_list, client_socket, EVFILT_WRITE,
                           EV_ADD | EV_ENABLE, 0, 0, NULL);
             // value 를 초기화하는 과정
-            this->clients[client_socket] =
-                new Transaction(client_socket, "./rootdir/test");
+            // TODO 같은 port 인 경우 처리해야 함
+            std::vector<ServerConfig>::const_iterator it2 = this->server_config.begin();
+            for (; it2 != this->server_config.end(); it2++) {
+              if (it2->getListen() == it->getPort()) {
+                this->clients[client_socket] =
+                 new Transaction(client_socket, *it2);
+                break;
+              }
+            }
             break;
           }
         }
@@ -114,6 +125,8 @@ void Server::run() {
           } else {
             // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
             this->clients[curr_event->ident]->executeMethod();
+            // file_fd = this->clients[curr_event->ident]->executeMethod();
+            // setChangeList(file_fd)??
           }
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
