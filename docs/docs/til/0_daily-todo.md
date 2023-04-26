@@ -445,20 +445,19 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 1. execute method 구현
     * checkResource 구현
 
-2. 
-
-3. 
+2. Get method 를 fd 사용해서 구현하기
 
 ### 결과
 
 [13:00 ~ 15:20]
 * checkResource 구현
 
-[15:45 ~ 16:55]
+[15:45 ~ 17:10]
 * checkResource 에러 픽스
 * executeMethod, file fd 값 처리 구현
 
-[15:00 ~ 17:20] 
+[17:10 ~ 18:10]
+* get Method fd 로 작동할 수 있게 수정 중 
 
 
 <br>
