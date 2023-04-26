@@ -65,6 +65,7 @@ void Response::setResponseMsg() {
 
   char* pos = this->response_msg;
 
+  // FIXME c_str 리턴값이 const 인데 copy 로 할당하려고 하는 코드 수정 필요
   std::copy(pos, (pos + response_head.size()), response_head.c_str());
   pos += response_head.size();
   std::copy(pos, (pos + 2), "\r\n");
