@@ -42,7 +42,76 @@ int Transaction::checkResource() {
 }
 
 // function 2
+int Transaction::executeMethod(void) {
+  if ((this->request.getMethod() == "POST" && this->flag < REQUEST_ENTITY) ||
+      ((this->request.getMethod() != "POST") && this->flag < REQUEST_HEAD)) {
+    return 0;
+  }
 
+	// url은 이미 확인한 상황?
+	// 각 method의 allow와 deny를 확인하기 전에,
+	// root의 method를 적용하느냐 or location의 method를 적용하느냐는 location의 key 값에 의해 결정된다.
+	// ex) server에서는 default로 GET만을 허용하고 location에서 allow/deny를 따진다?
+
+  if (!(this->request.getMethod() == "GET" ||
+      this->request.getMethod() == "POST" ||
+      this->request.getMethod() == "DELETE")) {
+    return (501);  // Not Implemented.
+  }
+
+	int status = checkMethod();
+
+  status = std::atoi(this->response.getStatusCode().c_str()); // startLine 해석 (resource 정의)
+  // resource를 open / resource가 없는 경우 or Method가 없는 경우
+  
+  if (!status) {
+    if (this->request.getMethod() == "GET") {
+      status = this->httpGet();
+    } else if (this->request.getMethod() == "POST") {
+      status = this->httpPost();
+    } else if (this->request.getMethod() == "DELETE") {
+      status = this->httpDelete();
+    }
+  }
+  switch (status) {
+    // setStatusCode 와 setStatusMsg 를 합치자?
+    case 200:
+      this->response.setStatusCode("200");
+      this->response.setStatusMsg("(◟˙꒳​˙)◟ Good ◝(˙꒳​˙◝)");
+      break;
+    case 404:
+      this->response.setStatusCode("404");
+      this->response.setStatusMsg("Not Found :(");
+      // entity 에 conf 파일 설정된 error_page 추가
+      break;
+    case 500:
+      this->response.setStatusCode("500");
+      this->response.setStatusMsg("Internal Server Error :l");
+      break;
+    case 501:
+      this->response.setStatusCode("501");
+      this->response.setStatusMsg("Not Implemented");
+      break;
+    default:
+      std::cout << "(tmp msg) excuteTransaction: swith: default\n";
+      break;
+  }
+  this->response.setResponseMsg();
+  std::cout << GRY << "Debug: Transaction::executeMethod\n";
+  return 0;
+}
+
+
+int Transaction::checkMethod() {
+
+	if (this->location.root == "")
+
+	//this->request.getMethod() , this->location->http_method
+
+	// 1, location 으로 비트 만들기
+	this->request.getMethod();
+
+}
 /*
 
 kevent 에 등록되어 있다.

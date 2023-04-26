@@ -1,5 +1,11 @@
 NAME		:=	webserv
 
+RED			=	\033[0;31m
+GRN			= 	\033[0;32m
+YLW			=	\033[0;33m
+BLU			= 	\033[0;36m
+DFT			= 	\033[0;37m
+
 SRC_MAIN 	:=	./srcs/main.cpp
 
 PARSER_DIR 	:=	./srcs/parser/
@@ -30,7 +36,7 @@ OBJ 		=	$(SRC:.cpp=.o)
 INCLUDE		:=	-I./srcs/include/
 CC 			:=	c++
 #CPPFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
-CPPFLAGS 	:=	
+# CPPFLAGS 	:=	-fsanitize=address -g3
 
 all : $(NAME)
 
@@ -43,11 +49,12 @@ fclean : clean
 re : fclean all
 
 $(NAME): $(OBJ)
-	$(CC) $(CPPFLAGS) $(INCLUDE) $(OBJ) -o $@
+	@ $(CC) $(CPPFLAGS) $(INCLUDE) $(OBJ) -o $@
+	@ echo "$(NAME) is $(GRN)ready$(DFT)"
 
 .PHONY : all clean fclean
 
 #%.c : %.o
 #	$(CC) $(CXXFLAGS) $(INCLUDE) $@ -o $^
 %.o : %.cpp
-	$(CC) $(CPPFLAGS) $(INCLUDE) -c $< -o $@
+	@ $(CC) $(CPPFLAGS) $(INCLUDE) -c $< -o $@
