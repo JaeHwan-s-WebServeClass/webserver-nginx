@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "../include/include.hpp"
 #include "../include/define.hpp"
+#include "../include/include.hpp"
 
 /* Response 리턴할 형식
     <버전> <상태 코드> <상태 메시지>
@@ -56,8 +56,7 @@ class Response {
   const std::map<std::string, std::string> getHeader() const;
   const std::string getEntity() const;
   const std::string getResponseMsg() const;
-  //const bool getEntityDone() const;
-
+  // const bool getEntityDone() const;
 };
 
 #endif

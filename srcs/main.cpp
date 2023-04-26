@@ -5,13 +5,7 @@ int main(int argc, char **argv) {
   try {
     // step 1 - config file parsing
     std::vector<ServerConfig> config = parseConfig(argv[1]);
-    
-    // int tmp_cnt = 2;
-    // for (int i = 0; i < tmp_cnt; i++) {
-    //   config[i].printConfig(config);
-    // }
-    // std::cout << "---------------------------------------\n";
-    
+
     // step 2 - setting server & create socket & init kqueue
     Server server(config);
 
@@ -24,7 +18,8 @@ int main(int argc, char **argv) {
   return (0);
 }
 
-// DEBUG: line for checking parseConfig ------------------------
+// DEBUG
+// ------ for checking parseConfig ------------------------
 // int tmp_cnt = 2;
 // for (int i = 0; i < tmp_cnt; i++) {
 //   config[i].printConfig(config);
