@@ -178,6 +178,7 @@ int Transaction::executeMethod(void) {
       break;
   }
   this->response.setResponseMsg();
+
   // std::cout << GRY << "Debug: Transaction::executeMethod\n" << DFT;
   return 0;
 }
@@ -238,22 +239,18 @@ int Transaction::checkResource() {
     resource = "." + server_config.getRoot() + loc_root + request_filename;
     std::cout << "resource : " << resource << std::endl;
     if (access(resource.c_str(), F_OK) == -1) {
+      this->response.setStatusCode("500");
       //  TODO 에러 파일 받아와서 등록하기
-      std::cout
-          << "Error: Transaction: checkResouce: access error\n";  // cannot
-                                                                  // found
-                                                                  // request_filename
+      // cannot found request_filename
+      std::cout << "Error: Transaction: checkResouce: access error\n";
     }
     this->file_ptr = std::fopen(resource.c_str(), "r+");
     this->setFlag(FILE_OPEN);
   } else {
     //  TODO 에러 파일 받아와서 등록하기
-    std::cout
-        << "Error: Transaction: checkResouce: can not find in map\n";  // Invalid
-                                                                       // directory
-                                                                       // :cannot
-                                                                       // found
-                                                                       // reqeust_location
+    this->response.setStatusCode("500");
+    // Invalid directory: cannot found reqeust_location
+    std::cout << "Error: Transaction: checkResouce: can not find in map\n";
   }
   return (file_ptr->_file);
 }
@@ -267,25 +264,26 @@ int Transaction::checkResource() {
 //  7. 필요한 부분 = request_location
 
 //---- HTTP methods --------------------------------------------
+/*
+1. read
+2. response
+3. close
+*/
+
 int Transaction::httpGet(void) {
-  std::cout << GRY << "Transaction: httpGet\n" << DFT;
-  std::ifstream resource("." + this->server_config.getRoot() +
-                         this->request.getUrl());  // server_config? rootdir?
+  char buf[MAX_BODY_SIZE + 1];
+  int read_len = safeRead(this->file_ptr->_file, buf, MAX_BODY_SIZE);
 
-  // buf[BUFFER_SIZE] 함수 지역변수
-  // int file_all_read_flag 트랜잭션 멤버 변수?
-
-  if (!resource) {
-    return 500;
+  if (read_len == 0) {
+    this->response.setHeader("Content-Length", this->response.getEntitySize());
+    fclose(this->file_ptr);
+    flag = FILE_DONE;
+  } else {
+    this->response.setEntity(buf, read_len);
   }
-  std::string content((std::istreambuf_iterator<char>(resource)),
-                      std::istreambuf_iterator<char>());
 
-  std::stringstream content_length;
-  content_length << content.length();
+  // content_length를 세기 위함
 
-  this->response.setHeader("Content-Length", content_length.str());
-  this->response.setEntity(content);
   // std::cout << GRY << "Debug: Transaction::httpGet\n" << DFT;
   return 200;
 }

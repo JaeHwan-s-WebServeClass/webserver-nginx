@@ -28,14 +28,12 @@
 
 class Response {
  private:
-  //  const std::string response_msg = "";
-  std::string response_msg;
-
+  char *response_msg;
   std::string http_version;
   std::string status_code;
   std::string status_msg;
   std::map<std::string, std::string> header;
-  std::string entity;
+  std::vector<char> entity;
   bool entity_done;
 
   int event_fl;
@@ -47,16 +45,17 @@ class Response {
   void setStatusCode(std::string);
   void setStatusMsg(std::string);
   void setHeader(std::string, std::string);
-  void setEntity(std::string);
+  void setEntity(char *, size_t);
   void setResponseMsg();
 
   const std::string getHttpVersion() const;
   const std::string getStatusCode() const;
   const std::string getStatusMsg() const;
   const std::map<std::string, std::string> getHeader() const;
-  const std::string getEntity() const;
+  const std::vector<char> getEntity() const;
   const std::string getResponseMsg() const;
-  // const bool getEntityDone() const;
+
+  const std::string getEntitySize() const;
 };
 
 #endif
