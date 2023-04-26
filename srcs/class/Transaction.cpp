@@ -5,19 +5,24 @@
 
 //---- constructor --------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig & server_config)
-    : socket_fd(socket_fd), server_config(server_config), request(this->flag) {
-  // std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
+    : socket_fd(socket_fd), flag(START), server_config(server_config), request(this->flag), file_ptr(0) {
+  std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
 }
 
 //---- getter ---------------------------------------------
 Response &Transaction::getResponse() { return this->response; }
 Request &Transaction::getRequest() { return this->request; }
+const t_step &Transaction::getFlag() const { return this->flag; }
 
 //---- setter ---------------------------------------------
 
+void Transaction::setFlag(t_step flag) { this->flag = flag; }
 
 //---- execute --------------------------------------------
 int Transaction::executeRead(void) {
+
+std::cout << "step flag: " <<  this->flag << std::endl;
+
   // BUFFER_SIZE + 1을 할 것인가에 대한 논의
   char buf[BUFFER_SIZE + 1];
   int read_len = safeRead(this->socket_fd, buf, BUFFER_SIZE);
@@ -35,13 +40,15 @@ int Transaction::executeRead(void) {
     if (this->flag < REQUEST_ENTITY) {
       this->executeReadEntity(buf, read_len, head_rest_len);
     }
-    // std::cout << GRY << "Debug: Transaction::executeRead\n";
   }
 
-  if ((this->request.getMethod() == "POST" && this->flag == REQUEST_ENTITY) 
-       || (this->request.getMethod() != "POST" && this->flag == REQUEST_HEAD)) {
-      this->setFlag(REQUEST_DONE);
-  } 
+  if (this->flag == REQUEST_ENTITY)
+    this->setFlag(REQUEST_DONE);
+  // if ((this->request.getMethod() == "POST" && this->flag == REQUEST_ENTITY) 
+  //      || (this->request.getMethod() != "POST" && this->flag == REQUEST_HEAD)) {
+  //     this->setFlag(REQUEST_DONE);
+  // } 
+  std::cout << GRY << "Debug: Transaction::executeRead\n" << DFT;
   return 0;
 }
 
@@ -56,7 +63,7 @@ int Transaction::executeReadHead(char *buf, int read_len) {
   std::string line;
   while (std::getline(read_stream, line, '\n')) {
     if (line.length() == 0 || line == "\r") {
-      this->flag == REQUEST_HEAD;
+      this->flag = REQUEST_HEAD;
 
       // DEBUG
       std::cout << GRY << "-------------------- raw head ----------------------"
@@ -177,13 +184,12 @@ int Transaction::executeMethod(void) {
       break;
   }
   this->response.setResponseMsg();
-  // std::cout << GRY << "Debug: Transaction::executeMethod\n";
+  std::cout << GRY << "Debug: Transaction::executeMethod\n";
   return 0;
 }
 
 // function 1 : return file_fd
 int Transaction::checkResource() {
-	int file_fd;
 
 	std::string request_location;
 	std::string request_filename = "";
@@ -198,29 +204,53 @@ int Transaction::checkResource() {
 		if (pos == std::string::npos) {
 			this->response.setStatusCode("404");
 			//  TODO 에러 파일 받아와서 등록하기
-			std::cout << "checkResouce :: return error page fd\n";
+			std::cout << "checkResource :: return error page fd\n";
 			//file_fd = std::fopen(, )._file;
 			//return ("404.html");
-		}
-		request_location = this->request.getUrl().substr(0, pos);
-		request_filename = this->request.getUrl().substr(pos);
+    
+		} else if (pos == 0) { // localhost:8080/index.html 일 때.
+      request_location = this->request.getUrl().substr(0, pos + 1);
+      request_filename = this->request.getUrl().substr(pos + 1);
+
+      std::cout << "case 1 - localhost:8080/index.html\n";
+      std::cout << "request location: " << request_location << std::endl;
+      std::cout << "request filename: " << request_filename << std::endl;
+    } else { // localhost:8080/example/index.html 일 때.
+      request_location = this->request.getUrl().substr(0, pos);
+      request_filename = this->request.getUrl().substr(pos);
+
+      std::cout << "case 2 - localhost:8080/example/index.html\n";
+      std::cout << "request location: " << request_location << std::endl;
+      std::cout << "request filename: " << request_filename << std::endl;
+    }
 	}
-	std::map<std::string, ServerConfig::t_location>::const_iterator config_location;
-	if ((config_location = this->server_config.getLocation().find(request_location)) != this->server_config.getLocation().end()) {
-		std::string loc_root = config_location->second.root;
-		resource = server_config.getRoot() + loc_root + request_filename;
+
+	std::map<std::string, ServerConfig::t_location>::const_iterator it;
+	if ((it = this->server_config.getLocation().find(request_location)) != this->server_config.getLocation().end()) {
+		this->location = it->second;
+    std::string loc_root = this->location.root;
+		resource = "." + server_config.getRoot() + loc_root + request_filename;
+    std::cout << "resource : " << resource << std::endl;
 		if (access(resource.c_str(), F_OK) == -1) {
 		//  TODO 에러 파일 받아와서 등록하기
-			std::cout << "checkResouce :: return error page fd\n";  // cannot found request_filename
+			std::cout << "Error: Transaction: checkResouce: access error\n";  // cannot found request_filename
 		}
-		file_fd = std::fopen(resource.c_str(), "r+")->_file;
+    this->file_ptr = std::fopen(resource.c_str(), "r+");
     this->setFlag(FILE_OPEN);
 	} else {
 		//  TODO 에러 파일 받아와서 등록하기
-		std::cout << "checkResouce :: return error page fd\n"; // Invalid directory :cannot found reqeust_location
+		std::cout << "Error: Transaction: checkResouce: can not find in map\n"; // Invalid directory :cannot found reqeust_location
 	}
-    return (file_fd);
+    return (file_ptr->_file);
 }
+
+//  1. uri 를 자르기
+//  2. request_location 찾기
+//  3. request_filename 찾기
+//  4. request_location 으로 locale_root 찾기
+//  5. doc_root 와 loc_root 와 file_name 을 합쳐서 local 파일 생성하기
+//  6. 파일을 열고 fd 반환하기
+//  7. 필요한 부분 = request_location
 
 //---- HTTP methods --------------------------------------------
 int Transaction::httpGet(void) {
@@ -241,17 +271,17 @@ int Transaction::httpGet(void) {
 
   this->response.setHeader("Content-Length", content_length.str());
   this->response.setEntity(content);
-  // std::cout << GRY << "Debug: Transaction::httpGet\n";
+  std::cout << GRY << "Debug: Transaction::httpGet\n";
   return 200;
 }
 
 int Transaction::httpDelete(void) {
-  // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
+  std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
   return 200;
 }
 
 int Transaction::httpPost(void) {
-  // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
+  std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
   return 200;
 }
 
@@ -264,7 +294,7 @@ int Transaction::safeRead(int fd, char *buf, int size) {
     std::cerr << RED << "client read error!\n" << DFT;
   }
   signal(SIGPIPE, SIG_DFL);
-  // std::cout << GRY << "Debug: Transaction::safeRead\n";
+  std::cout << GRY << "Debug: Transaction::safeRead\n";
   return recv_len;
 }
 

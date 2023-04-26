@@ -36,8 +36,8 @@ std::vector<ServerConfig> parseConfig(char *config_file) {
   std::ifstream file_stream(config_file);
   std::string line;
   std::string location_key;
-  bool server_fl;
-  bool location_fl;
+  bool server_fl = false;
+  bool location_fl = false;
 
   if (!file_stream.is_open()) {
       throw std::string("Error: parseConf: Invalid Config File");

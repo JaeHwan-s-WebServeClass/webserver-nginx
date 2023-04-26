@@ -2,7 +2,6 @@
 
 
 // ---- constructors
-
 Server::Server(std::vector<ServerConfig> & server_config): server_config(server_config) {
     std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
     // TODO 같은 포트 여러개 들어올 때 예외처리
@@ -13,7 +12,7 @@ Server::Server(std::vector<ServerConfig> & server_config): server_config(server_
   if ((this->kq = kqueue()) == -1) {
     throw std::string("Error: Server: constructor\n" + std::string(strerror(errno)));
   }
-  // std::cout << GRY << "Debug: Server\n" << DFT;
+  std::cout << GRY << "Debug: Server\n" << DFT;
 }
 
 // ---- utils
@@ -24,7 +23,7 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
 
   EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
   change_list.push_back(temp_event);
-  // std::cout << GRY << "Debug: Server::setChangeList\n" << DFT;
+  std::cout << GRY << "Debug: Server::setChangeList\n" << DFT;
 }
 
 void Server::disconnectClient(int client_fd,
@@ -34,7 +33,7 @@ void Server::disconnectClient(int client_fd,
   close(client_fd);
   clients.erase(client_fd);
   std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
-  // std::cout << GRY << "Debug: Server::disconnectClient\n" << DFT;
+  std::cout << GRY << "Debug: Server::disconnectClient\n" << DFT;
 }
 
 // ---- safe functions
@@ -160,5 +159,5 @@ void Server::run() {
       }
     }
   }
-  // std::cout << GRY << "Debug: Server::run\n" << DFT;
+  std::cout << GRY << "Debug: Server::run\n" << DFT;
 }

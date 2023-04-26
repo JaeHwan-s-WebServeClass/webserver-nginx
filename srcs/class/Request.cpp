@@ -11,7 +11,7 @@ Request::Request(t_step &flag)
       hex_str(""),
       flag(flag) {
   entity.reserve(256);
-  // std::cout << GRY << "Debug: Request::contructor\n" << DFT;
+  std::cout << GRY << "Debug: Request::contructor\n" << DFT;
 }
 
 //---- setter --------------------------------------------
@@ -114,7 +114,7 @@ void Request::toString() const {
   std::cout << DFT << std::endl;
   std::cout << GRY << "----------------------------------------------------"
             << DFT << std::endl;
-  // std::cout << GRY << "Debug: Request::toString\n" << DFT;
+  std::cout << GRY << "Debug: Request::toString\n" << DFT;
 }
 
 void Request::parserHead() {
@@ -134,5 +134,5 @@ void Request::parserHead() {
     int pos = it->find(':');
     header[it->substr(0, pos)] = ft::trim(it->substr(pos + 1));
   }
-  // std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
+  std::cout << GRY << "Debug: Request::parserHead\n" << DFT;
 }

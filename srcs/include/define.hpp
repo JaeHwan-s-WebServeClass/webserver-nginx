@@ -24,3 +24,8 @@ typedef enum step {
 	RESPONSE_DONE
 } t_step;
 
+typedef enum method {
+	GET = 1,
+	POST = 1 << 1,
+	DELETE = 1 << 2,
+} t_method;

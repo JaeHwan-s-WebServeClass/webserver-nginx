@@ -16,9 +16,9 @@ const std::vector<std::string>& ServerConfig::getErrorPage() const { return this
 int ServerConfig::getClientMaxBodySize() const { return this->client_max_body_size; }
 int ServerConfig::getClientMaxHeadSize() const { return this->client_max_head_size; }
 const std::string& ServerConfig::getRoot() const { return this->root; }
-const bool ServerConfig::getGET() const { this->GET; }
-const bool ServerConfig::getPOST() const { this->POST; }
-const bool ServerConfig::getDELETE() const { this->DELETE; }
+// const bool ServerConfig::getGET() const { this->GET; }
+// const bool ServerConfig::getPOST() const { this->POST; }
+// const bool ServerConfig::getDELETE() const { this->DELETE; }
 const std::map<std::string, ServerConfig::t_location>& ServerConfig::getLocation() const { return this->locations; }
 
 // ---- setters ---------------------------------------------------
@@ -48,22 +48,22 @@ void ServerConfig::setDirective(std::string key, std::vector<std::string> value)
 		std::vector<std::string>::const_iterator it = value.begin();
 		for(; it != value.end(); it++) {
 			if (*it == "GET") {
-				this->GET = true;
+				this->http_method |= GET;
 			} else if (*it == "POST") {
-				this->POST = true;
+				this->http_method |= POST;
 			} else if (*it == "DELETE") {
-				this->DELETE = true;
+				this->http_method |= DELETE;
 			}
 	    }
     } else if (key == "deny") {
         std::vector<std::string>::const_iterator it = value.begin();
 		for(; it != value.end(); it++) {
 			if (*it == "GET") {
-				this->GET = false;
+				this->http_method &= (0b110);
 			} else if (*it == "POST") {
-				this->POST = false;
+				this->http_method &= (0b101);
 			} else if (*it == "DELETE") {
-				this->DELETE = false;
+				this->http_method &= (0b011);
 			} 
 		}
 	} else {
@@ -87,25 +87,31 @@ void ServerConfig::setLocation(const std::string map_key, const std::string key,
 		std::vector<std::string>::const_iterator it = value.begin();
 		for(; it != value.end(); it++) {
 			if (*it == "GET") {
-				this->locations[map_key].GET = true;
+				this->locations[map_key].http_method |= GET;
 			} else if (*it == "POST") {
-				this->locations[map_key].POST = true;
+				this->locations[map_key].http_method |= POST;
 			} else if (*it == "DELETE") {
-				this->locations[map_key].DELETE = true;
+				this->locations[map_key].http_method |= DELETE;
 			}
 	    }
     } else if (key == "deny") {
         std::vector<std::string>::const_iterator it = value.begin();
 		for(; it != value.end(); it++) {
 			if (*it == "GET") {
-				this->locations[map_key].GET = false;
+				this->locations[map_key].http_method &= (0b110);
 			} else if (*it == "POST") {
-				this->locations[map_key].POST = false;
+				this->locations[map_key].http_method &= (0b101);
 			} else if (*it == "DELETE") {
-				this->locations[map_key].DELETE = false;
+				this->locations[map_key].http_method &= (0b011);
 			} 
 		}
 	} else {
+		// std::cout << "key : " << key << std::endl;
+		// std::cout << "value : ";
+		// std::vector<std::string *>::const_iterator it = value.begin();
+		// for(; it != value.end(); it++) {
+		// 	std::cout << *it << ", ";
+		// }
         throw std::string("Error: setLocation: Invalid Element");
     }
 }
@@ -114,9 +120,7 @@ void ServerConfig::setLocationDefault(const std::string key) {
 	this->locations[key].root = "/";
 	this->locations[key].autoindex = false;
 	this->locations[key].index.push_back("index.html");
-	this->locations[key].GET = true;
-	this->locations[key].POST = true;
-	this->locations[key].DELETE = true;
+	this->locations[key].http_method = (0b111);
 }
 
 void ServerConfig::setDefault() {
@@ -130,9 +134,7 @@ void ServerConfig::setDefault() {
 	this->error_page.push_back("/501.html");
 	this->client_max_body_size = 1024;
 	this->client_max_head_size = 1024;
-	this->GET = true;
-	this->POST = true;
-	this->DELETE = true;
+	this->http_method = (0b111);
 	root = "/rootdir";
 }
 
@@ -142,9 +144,8 @@ void	ServerConfig::printLocation(const t_location &location) {
 	std::cout << "    root: " << location.root << std::endl ;
 	std::cout << "    index: ";
 	ft::printVector(location.index);
-	std::cout << "    GET: " << location.GET << std::endl ;
-	std::cout << "    POST: " << location.POST << std::endl ;
-	std::cout << "    DELETE: " << location.DELETE << std::endl ;
+	std::cout << "    http_method: " << location.http_method <<
+	"  GET = 1, POST = 2, DELETE = 4. 대충 더해서 보세요" << std::endl;
 }
 
 void	ServerConfig::printConfig(const std::vector<ServerConfig> &config) {

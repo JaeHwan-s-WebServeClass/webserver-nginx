@@ -30,6 +30,10 @@ class Transaction {
   Request request;
   const ServerConfig & server_config;
 
+  ServerConfig::t_location location;
+  
+  FILE * file_ptr;
+
  public:
   /// @brief Transaction 생성자
   /// @param socket_fd
@@ -39,9 +43,9 @@ class Transaction {
   // ---- getter/setter -----------------------
   Response &getResponse();
   Request &getRequest();
-  const int & getFlag() const;
+  const t_step & getFlag() const;
 
-  t_step setFlag(t_step);
+  void setFlag(t_step);
 
   // ---- check/execute -----------------------
   int checkResource(void);
@@ -67,6 +71,7 @@ class Transaction {
   /// @param response
   /// @return write size
   int safeWrite(int, Response &);
+
 };
 
 #endif

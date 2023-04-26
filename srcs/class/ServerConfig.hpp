@@ -9,7 +9,9 @@
 #include <vector>
 #include <map>
 
+
 #include "../include/include.hpp"
+#include "../include/define.hpp"
 
 class ServerConfig {
 public:
@@ -17,9 +19,7 @@ public:
 		std::string 				root;
 		std::vector<std::string> 	index;
 		bool						autoindex;
-		bool						GET;
-		bool						POST;
-		bool						DELETE;
+		int							http_method;
 	}	t_location;
 
 private:
@@ -29,9 +29,7 @@ private:
   int                       client_max_body_size;
   int 						client_max_head_size;
   std::string				root;
-	bool						GET;
-	bool						POST;
-	bool						DELETE;
+  int						http_method;
   std::map<std::string, t_location>	locations;
 
 public:
