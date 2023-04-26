@@ -4,16 +4,17 @@
 #include <fcntl.h>
 #include <sys/socket.h>  // socket()
 
+#include <cstring>
 #include <exception>
 #include <iostream>  //
-#include <cstring>
+
 #include "../include/define.hpp"
 
 class ServerSocket {
  private:
   int server_socket;
   struct sockaddr_in server_addr;
-  
+
   int port;
 
  private:
@@ -46,6 +47,6 @@ class ServerSocket {
 
   int getServerSocket(void) const;
 
-  public:
-    int getPort();
+ public:
+  int getPort() const;
 };

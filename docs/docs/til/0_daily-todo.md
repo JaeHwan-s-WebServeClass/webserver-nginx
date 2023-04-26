@@ -418,7 +418,7 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 ### 진행 계획
 
-1. config 적용
+1. config 로 server_socket 적용
 
 2. kevent 의 udata 공부 및 적용 여부 논의
 
@@ -426,9 +426,39 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 ### 결과
 
-[13:00 ~ 15:00] config 파일 구성 요소 개념 정리 ( feat. server_name??? )
+[13:00 ~ 14:00] config 로 server_socket 적용
 
+[14:00 ~ 14:50] config 로 server_socket 적용
 
+[15:00 ~ 17:20] config 구성요소 적용 (root, location 등등)
+
+[18:50 ~ 21:00] flag 사용해서 fd 리턴하도록 리팩토링
+
+<br>
+
+***
+
+## [23일차] 2023.04.26 (수)
+
+### 진행 계획
+
+1. execute method 구현
+    * checkResource 구현
+
+2. 
+
+3. 
+
+### 결과
+
+[13:00 ~ 15:20]
+* checkResource 구현
+
+[15:45 ~ 16:55]
+* checkResource 에러 픽스
+* executeMethod, file fd 값 처리 구현
+
+[15:00 ~ 17:20] 
 
 
 <br>

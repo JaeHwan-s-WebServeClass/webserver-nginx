@@ -1,10 +1,17 @@
 #include "Server.hpp"
 
 // ---- constructors
-
-Server::Server(std::vector<ServerSocket> & server_socket) : server_socket(server_socket) {
+Server::Server(std::vector<ServerConfig> &server_config)
+    : server_config(server_config) {
+  std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
+  // TODO 같은 포트 여러개 들어올 때 예외처리
+  for (; it != this->server_config.end(); it++) {
+    ServerSocket tmp_socket(AF_INET, (*it).getListen());
+    this->server_socket.push_back(tmp_socket);
+  }
   if ((this->kq = kqueue()) == -1) {
-    throw std::string("Error: Server: constructor\n" + std::string(strerror(errno)));
+    throw std::string("Error: Server: constructor\n" +
+                      std::string(strerror(errno)));
   }
   // std::cout << GRY << "Debug: Server\n" << DFT;
 }
@@ -37,9 +44,10 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
   if ((new_events =
            kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
                   this->event_list, nevents, timeout)) == -1) {
-    throw std::string("Error: Server: safeKevent\n" + std::string(strerror(errno)));
+    throw std::string("Error: Server: safeKevent\n" +
+                      std::string(strerror(errno)));
   }
-  // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
+  // // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
 
   return new_events;
 }
@@ -48,12 +56,14 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
 void Server::run() {
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
+    //  FIXME: udata 추가하기
     setChangeList(this->change_list, it->getServerSocket(), EVFILT_READ,
                   EV_ADD | EV_ENABLE, 0, 0, NULL);
   }
 
-  // setChangeList(this->change_list, this->server_socket->getServerSockest(),
-  //               EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+  // const int x = 10; // 변수를 선언하고 초기화합니다.
+  // const int& ref1 = x; // 참조를 선언하고 초기화합니다.
+  // int& ref2 = const_cast<int&>(ref1); // const-ness를 제거합니다.
 
   int new_events;
   struct kevent *curr_event;
@@ -88,33 +98,56 @@ void Server::run() {
             this->server_socket.begin();
         for (; it != this->server_socket.end(); it++) {
           if (curr_event->ident == it->getServerSocket()) {
-            // int client_socket;
-
-            // std::cout << RED << "accept : server soc fd: "<< (*it)->getPort()
-            // << std::endl;
-
-            client_socket = it->safeAccept();
-            std::cout << GRN << "accept new client: " << client_socket << DFT
-                      << std::endl;
-            fcntl(client_socket, F_SETFL, O_NONBLOCK);
-
-            setChangeList(this->change_list, client_socket, EVFILT_READ,
-                          EV_ADD | EV_ENABLE, 0, 0, NULL);
-            setChangeList(this->change_list, client_socket, EVFILT_WRITE,
-                          EV_ADD | EV_ENABLE, 0, 0, NULL);
-            // value 를 초기화하는 과정
-            this->clients[client_socket] =
-                new Transaction(client_socket, "./rootdir/test");
             break;
           }
         }
-        if (this->clients.find(curr_event->ident) != this->clients.end()) {
-          if (this->clients[curr_event->ident]->executeRead() == -1) {
-            this->disconnectClient(curr_event->ident, this->clients);
-          } else {
-            // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
-            this->clients[curr_event->ident]->executeMethod();
+        if (it != this->server_socket.end()) {
+          client_socket = it->safeAccept();
+          std::cout << GRN << "accept new client: " << client_socket << DFT
+                    << std::endl;
+          fcntl(client_socket, F_SETFL, O_NONBLOCK);
+
+          setChangeList(this->change_list, client_socket, EVFILT_READ,
+                        EV_ADD | EV_ENABLE, 0, 0, NULL);
+          setChangeList(this->change_list, client_socket, EVFILT_WRITE,
+                        EV_ADD | EV_ENABLE, 0, 0, NULL);
+          // value 를 초기화하는 과정
+          // TODO 같은 port 인 경우 처리해야 함
+          std::vector<ServerConfig>::const_iterator it2 =
+              this->server_config.begin();
+          for (; it2 != this->server_config.end(); it2++) {
+            if (it2->getListen() == it->getPort()) {
+              this->clients[client_socket] =
+                  new Transaction(client_socket, *it2);
+              break;
+            }
           }
+        } else if (this->clients.find(curr_event->ident) !=
+                   this->clients.end()) {
+          int read_len = this->clients[curr_event->ident]->executeRead();
+          if (read_len == -1) {
+            this->disconnectClient(curr_event->ident, this->clients);
+          }
+          // 한번만 호출되야 한다 => if ()
+          //  file fd 세팅하는 부분
+          if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
+            int file_fd = this->clients[curr_event->ident]->checkResource();
+            fcntl(file_fd, F_SETFL, O_NONBLOCK);
+            setChangeList(this->change_list, file_fd, EVFILT_READ,
+                          EV_ADD | EV_ENABLE, 0, 0,
+                          this->clients[curr_event->ident]);
+          }
+          // executeMethod() 안에서 executeRead 완료했는지 체크하고 있음
+          // this->clients[curr_event->ident]->executeMethod();
+          // file_fd = this->clients[curr_event->ident]->executeMethod();
+          // setChangeList(file_fd)??
+
+        } else {  // 파일 일 때!
+                  // vector file 이 생기고 file_fd 가 들어간다 (이미 들어가있음)
+                  // udata에 있는 Transaction의 method를 호출한다.
+          reinterpret_cast<Transaction *>(curr_event->udata)->executeMethod();
+          setChangeList(this->change_list, curr_event->ident, EVFILT_READ,
+                        EV_DELETE, 0, 0, NULL);
         }
         // 2-2. 이벤트가 발생한 client가 이미 연결된 client인 경우 => read()
       }

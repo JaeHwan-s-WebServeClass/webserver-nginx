@@ -47,38 +47,40 @@ class Request {
   std::string http_version;
   std::map<std::string, std::string> header;
   std::vector<char> entity;
-  bool head_done;
-  bool entity_done;
+  t_step &flag;
+  //   bool head_done;
+  //   bool entity_done;
   int chunk_size;
   std::string hex_str;
 
  public:
-  Request();
+  Request(t_step &);
 
   // ---- setters -------------------------------------
   /// @brief set Is End Head
   /// @param type
   /// @return
-  void setHeadDone(bool);
+  //   void setHeadDone(bool);
 
   /// @brief set Raw Head
   /// @param line
   /// @return
   void setRawHead(std::string);
-  void setEntityDone(bool);
+  //   void setEntityDone(bool);
+  void setFlag(t_step);
 
   void addContentLengthEntity(char *, int);
   void addChunkedEntity(char buf[BUFFER_SIZE], size_t read_len);
 
   // ---- getters -------------------------------------
   const std::string &getRawHead() const;
-  const bool &getHeadDone() const;
+  //   const bool &getHeadDone() const;
   const std::string &getMethod() const;
   const std::string &getUrl() const;
   const std::string &getHttpVersion() const;
   const std::map<std::string, std::string> &getHeader() const;
   const std::vector<char> &getEntity() const;
-  const bool getEntityDone() const;
+  //   const bool getEntityDone() const;
   const size_t getEntitySize() const;
   const int getContentLength() const;
 

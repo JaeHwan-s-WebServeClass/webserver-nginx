@@ -3,29 +3,32 @@
 #include <cstring>
 
 //---- constructor ---------------------------------------
-Request::Request()
+Request::Request(t_step& flag)
     : raw_head(""),
-      head_done(0),
-      entity_done(false),
+      // head_done(0),
+      // entity_done(false),
       chunk_size(0),
-      hex_str("") {
+      hex_str(""),
+      flag(flag) {
   entity.reserve(256);
   // std::cout << GRY << "Debug: Request::contructor\n" << DFT;
 }
 
 //---- setter --------------------------------------------
 void Request::setRawHead(std::string line) { this->raw_head += line; }
-void Request::setHeadDone(bool type) {
-  this->head_done = type;
+void Request::setFlag(t_step flag) {
+  // this->head_done = type;
+  this->flag = flag;
 }  // status? type?
-void Request::setEntityDone(bool type) { this->entity_done = type; }
+// void Request::setEntityDone(bool type) { this->entity_done = type; }
 
 void Request::addContentLengthEntity(char* buf, int read_len) {
   for (int i = 0; i < read_len; ++i) {
     this->entity.push_back(buf[i]);
   }
   if (this->getEntitySize() == this->getContentLength()) {
-    this->setEntityDone(true);
+    // this->setEntityDone(true);
+    this->setFlag(REQUEST_ENTITY);
   } else if (this->getEntitySize() > this->getContentLength()) {
     throw std::string("Error: Transaction: Request Entity Over Content-Length");
   }
@@ -45,7 +48,8 @@ void Request::addChunkedEntity(char* buf, size_t read_len) {
         chunk_size = ft::hexToInt(hex_str);
         std::cout << "chunk_size: " << chunk_size << "\n";
         if (chunk_size == 0) {
-          this->setEntityDone(true);
+          // this->setEntityDone(true);
+          this->setFlag(REQUEST_ENTITY);
           return;
         } else if (chunk_size < 0) {
           throw std::string("Error: Request:: Chunk size overflow");
@@ -65,9 +69,9 @@ void Request::addChunkedEntity(char* buf, size_t read_len) {
   }
 }
 //---- getter --------------------------------------------
-const bool Request::getEntityDone() const { return this->entity_done; }
+// const bool Request::getEntityDone() const { return this->entity_done; }
 const std::string& Request::getRawHead() const { return this->raw_head; }
-const bool& Request::getHeadDone() const { return this->head_done; }
+// const bool& Request::getHeadDone() const { return this->head_done; }
 const std::string& Request::getMethod() const { return this->method; }
 const std::string& Request::getUrl() const { return this->url; };
 const std::string& Request::getHttpVersion() const {
@@ -130,5 +134,5 @@ void Request::parserHead() {
     int pos = it->find(':');
     header[it->substr(0, pos)] = ft::trim(it->substr(pos + 1));
   }
-  // std::cout << GRY << "Debug: Request::setRawMsg\n" << DFT;
+  // std::cout << GRY << "Debug: Request::parserHead\n" << DFT;
 }

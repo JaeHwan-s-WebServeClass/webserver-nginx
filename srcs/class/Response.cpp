@@ -14,28 +14,17 @@ Response::Response()
 //---- setter ---------------------------------------------------
 void Response::setHttpVersion(std::string http_version) {
   this->http_version = http_version;
-  // std::cout << GRY << "Debug: Response::setHttpVersion\n" << DFT;
 }
-
 void Response::setStatusCode(std::string status_code) {
   this->status_code = status_code;
-  // std::cout << GRY << "Debug: Response::setStatusCode\n" << DFT;
 }
-
 void Response::setStatusMsg(std::string status_msg) {
   this->status_msg = status_msg;
-  // std::cout << GRY << "Debug: Response::setStatusMsg\n" << DFT;
 }
-
 void Response::setHeader(std::string key, std::string value) {
   this->header[key] = value;
-  // std::cout << GRY << "Debug: Response::setHeader\n" << DFT;
 }
-
-void Response::setEntity(std::string content) {
-  this->entity = content;
-  // std::cout << GRY << "Debug: Response::setEntity\n" << DFT;
-}
+void Response::setEntity(std::string content) { this->entity = content; }
 
 void Response::setResponseMsg() {
   this->response_msg += this->http_version + " " + this->status_code + " " +
@@ -51,13 +40,17 @@ void Response::setResponseMsg() {
   // std::cout << GRY << "Debug: Response::setResponseMsg\n" << DFT;
 }
 
-const bool Response::getEntityDone() {
-  // std::cout << GRY << "Debug: Response::getEntityDone\n" << DFT;
-  return this->entity_done;
-}
-
 //---- getter ---------------------------------------------------
-std::string Response::getResponseMsg() {
-  // std::cout << GRY << "Debug: Response::getResponseMsg\n" << DFT;
+// const bool Response::getEntityDone() const { return this->entity_done; }
+const std::string Response::getResponseMsg() const {
   return this->response_msg;
 }
+const std::string Response::getHttpVersion() const {
+  return this->http_version;
+}
+const std::string Response::getStatusCode() const { return this->status_code; }
+const std::string Response::getStatusMsg() const { return this->status_msg; }
+const std::map<std::string, std::string> Response::getHeader() const {
+  return this->header;
+}
+const std::string Response::getEntity() const { return this->entity; }

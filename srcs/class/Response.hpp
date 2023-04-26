@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "../include/include.hpp"
 #include "../include/define.hpp"
+#include "../include/include.hpp"
 
 /* Response 리턴할 형식
     <버전> <상태 코드> <상태 메시지>
@@ -48,16 +48,15 @@ class Response {
   void setStatusMsg(std::string);
   void setHeader(std::string, std::string);
   void setEntity(std::string);
-
-    // void getHttpVersion();
-    // void getStatusCode();
-    // void getStatusMsg();
-    // void getHeader();
-    // void getEntity();
-
   void setResponseMsg();
-  std::string getResponseMsg();
-  const bool  getEntityDone();
+
+  const std::string getHttpVersion() const;
+  const std::string getStatusCode() const;
+  const std::string getStatusMsg() const;
+  const std::map<std::string, std::string> getHeader() const;
+  const std::string getEntity() const;
+  const std::string getResponseMsg() const;
+  // const bool getEntityDone() const;
 };
 
 #endif

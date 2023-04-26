@@ -13,10 +13,11 @@
 #include <map>
 #include <vector>
 
+#include "../include/define.hpp"
+#include "Response.hpp"
+#include "ServerConfig.hpp"
 #include "ServerSocket.hpp"
 #include "Transaction.hpp"
-#include "Response.hpp"
-#include "../include/define.hpp"
 
 class Server {
  private:
@@ -24,14 +25,15 @@ class Server {
   int kq;
   struct kevent event_list[8];
   std::vector<struct kevent> change_list;
+  const std::vector<ServerConfig> &server_config;
 
   // ServerSocket *server_socket;
-  const std::vector<ServerSocket> & server_socket;
+  std::vector<ServerSocket> server_socket;
 
  public:
   /// @param server_socket
   // Server(ServerSocket &);
-  Server(std::vector<ServerSocket> &);
+  Server(std::vector<ServerConfig> &);
 
   /// @brief
   /// @param change_list
