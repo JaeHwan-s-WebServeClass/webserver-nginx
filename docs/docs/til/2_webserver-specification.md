@@ -69,8 +69,8 @@ public:
     void    disconnectClient(int client_fd, std::map<int, std::string> &clients);
     
     int safeKevent(int nevents, const timespec *timeout);
-    int safeRead(int fd, char *buf);
-    int safeWrite(int fd);
+    int safeRecv(int fd, char *buf);
+    int safeSend(int fd);
 
 ```
 
