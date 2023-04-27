@@ -4,10 +4,10 @@
 int isLocation(std::string& line, ServerConfig& tmp_conf,
                std::string* location_key) {
   std::vector<std::string> location = ft::split(line, '\t');
+
   if (location.front() != "location") {
     return 0;
   }
-
   std::vector<std::string> key = ft::split(location.back(), ' ');
   if (key.back() != "{") {
     return 0;
@@ -71,6 +71,5 @@ std::vector<ServerConfig> parseConfig(char* config_file) {
     }
   }
   file_stream.close();
-
   return config_data;
 }

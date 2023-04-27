@@ -15,13 +15,14 @@
 #define CHUNK_ENTITY 1
 
 typedef enum step {
-  START,
-  REQUEST_HEAD,
-  REQUEST_ENTITY,
-  REQUEST_DONE,
-  FILE_OPEN,
-  FILE_DONE,
-  RESPONSE_DONE
+  START,          // Transaction 생성자
+  REQUEST_HEAD,   // T.cpp executeReadHead line 155
+  REQUEST_ENTITY, // Request.cpp line 75(length), 96(chunked)
+  REQUEST_DONE,   // T.cpp executeRead line 131
+  FILE_OPEN,      // T.cpp checkResource line 76
+  FILE_DONE,      // T.cpp httpGet line 290
+  RESPONSE_DONE,  // Response.cpp setResponseMsg line 82
+  END
 } t_step;
 
 typedef enum method {

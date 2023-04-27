@@ -20,17 +20,16 @@
 #include "Transaction.hpp"
 
 class Server {
- private:
+private:
   std::map<int, Transaction *> clients;
   int kq;
   struct kevent event_list[8];
   std::vector<struct kevent> change_list;
   const std::vector<ServerConfig> &server_config;
-
-  // ServerSocket *server_socket;
   std::vector<ServerSocket> server_socket;
 
- public:
+public:
+  // ---- constructor -------------------------
   /// @param server_socket
   // Server(ServerSocket &);
   Server(std::vector<ServerConfig> &);
@@ -54,17 +53,12 @@ class Server {
   /// @return
   void disconnectClient(int, std::map<int, Transaction *> &);
 
+  // ---- safe-functions ----------------------
   /// @brief
   /// @param nevents
   /// @param timeout
   /// @return
   int safeKevent(int, const timespec *);
-
-  /// @brief
-  /// @param fd
-  /// @param response
-  /// @return write size
-  int safeWrite(int, Response &);
 };
 
 #endif

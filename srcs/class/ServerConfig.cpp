@@ -1,18 +1,15 @@
 #include "ServerConfig.hpp"
 
-// ---- constructors ----------------------------------------------
+//---- constructor -------------------------------------------------------------
 ServerConfig::ServerConfig() { this->setDefault(); }
+ServerConfig::ServerConfig(const char *path) {}
 
-ServerConfig::ServerConfig(const char* path) {
-  //
-}
-
-// ---- getters ---------------------------------------------------
+//---- getter ------------------------------------------------------------------
 int ServerConfig::getListen() const { return this->listen; }
-const std::vector<std::string>& ServerConfig::getServerName() const {
+const std::vector<std::string> &ServerConfig::getServerName() const {
   return this->server_name;
 }
-const std::vector<std::string>& ServerConfig::getErrorPage() const {
+const std::vector<std::string> &ServerConfig::getErrorPage() const {
   return this->error_page;
 }
 int ServerConfig::getClientMaxBodySize() const {
@@ -21,21 +18,21 @@ int ServerConfig::getClientMaxBodySize() const {
 int ServerConfig::getClientMaxHeadSize() const {
   return this->client_max_head_size;
 }
-const std::string& ServerConfig::getRoot() const { return this->root; }
-// const bool ServerConfig::getGET() const { this->GET; }
-// const bool ServerConfig::getPOST() const { this->POST; }
-// const bool ServerConfig::getDELETE() const { this->DELETE; }
-const std::map<std::string, ServerConfig::t_location>&
+const std::string &ServerConfig::getRoot() const { return this->root; }
+const std::map<std::string, ServerConfig::t_location> &
 ServerConfig::getLocation() const {
   return this->locations;
 }
+// const bool ServerConfig::getGET() const { this->GET; }
+// const bool ServerConfig::getPOST() const { this->POST; }
+// const bool ServerConfig::getDELETE() const { this->DELETE; }
 
-// ---- setters ---------------------------------------------------
+//---- setter ------------------------------------------------------------------
 void ServerConfig::setListen(int value) { listen = value; }
-void ServerConfig::setServerName(const std::vector<std::string>& value) {
+void ServerConfig::setServerName(const std::vector<std::string> &value) {
   server_name = value;
 }
-void ServerConfig::setErrorPage(const std::vector<std::string>& value) {
+void ServerConfig::setErrorPage(const std::vector<std::string> &value) {
   error_page = value;
 }
 void ServerConfig::setClientMaxBodySize(int value) {
@@ -44,7 +41,7 @@ void ServerConfig::setClientMaxBodySize(int value) {
 void ServerConfig::setClientMaxHeadSize(int value) {
   client_max_head_size = value;
 }
-void ServerConfig::setRoot(const std::string& value) { root = value; }
+void ServerConfig::setRoot(const std::string &value) { root = value; }
 
 void ServerConfig::setDirective(std::string key,
                                 std::vector<std::string> value) {
@@ -90,7 +87,7 @@ void ServerConfig::setDirective(std::string key,
 }
 
 void ServerConfig::setLocation(const std::string map_key, const std::string key,
-                               const std::vector<std::string>& value) {
+                               const std::vector<std::string> &value) {
   if (key == "root") {
     this->locations[map_key].root = value.front();
   } else if (key == "autoindex") {
@@ -157,18 +154,18 @@ void ServerConfig::setDefault() {
   root = "/rootdir";
 }
 
-// ---- utils ----------------------------------------------------
-void ServerConfig::printLocation(const t_location& location) {
+//----- utils ------------------------------------------------------------------
+void ServerConfig::printLocation(const t_location &location) {
   std::cout << "    autoindex: " << location.autoindex << std::endl;
   std::cout << "    root: " << location.root << std::endl;
   std::cout << "    index: ";
   ft::printVector(location.index);
-  std::cout << "    http_method: " << location.http_method
-            << "  GET = 1, POST = 2, DELETE = 4. 대충 더해서 보세요"
+  std::cout << "    http_method: " << location.http_method << GRY
+            << "\n    GET = 1, POST = 2, DELETE = 4. 대충 더해서 보세요" << DFT
             << std::endl;
 }
 
-void ServerConfig::printConfig(const std::vector<ServerConfig>& config) {
+void ServerConfig::printConfig(const std::vector<ServerConfig> &config) {
   std::vector<ServerConfig>::const_iterator it1 = config.begin();
   // int i = 1;
 

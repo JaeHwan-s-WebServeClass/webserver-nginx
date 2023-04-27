@@ -445,20 +445,57 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 1. execute method 구현
     * checkResource 구현
 
-2. 
-
-3. 
+2. Get method 를 fd 사용해서 구현하기
 
 ### 결과
 
 [13:00 ~ 15:20]
 * checkResource 구현
 
-[15:45 ~ 16:55]
+[15:45 ~ 17:10]
 * checkResource 에러 픽스
 * executeMethod, file fd 값 처리 구현
 
-[15:00 ~ 17:20] 
+[17:10 ~ 18:10]
+* get Method fd 로 작동할 수 있게 수정 중 
+
+
+<br>
+
+***
+
+## [24일차] 2023.04.27 (목)
+
+### 진행 계획
+
+1. GET method 완성하기
+    * Flag 흐름 체크해서 디버깅
+    * response msg : char *
+
+2. executeMethod 수정하기
+    * 원래 transaction cycle 에서 한번만 수행되는 것을 전제로 하고 있었음
+    * 이제는 file 의 READ EVENT 에 의해 여러번 수행되는 구조
+
+3. Trim segfault 잡기
+
+4. code refactoring
+
+5. error page caching
+
+### 결과
+
+[13:00 ~ 13:50] 1. GET method 완성하기
+ * response msg : char * 완료
+
+[13:50 ~ 15:00] 1. GET method 완성하기
+ * Flag 흐름 체크해서 디버깅
+
+[15:45 ~ 16:45] 2. executeMethod 수정하기
+ * status code refactoring
+ * END flag 추가
+ * fread 와 fwrite 추가
+
+[16:45 ~ 17:30] trim segfault 잡기 및 코드 살짝 리팩토링
 
 
 <br>

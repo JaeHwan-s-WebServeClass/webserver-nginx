@@ -10,9 +10,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <sstream>
-#include <string>
-
 // kqueue header in C Library
 #include <sys/event.h>
 #include <sys/time.h>
@@ -21,6 +18,8 @@
 // c++ header
 #include <iostream>
 #include <map>
+#include <sstream>
+#include <string>
 #include <vector>
 
 #include "../class/Request.hpp"
@@ -29,16 +28,7 @@
 #include "../class/ServerSocket.hpp"
 #include "./include.hpp"
 
-std::vector<ServerConfig> parseConf(char *config_file);
-void setDirective(ServerConfig &tmp_conf, std::string key,
-                  std::vector<std::string> value);
-void setLocation(ServerConfig &tmp_conf, std::string key,
-                 std::vector<std::string> value);
-
 // ---- config parser ----------------------------
 std::vector<ServerConfig> parseConfig(char *config_file);
 void goParsing(ServerConfig &tmp_conf, std::string &line,
                std::string &location_key, bool server_fl, bool location_fl);
-
-// ---- is func ---------------------------------
-std::string isLocation(std::string &line, ServerConfig &tmp_conf);
