@@ -42,20 +42,22 @@ CPPFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
 all : $(NAME)
 
 clean :
-	rm -f *.o ./srcs/class/*.o ./srcs/utils/*.o ./srcs/*.o ./srcs/parser/*.o
+	@ rm -f *.o ./srcs/class/*.o ./srcs/utils/*.o ./srcs/*.o ./srcs/parser/*.o
+	@ echo "$(NAME) is $(RED)cleaned$(DFT)"
 
 fclean : clean
-	rm -f $(NAME)
+	@ rm -f $(NAME)
+	@ echo "$(NAME) is $(RED)fcleaned$(DFT)"
+
 
 re : fclean all
 
 $(NAME): $(OBJ)
 	@ $(CC) $(CPPFLAGS) $(INCLUDE) $(OBJ) -o $@
-	@ echo "$(NAME) is $(GRN)ready$(DFT)"
+	@ echo " $(NAME) is $(GRN)ready$(DFT)"
 
 .PHONY : all clean fclean
 
-#%.c : %.o
-#	$(CC) $(CXXFLAGS) $(INCLUDE) $@ -o $^
 %.o : %.cpp
 	@ $(CC) $(CPPFLAGS) $(INCLUDE) -c $< -o $@
+	

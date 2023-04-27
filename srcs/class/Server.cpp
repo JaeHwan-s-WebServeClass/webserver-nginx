@@ -39,6 +39,10 @@ void Server::run() {
       if (curr_event->flags & EV_ERROR) {
         this->runErrorServer(curr_event);
       } else if (curr_event->filter == EVFILT_READ) {
+        if (curr_event->flags & EV_EOF) { // 소켓 연결이 끊어진 걸 감지하는 조건문.
+          std::cout << "EV_EOF1\n";
+        }
+        std::cout << "DEBUG" << std::endl;
         int client_socket = 0;
         std::vector<ServerSocket>::const_iterator it =
             this->server_socket.begin();
@@ -54,6 +58,9 @@ void Server::run() {
           this->runReadEventClient(curr_event);
         } else {
           this->runReadEventFile(curr_event);
+          if (curr_event->flags & EV_EOF) {
+            std::cout << "EV_EOF2\n";
+          }
         }
       } else if (curr_event->filter == EVFILT_WRITE) {
         this->runWriteEventClient(curr_event);
@@ -100,14 +107,13 @@ void Server::runReadEventServer(int client_socket,
   }
 }
 
-void Server::runReadEventClient(struct kevent *&curr_event) { // jimin
+void Server::runReadEventClient(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server::runReadEventClient\n" << DFT;
   // executeRead() : request msg를 read & parsing
   int read_len = this->clients[curr_event->ident]->executeRead();
   if (read_len == -1) {
     this->disconnectClient(curr_event->ident, this->clients);
   }
-
   // 파일은 한번만 호출되야 한다
   // checkAllowMethod() : method의 유효성 검사
   // checkResource() : file open & return file fd
@@ -116,13 +122,16 @@ void Server::runReadEventClient(struct kevent *&curr_event) { // jimin
     // 위 함수 에서 501 셋팅 시 아래 함수 x?
     int file_fd = this->clients[curr_event->ident]->checkResource();
     fcntl(file_fd, F_SETFL, O_NONBLOCK);
-    setChangeList(this->change_list, file_fd, EVFILT_READ, EV_ADD | EV_ENABLE,
-                  0, 0, this->clients[curr_event->ident]);
+    setChangeList(this->change_list, file_fd, EVFILT_READ,
+                  EV_ADD | EV_ENABLE | EV_EOF, 0, 0,
+                  this->clients[curr_event->ident]);
+    // setChangeList(this->change_list, file_fd, EV_EOF, EV_ADD | EV_ENABLE,
+    //               0, 0, this->clients[curr_event->ident]);
   }
 }
 
-void Server::runReadEventFile(struct kevent *&curr_event) { // jaekim
-  // std::cout << GRY << "Debug: Server::runReadEventFile\n" << DFT;
+void Server::runReadEventFile(struct kevent *&curr_event) {
+  std::cout << GRY << "Debug: Server::runReadEventFile\n" << DFT;
   // TODO file_fd를 vector로 관리할지는 추후 논의 필요.
   // udata에 있는 Transaction의 method를 호출한다.
   // executeMethod() : FILE_DONE -> RESPONSE_DONE (file을 읽고, method
@@ -134,14 +143,17 @@ void Server::runReadEventFile(struct kevent *&curr_event) { // jaekim
     curr_transaction->executeMethod();
   }
   if (curr_transaction->getFlag() == FILE_DONE) {
+    std::cout << GRY << "Debug: Server::runReadEventFile : FILE_DONE\n" << DFT;
+
+    //  TODO delete 할 때 udata 를 NULL 로 둬도 될까...?
     setChangeList(this->change_list, curr_event->ident, EVFILT_READ, EV_DELETE,
                   0, 0, NULL);
   }
 }
 
-void Server::runWriteEventClient(struct kevent *&curr_event) { // yichoi
+void Server::runWriteEventClient(struct kevent *&curr_event) {
   std::map<int, Transaction *>::iterator it = clients.find(curr_event->ident);
-
+  // std::cout << GRY << "Debug: Server::runWriteEventClient\n" << DFT;
   // 3-1. client에서 이벤트 발생
   //  response 를 완료한 client 인 경우
   if (it != clients.end()) {

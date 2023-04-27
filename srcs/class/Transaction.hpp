@@ -27,7 +27,7 @@ private:
   const ServerConfig &server_config;
   ServerConfig::t_location location;
 
-  FILE *file_ptr;
+  std::FILE *file_ptr;
 
   Transaction();
 

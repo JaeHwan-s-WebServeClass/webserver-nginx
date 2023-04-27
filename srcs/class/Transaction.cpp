@@ -116,21 +116,20 @@ int Transaction::executeRead(void) {
   }
 
   // 2. entity 파싱
-  if (this->flag == REQUEST_HEAD && (this->request.getMethod() == "GET")) {
+  if (this->flag == REQUEST_HEAD && (this->request.getMethod() == "POST")) {
     if (this->flag < REQUEST_ENTITY) {
       this->executeReadEntity(buf, read_len, head_rest_len);
     }
   }
 
   // FIXME 아래 주석이 힌트. entity 완료되면 REQUEST_DONE 으로 설정해뒀음.
-  if (this->flag == REQUEST_ENTITY) { // 임시
+  // if (this->flag == REQUEST_ENTITY) { // 임시
+  //   this->setFlag(REQUEST_DONE);
+  // }
+  if ((this->request.getMethod() == "POST" && this->flag == REQUEST_ENTITY) ||
+      (this->request.getMethod() != "POST" && this->flag == REQUEST_HEAD)) {
     this->setFlag(REQUEST_DONE);
   }
-  // if ((this->request.getMethod() == "POST" && this->flag == REQUEST_ENTITY)
-  //      || (this->request.getMethod() != "POST" && this->flag ==
-  //      REQUEST_HEAD)) {
-  //     this->setFlag(REQUEST_DONE);
-  // }
 
   // DEBUG MSG : REQUEST
   if (this->flag == REQUEST_DONE) { // 임시
@@ -200,10 +199,11 @@ void Transaction::executeReadEntity(char *buf, int read_len,
     } else {
       this->request.addChunkedEntity(buf, read_len);
     }
-  } else {
-    throw std::string(
-        "Error: Transaction: executeReadEntity: Invalid Request Header");
   }
+  // else {
+  //   throw std::string(
+  //       "Error: Transaction: executeReadEntity: Invalid Request Header");
+  // }
   if (this->request.getEntitySize() > MAX_BODY_SIZE) {
     throw std::string(
         "Error: Transaction: executeReadEntity: Request Entity Over MAX BODY "
@@ -250,19 +250,41 @@ int Transaction::executeMethod(void) {
 */
 
 void Transaction::httpGet(void) {
-  // std::cout << GRY << "Debug: Transaction::httpGet\n" << DFT;
+  std::cout << GRY << "Debug: Transaction::httpGet\n" << DFT;
   char buf[MAX_BODY_SIZE + 1];
   // Todo safeFread?
   size_t read_len =
-      ft::safeFread(buf, sizeof(char), MAX_BODY_SIZE, this->file_ptr);
+      ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
+  std::cout << GRY << "read_len: " << read_len << '\n' << DFT;
+  // int fseek ( FILE * stream, long int offset, int origin );
+  // size_t read_len = read(this->file_ptr->_file, buf, 50);
+
+  // this->response.setEntity(buf, read_len);
+  // if (read_len == 0) {
+  //   this->response.setHeader("Content-Length",
+  //   this->response.getEntitySize()); std::fclose(this->file_ptr);
+  //   this->setFlag(FILE_DONE);
+  //   this->response.setStatus("200");
+  // }
+
+  /*
+    1. server.cpp에서 EV_EOF 쓰는 부분 실행 안됨 => 지워야할 듯?
+    2. 아래 코드.......되긴 되는데 걍 야매..........
+      fseek을 추가해서 READ_EVENT가 read_len이 0임에도 불구하고 수십 번 감지되다가 eof가 켜짐. 도대체 왜???????????? 내일 해결하자
+      (279번 line으로 file은 eof를 만났을 것으로 예상중임.........근데 요지경으로 돌아가네.....................)
+  */
 
   this->response.setEntity(buf, read_len);
-  if (feof(this->file_ptr)) {
+  //  TODO 웨됌?
+  std::fseek(this->file_ptr, std::ftell(this->file_ptr) + 1, SEEK_CUR);
+  if (std::feof(this->file_ptr) || read_len == 0) {
     this->response.setHeader("Content-Length", this->response.getEntitySize());
-    fclose(this->file_ptr);
+    std::fclose(this->file_ptr);
     this->setFlag(FILE_DONE);
     this->response.setStatus("200");
   }
+  // 맙소사...
+  std::fseek(this->file_ptr, std::ftell(this->file_ptr) - 1, SEEK_CUR);
 }
 
 void Transaction::httpDelete(void) {
