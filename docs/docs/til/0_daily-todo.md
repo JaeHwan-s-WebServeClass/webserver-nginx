@@ -472,7 +472,7 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
     * Flag 흐름 체크해서 디버깅
     * response msg : char *
 
-2. Method 수정하기
+2. executeMethod 수정하기
     * 원래 transaction cycle 에서 한번만 수행되는 것을 전제로 하고 있었음
     * 이제는 file 의 READ EVENT 에 의해 여러번 수행되는 구조
 
@@ -484,13 +484,16 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 ### 결과
 
-[13:00 ~ 13:50] GET method 완성하기
+[13:00 ~ 13:50] 1. GET method 완성하기
  * response msg : char * 완료
 
-[13:50 ~ 15:00] GET method 완성하기
+[13:50 ~ 15:00] 1. GET method 완성하기
  * Flag 흐름 체크해서 디버깅
 
-[15:45 ~ 17:10]
+[15:45 ~ 16:45] 2. executeMethod 수정하기
+ * status code refactoring
+ * END flag 추가
+ * fread 와 fwrite 추가
 
 [17:10 ~ 18:10]
 

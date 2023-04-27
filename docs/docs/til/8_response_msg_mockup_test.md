@@ -11,7 +11,7 @@ response 객체를 생성하고, set 으로 생성자에서 직접 메시지를 
 생성자에서 null 로 되어있지만, setter 에서 직접 넣어주고 있다.
 ```c++
 void setHttpVersion(std::string);
-void setStatusCode(std::string);
+void setStatus(std::string);
 void setStatusMsg(std::string);
 void setHeader(std::string, std::string);
 void setEntity(std::string);
@@ -20,7 +20,7 @@ void setEntity(std::string);
 
 Response::Response() : response_msg("") {
   setHttpVersion("null");
-  setStatusCode("null");
+  setStatus("null");
   setStatusMsg("null");
   setHeader("null", "null");
   setEntity("null");
