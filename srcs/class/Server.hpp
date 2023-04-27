@@ -44,7 +44,13 @@ public:
   void setChangeList(std::vector<struct kevent> &, uintptr_t, int16_t, uint16_t,
                      uint32_t, intptr_t, void *);
 
+  // ---- main loop ---------------------------
   void run(void);
+  void runErrorServer(struct kevent *&);
+  void runReadEventServer(int, std::vector<ServerSocket>::const_iterator);
+  void runReadEventClient(struct kevent *&);
+  void runReadEventFile(struct kevent *&);
+  void runWriteEventClient(struct kevent *&);
 
   /// @brief
   /// @param client_fd
