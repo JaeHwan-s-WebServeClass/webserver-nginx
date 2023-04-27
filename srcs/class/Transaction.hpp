@@ -68,13 +68,21 @@ class Transaction {
   /// @param fd
   /// @param buf
   /// @return read size
-  int safeRead(int, char *, int);
+  int safeRecv(int, char *, int);
 
   /// @brief
   /// @param fd
   /// @param response
   /// @return write size
-  int safeWrite(int, Response &);
+  int safeSend(int, Response &);
+
+  /// @brief
+  /// @param fd
+  /// @param buf
+  /// @param size
+  /// @return read/write size
+  int safeRead(int, char *, int);
+  int safeWrite(int, char *, int);
 };
 
 #endif

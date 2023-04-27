@@ -1,13 +1,15 @@
 #include "Transaction.hpp"
 
 #include <exception>
+#include <sys/_types/_size_t.h>
 
 //---- constructor -------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
     : socket_fd(socket_fd),
       flag(START),
       server_config(server_config),
-      request(this->flag) {
+      request(this->flag),
+      response(this->flag) {
   // std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
 }
 
@@ -108,7 +110,7 @@ int Transaction::executeRead(void) {
 
   // BUFFER_SIZE + 1을 할 것인가에 대한 논의
   char buf[BUFFER_SIZE + 1];
-  int read_len = safeRead(this->socket_fd, buf, BUFFER_SIZE);
+  int read_len = safeRecv(this->socket_fd, buf, BUFFER_SIZE);
   int head_rest_len = 0;
 
   if (read_len == -1) {
@@ -209,8 +211,8 @@ void Transaction::executeReadEntity(char *buf, int read_len,
 
 int Transaction::executeWrite(void) {
   // std::cout << GRY << "Debug: Transacåtion::executeWrite\n";
-  if (this->flag == REQUEST_ENTITY &&
-      (safeWrite(this->socket_fd, this->response) == -1)) {
+  if (this->flag == RESPONSE_DONE &&
+      (safeSend(this->socket_fd, this->response) == -1)) {
     return -1;
   }
   return 0;
@@ -280,6 +282,12 @@ int Transaction::httpGet(void) {
     fclose(this->file_ptr);
     flag = FILE_DONE;
   } else {
+    // std::cout << "Transaction::httpGet buf : ";
+    // for(int i = 0; i < read_len; i++) {
+    //   std::cout << buf[i];
+    // }
+    // std::cout << std::endl;
+    
     this->response.setEntity(buf, read_len);
   }
 
@@ -299,27 +307,51 @@ int Transaction::httpPost(void) {
 }
 
 //---- safe functions ----------------------------------------------------------
-int Transaction::safeRead(int fd, char *buf, int size) {
-  // std::cout << GRY << "Debug: Transaction::safeRead\n" << DFT;
+int Transaction::safeRecv(int fd, char *buf, int size) {
+  // std::cout << GRY << "Debug: Transaction::safeRecv\n" << DFT;
   int recv_len;
 
   signal(SIGPIPE, SIG_IGN);
   if ((recv_len = recv(fd, buf, size, 0)) == -1) {
-    std::cerr << RED << "client read error!\n" << DFT;
+    std::cerr << RED << "Error: Transaction: recv() error\n" << DFT;
   }
   signal(SIGPIPE, SIG_DFL);
   return recv_len;
 }
 
-int Transaction::safeWrite(int fd, Response &response) {
-  // std::cout << GRY << "Debug: Transaction::safeWrite\n";
+int Transaction::safeSend(int fd, Response &response) {
+  // std::cout << GRY << "Debug: Transaction::safeSend\n";
   int send_len;
 
   signal(SIGPIPE, SIG_IGN);
   if ((send_len = send(fd, response.getResponseMsg().c_str(),
                        response.getResponseMsg().size(), 0)) == -1) {
-    std::cerr << RED << "client write error!\n" << DFT;
+    std::cerr << RED << "Error: Transaction: send() error\n" << DFT;
   }
   signal(SIGPIPE, SIG_DFL);
   return send_len;
+}
+
+int Transaction::safeRead(int fd, char *buf, int size) {
+  // std::cout << GRY << "Debug: Transaction::safeRecv\n" << DFT;
+  int read_len;
+
+  signal(SIGPIPE, SIG_IGN);
+  if ((read_len = read(fd, buf, size)) == -1) {
+    std::cerr << RED << "Error: Transaction: file read() error\n" << DFT;
+  }
+  signal(SIGPIPE, SIG_DFL);
+  return read_len;
+}
+
+int Transaction::safeWrite(int fd, char *buf, int size) {
+  // std::cout << GRY << "Debug: Transaction::safeSend\n";
+  int write_len;
+
+  signal(SIGPIPE, SIG_IGN);
+  if ((write_len = write(fd, buf, size)) == -1) {
+    std::cerr << RED << "Error: Transaction: file write() error\n" << DFT;
+  }
+  signal(SIGPIPE, SIG_DFL);
+  return write_len;
 }
