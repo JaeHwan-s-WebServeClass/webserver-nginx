@@ -497,6 +497,12 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 [16:45 ~ 17:30] trim segfault 잡기 및 코드 살짝 리팩토링
 
+[18:35 ~ 22:30] code refactoring
+ * safe 함수 util 로 바꾸기
+ * wall werror wextra 수정
+ * server::run() refactoring
+ * httpGet 함수 에러 발생 및 수정 중 (버퍼사이즈와 바디사이즈가 같을 때 리드를 한 번만 해야하는데, 여러번 시도함... eof 감지가 안된다는 말)
+
 
 <br>
 
