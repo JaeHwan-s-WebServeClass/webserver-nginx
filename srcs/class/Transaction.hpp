@@ -62,29 +62,6 @@ public:
   void httpGet(void);
   void httpDelete(void);
   void httpPost(void);
-
-  // ---- safe-functions ----------------------
-  /// @brief
-  /// @param fd
-  /// @param buf
-  /// @return read size
-  int safeRecv(int, char *, int);
-
-  /// @brief
-  /// @param fd
-  /// @param response
-  /// @return write size
-  int safeSend(int, Response &);
-
-  /// @brief
-  /// @param buf
-  /// @param size
-  /// @param count
-  /// @param file_ptr
-  /// @return read/write size
-  size_t safeFread(char *, int, int, FILE *);
-  size_t safeFwrite(char *, int, int, FILE *);
-  void safeFopen(const char *, const char *);
 };
 
 #endif

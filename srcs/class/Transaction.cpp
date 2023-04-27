@@ -65,7 +65,7 @@ int Transaction::checkResource() {
       // cannot found request_filename
       throw std::string("Error: Transaction: checkResouce: access error\n");
     }
-    this->safeFopen(resource.c_str(), "r+");
+    this->file_ptr = ft::safeFopen(resource.c_str(), "r+");
     this->setFlag(FILE_OPEN);
   } else {
     //  TODO 에러 파일 받아와서 fopen하고 file_fd return
@@ -104,7 +104,7 @@ int Transaction::executeRead(void) {
 
   // BUFFER_SIZE + 1을 할 것인가에 대한 논의
   char buf[BUFFER_SIZE + 1];
-  int read_len = safeRecv(this->socket_fd, buf, BUFFER_SIZE);
+  int read_len = ft::safeRecv(this->socket_fd, buf, BUFFER_SIZE);
   int head_rest_len = 0;
 
   if (read_len == -1) {
@@ -213,7 +213,7 @@ void Transaction::executeReadEntity(char *buf, int read_len,
 
 int Transaction::executeWrite(void) {
   // std::cout << GRY << "Debug: Transacåtion::executeWrite\n";
-  if ((safeSend(this->socket_fd, this->response) == -1)) {
+  if ((ft::safeSend(this->socket_fd, this->response) == -1)) {
     return -1;
   }
   this->setFlag(END);
@@ -253,7 +253,7 @@ void Transaction::httpGet(void) {
   // std::cout << GRY << "Debug: Transaction::httpGet\n" << DFT;
   char buf[MAX_BODY_SIZE + 1];
   // Todo safeFread?
-  size_t read_len = safeFread(buf, sizeof(char), MAX_BODY_SIZE, this->file_ptr);
+  size_t read_len = ft::safeFread(buf, sizeof(char), MAX_BODY_SIZE, this->file_ptr);
 
   this->response.setEntity(buf, read_len);
   if (feof(this->file_ptr)) {
@@ -270,61 +270,4 @@ void Transaction::httpDelete(void) {
 
 void Transaction::httpPost(void) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
-}
-
-//---- safe functions ----------------------------------------------------------
-int Transaction::safeRecv(int fd, char *buf, int size) {
-  // std::cout << GRY << "Debug: Transaction::safeRecv\n" << DFT;
-  int recv_len;
-
-  signal(SIGPIPE, SIG_IGN);
-  if ((recv_len = recv(fd, buf, size, 0)) == -1) {
-    std::cerr << RED << "Error: Transaction: recv() error\n" << DFT;
-  }
-  signal(SIGPIPE, SIG_DFL);
-  return recv_len;
-}
-
-int Transaction::safeSend(int fd, Response &response) {
-  // std::cout << GRY << "Debug: Transaction::safeSend\n";
-  int send_len;
-
-  signal(SIGPIPE, SIG_IGN);
-  if ((send_len = send(fd, response.getResponseMsg(),
-                       response.getResponseMsgSize(), 0)) == -1) {
-    std::cerr << RED << "Error: Transaction: send() error\n" << DFT;
-  }
-  signal(SIGPIPE, SIG_DFL);
-  return send_len;
-}
-
-size_t Transaction::safeFread(char *buf, int size, int count, FILE *file_ptr) {
-  // std::cout << GRY << "Debug: Transaction::safeFread\n" << DFT;
-
-  signal(SIGPIPE, SIG_IGN);
-  size_t read_len = fread(buf, size, count, file_ptr);
-  if (ferror(file_ptr)) {
-    std::cerr << RED << "Error: Transaction: file fread() error\n" << DFT;
-  }
-  signal(SIGPIPE, SIG_DFL);
-  return read_len;
-}
-
-size_t Transaction::safeFwrite(char *buf, int size, int count, FILE *file_ptr) {
-  // std::cout << GRY << "Debug: Transaction::safeFwrite\n" << DFT;
-
-  signal(SIGPIPE, SIG_IGN);
-  size_t write_len = fwrite(buf, size, count, file_ptr);
-  if (ferror(file_ptr)) {
-    std::cerr << RED << "Error: Transaction: file fwrite() error\n" << DFT;
-  }
-  signal(SIGPIPE, SIG_DFL);
-  return write_len;
-}
-
-void Transaction::safeFopen(const char *filename, const char *mode) {
-  // std::cout << GRY << "Debug: Transaction::safeFopen\n" << DFT;
-  if ((this->file_ptr = std::fopen(filename, mode)) == NULL) {
-    std::cerr << RED << "Error: Transaction: file fopen() error\n" << DFT;
-  }
 }

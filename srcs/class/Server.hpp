@@ -52,13 +52,8 @@ public:
   /// @param clients
   /// @return
   void disconnectClient(int, std::map<int, Transaction *> &);
+  int safeKevent(int nevents, const timespec *timeout);
 
-  // ---- safe-functions ----------------------
-  /// @brief
-  /// @param nevents
-  /// @param timeout
-  /// @return
-  int safeKevent(int, const timespec *);
 };
 
 #endif

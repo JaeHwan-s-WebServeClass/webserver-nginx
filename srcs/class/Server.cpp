@@ -29,7 +29,7 @@ void Server::run() {
   struct kevent *curr_event;
 
   while (1) {
-    new_events = safeKevent(8, NULL);
+    new_events = this->safeKevent(8, NULL);
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
@@ -174,7 +174,8 @@ void Server::disconnectClient(int client_fd,
   std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
 }
 
-//----- safe-functions --------------------------------------------------------
+//----- safe_method
+//----------------------------------------------------------------
 int Server::safeKevent(int nevents, const timespec *timeout) {
   // // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
   int new_events;

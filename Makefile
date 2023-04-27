@@ -24,7 +24,8 @@ UTILS_NAME 	=	split.cpp \
 				errorhandler.cpp \
 				hexToInt.cpp \
 				trim.cpp \
-				printVector.cpp
+				printVector.cpp \
+				safe.cpp
 
 SRC 		=	$(SRC_MAIN) \
 				$(addprefix $(PARSER_DIR),$(PARSER_NAME)) \

@@ -23,9 +23,6 @@ const std::map<std::string, ServerConfig::t_location> &
 ServerConfig::getLocation() const {
   return this->locations;
 }
-// const bool ServerConfig::getGET() const { this->GET; }
-// const bool ServerConfig::getPOST() const { this->POST; }
-// const bool ServerConfig::getDELETE() const { this->DELETE; }
 
 //---- setter ------------------------------------------------------------------
 void ServerConfig::setListen(int value) { listen = value; }
