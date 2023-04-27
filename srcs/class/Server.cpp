@@ -41,7 +41,7 @@ void Server::run() {
         std::vector<ServerSocket>::const_iterator it =
             this->server_socket.begin();
         for (; it != this->server_socket.end(); it++) {
-          if (curr_event->ident == it->getServerSocket()) {
+          if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
             throw std::string("Error: Server: run: server socket error");
           }
         }
@@ -57,7 +57,7 @@ void Server::run() {
         std::vector<ServerSocket>::const_iterator it =
             this->server_socket.begin();
         for (; it != this->server_socket.end(); it++) {
-          if (curr_event->ident == it->getServerSocket()) {
+          if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
             break;
           }
         }
@@ -115,7 +115,6 @@ void Server::run() {
               reinterpret_cast<Transaction *>(curr_event->udata);
 
           if (curr_transaction->getFlag() == FILE_OPEN) {
-            std::cout << "file read event\n";
             curr_transaction->executeMethod();
           }
           if (curr_transaction->getFlag() == FILE_DONE) {

@@ -1,8 +1,7 @@
 #include "../class/ServerConfig.hpp"
 #include "../include/include.hpp"
 
-int isLocation(std::string& line, ServerConfig& tmp_conf,
-               std::string* location_key) {
+int isLocation(std::string &line, std::string *location_key) {
   std::vector<std::string> location = ft::split(line, '\t');
 
   if (location.front() != "location") {
@@ -16,8 +15,8 @@ int isLocation(std::string& line, ServerConfig& tmp_conf,
   return 1;
 }
 
-void goParsing(ServerConfig& tmp_conf, std::string& line,
-               std::string& location_key, bool server_fl, bool location_fl) {
+void goParsing(ServerConfig &tmp_conf, std::string &line,
+               std::string &location_key, bool server_fl, bool location_fl) {
   std::string key;
   std::vector<std::string> value;
   std::vector<std::string> vec = ft::split(line, '\t');
@@ -33,7 +32,7 @@ void goParsing(ServerConfig& tmp_conf, std::string& line,
   }
 }
 
-std::vector<ServerConfig> parseConfig(char* config_file) {
+std::vector<ServerConfig> parseConfig(char *config_file) {
   std::vector<ServerConfig> config_data;
   std::ifstream file_stream(config_file);
   std::string line;
@@ -53,7 +52,7 @@ std::vector<ServerConfig> parseConfig(char* config_file) {
       continue;
     } else if (line == "server {") {
       server_fl = true;
-    } else if (isLocation(line, tmp_conf, &location_key)) {
+    } else if (isLocation(line, &location_key)) {
       tmp_conf.setLocationDefault(location_key);
       location_fl = true;
     } else if (server_fl == true && location_fl == true && line == "}") {

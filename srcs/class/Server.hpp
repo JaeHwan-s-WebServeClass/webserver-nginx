@@ -31,7 +31,6 @@ private:
 public:
   // ---- constructor -------------------------
   /// @param server_socket
-  // Server(ServerSocket &);
   Server(std::vector<ServerConfig> &);
 
   /// @brief
@@ -52,8 +51,9 @@ public:
   /// @param clients
   /// @return
   void disconnectClient(int, std::map<int, Transaction *> &);
-  int safeKevent(int nevents, const timespec *timeout);
 
+  // ---- safe_method -------------------------
+  int safeKevent(int nevents, const timespec *timeout);
 };
 
 #endif

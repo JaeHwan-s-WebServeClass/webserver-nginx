@@ -6,14 +6,14 @@
 
 //---- constructor -------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
-    : socket_fd(socket_fd), flag(START), server_config(server_config),
-      request(this->flag), response(this->flag) {
+    : socket_fd(socket_fd), flag(START), response(this->flag),
+      request(this->flag), server_config(server_config) {
   // std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
 }
 
 //---- getter ------------------------------------------------------------------
-Response &Transaction::getResponse() { return this->response; }
-Request &Transaction::getRequest() { return this->request; }
+const Response &Transaction::getResponse() const { return this->response; }
+const Request &Transaction::getRequest() const { return this->request; }
 const t_step &Transaction::getFlag() const { return this->flag; }
 const FILE *Transaction::getFilePtr() const { return this->file_ptr; }
 
@@ -253,7 +253,8 @@ void Transaction::httpGet(void) {
   // std::cout << GRY << "Debug: Transaction::httpGet\n" << DFT;
   char buf[MAX_BODY_SIZE + 1];
   // Todo safeFread?
-  size_t read_len = ft::safeFread(buf, sizeof(char), MAX_BODY_SIZE, this->file_ptr);
+  size_t read_len =
+      ft::safeFread(buf, sizeof(char), MAX_BODY_SIZE, this->file_ptr);
 
   this->response.setEntity(buf, read_len);
   if (feof(this->file_ptr)) {

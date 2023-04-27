@@ -24,8 +24,8 @@ ServerSocket::ServerSocket(sa_family_t address_family, int port) {
 }
 
 //---- getter -------------------------------------------------------------
-int ServerSocket::getPort() const { return this->port; }
-int ServerSocket::getServerSocket() const { return this->server_socket; }
+const int &ServerSocket::getPort() const { return this->port; }
+const int &ServerSocket::getServerSocket() const { return this->server_socket; }
 
 //---- setter -------------------------------------------------------------
 void ServerSocket::setNonBlock(int socket_fd) {

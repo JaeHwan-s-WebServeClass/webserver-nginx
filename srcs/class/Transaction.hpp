@@ -39,8 +39,8 @@ public:
   Transaction(int, const ServerConfig &);
 
   // ---- getter ------------------------------
-  Response &getResponse();
-  Request &getRequest();
+  const Response &getResponse() const;
+  const Request &getRequest() const;
   const t_step &getFlag() const;
   const FILE *getFilePtr() const;
 

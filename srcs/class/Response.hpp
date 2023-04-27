@@ -22,7 +22,6 @@ private:
   std::map<std::string, std::string> header;
   std::vector<char> entity;
   size_t response_msg_size;
-  int event_fl;
 
 public:
   // ---- constructor -------------------------
@@ -30,14 +29,14 @@ public:
   ~Response();
 
   // ---- getter ------------------------------
-  const std::string getHttpVersion() const;
-  const std::string getStatusCode() const;
-  const std::string getStatusMsg() const;
-  const std::map<std::string, std::string> getHeader() const;
-  const std::vector<char> getEntity() const;
+  const std::string &getHttpVersion() const;
+  const std::string &getStatusCode() const;
+  const std::string &getStatusMsg() const;
+  const std::map<std::string, std::string> &getHeader() const;
+  const std::vector<char> &getEntity() const;
   const char *getResponseMsg() const;
-  const std::string getEntitySize() const;
-  const size_t getResponseMsgSize() const;
+  std::string getEntitySize() const;
+  size_t getResponseMsgSize() const;
 
   // ---- setter ------------------------------
   void setHttpVersion(std::string);
@@ -48,16 +47,3 @@ public:
 };
 
 #endif
-
-/* Response 리턴할 형식
-    <버전> <상태 코드> <상태 메시지>
-    <헤더>
-
-    <엔터티 본문>
-
-    ex)
-    HTTP/1.1 200 OK
-    Date: Mon, 23 May 2005 22:38:34 GMT
-    (CRLF * 2)
-    본문
-*/

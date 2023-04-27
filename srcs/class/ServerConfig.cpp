@@ -2,10 +2,9 @@
 
 //---- constructor -------------------------------------------------------------
 ServerConfig::ServerConfig() { this->setDefault(); }
-ServerConfig::ServerConfig(const char *path) {}
 
 //---- getter ------------------------------------------------------------------
-int ServerConfig::getListen() const { return this->listen; }
+const int &ServerConfig::getListen() const { return this->listen; }
 const std::vector<std::string> &ServerConfig::getServerName() const {
   return this->server_name;
 }
@@ -162,8 +161,7 @@ void ServerConfig::printLocation(const t_location &location) {
             << std::endl;
 }
 
-void ServerConfig::printConfig(const std::vector<ServerConfig> &config) {
-  std::vector<ServerConfig>::const_iterator it1 = config.begin();
+void ServerConfig::printConfig(void) {
   // int i = 1;
 
   // for (; it1 != config.end(); it1++) {
@@ -179,10 +177,10 @@ void ServerConfig::printConfig(const std::vector<ServerConfig> &config) {
             << std::endl;
   std::cout << "root: " << this->getRoot() << std::endl;
   std::cout << "location: " << std::endl;
-  std::map<std::string, t_location>::const_iterator it2 =
+  std::map<std::string, t_location>::const_iterator it =
       this->getLocation().begin();
-  for (; it2 != this->getLocation().end(); it2++) {
-    printLocation(it2->second);
+  for (; it != this->getLocation().end(); it++) {
+    printLocation(it->second);
   }
   std::cout << "\n";
   // i++;
