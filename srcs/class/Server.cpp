@@ -1,8 +1,9 @@
 #include "Server.hpp"
 
-// ---- constructors
+//----- constructor ------------------------------------------------------------
 Server::Server(std::vector<ServerConfig> &server_config)
     : server_config(server_config) {
+  // std::cout << GRY << "Debug: Server\n" << DFT;
   std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
   // TODO 같은 포트 여러개 들어올 때 예외처리
   for (; it != this->server_config.end(); it++) {
@@ -13,46 +14,9 @@ Server::Server(std::vector<ServerConfig> &server_config)
     throw std::string("Error: Server: constructor\n" +
                       std::string(strerror(errno)));
   }
-  // std::cout << GRY << "Debug: Server\n" << DFT;
 }
 
-// ---- utils
-void Server::setChangeList(std::vector<struct kevent> &change_list,
-                           uintptr_t ident, int16_t filter, uint16_t flags,
-                           uint32_t fflags, intptr_t data, void *udata) {
-  struct kevent temp_event;
-
-  EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
-  change_list.push_back(temp_event);
-  // std::cout << GRY << "Debug: Server::setChangeList\n" << DFT;
-}
-
-void Server::disconnectClient(int client_fd,
-                              std::map<int, Transaction *> &clients) {
-  delete clients[client_fd];
-  // system("leaks webserv | grep total");
-  close(client_fd);
-  clients.erase(client_fd);
-  std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
-  // std::cout << GRY << "Debug: Server::disconnectClient\n" << DFT;
-}
-
-// ---- safe functions
-int Server::safeKevent(int nevents, const timespec *timeout) {
-  int new_events;
-
-  if ((new_events =
-           kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
-                  this->event_list, nevents, timeout)) == -1) {
-    throw std::string("Error: Server: safeKevent\n" +
-                      std::string(strerror(errno)));
-  }
-  // // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
-
-  return new_events;
-}
-
-//---- main loop
+//---- main loop --------------------------------------------------------------
 void Server::run() {
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
@@ -60,10 +24,6 @@ void Server::run() {
     setChangeList(this->change_list, it->getServerSocket(), EVFILT_READ,
                   EV_ADD | EV_ENABLE, 0, 0, NULL);
   }
-
-  // const int x = 10; // 변수를 선언하고 초기화합니다.
-  // const int& ref1 = x; // 참조를 선언하고 초기화합니다.
-  // int& ref2 = const_cast<int&>(ref1); // const-ness를 제거합니다.
 
   int new_events;
   struct kevent *curr_event;
@@ -173,4 +133,38 @@ void Server::run() {
     }
   }
   // std::cout << GRY << "Debug: Server::run\n" << DFT;
+}
+
+//----- utils -----------------------------------------------------------------
+void Server::setChangeList(std::vector<struct kevent> &change_list,
+                           uintptr_t ident, int16_t filter, uint16_t flags,
+                           uint32_t fflags, intptr_t data, void *udata) {
+  // std::cout << GRY << "Debug: Server::setChangeList\n" << DFT;
+  struct kevent temp_event;
+
+  EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
+  change_list.push_back(temp_event);
+}
+
+void Server::disconnectClient(int client_fd,
+                              std::map<int, Transaction *> &clients) {
+  // std::cout << GRY << "Debug: Server::disconnectClient\n" << DFT;
+  delete clients[client_fd];
+  close(client_fd);
+  clients.erase(client_fd);
+  std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
+}
+
+//----- safe-functions --------------------------------------------------------
+int Server::safeKevent(int nevents, const timespec *timeout) {
+  // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
+  int new_events;
+
+  if ((new_events =
+           kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
+                  this->event_list, nevents, timeout)) == -1) {
+    throw std::string("Error: Server: safeKevent\n" +
+                      std::string(strerror(errno)));
+  }
+  return new_events;
 }

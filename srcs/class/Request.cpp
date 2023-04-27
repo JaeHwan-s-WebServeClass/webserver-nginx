@@ -2,7 +2,7 @@
 
 #include <cstring>
 
-//---- constructor ---------------------------------------
+//---- constructor ------------------------------------------------------------
 Request::Request(t_step& flag)
     : raw_head(""),
       // head_done(0),
@@ -10,17 +10,61 @@ Request::Request(t_step& flag)
       chunk_size(0),
       hex_str(""),
       flag(flag) {
-  entity.reserve(256);
   // std::cout << GRY << "Debug: Request::contructor\n" << DFT;
+  entity.reserve(256);
 }
 
-//---- setter --------------------------------------------
+//---- getter -----------------------------------------------------------------
+const std::string& Request::getRawHead() const { return this->raw_head; }
+const std::string& Request::getMethod() const { return this->method; }
+const std::string& Request::getUrl() const { return this->url; };
+const std::string& Request::getHttpVersion() const {
+  return this->http_version;
+}
+const std::map<std::string, std::string>& Request::getHeader() const {
+  return this->header;
+}
+const std::vector<char>& Request::getEntity() const { return this->entity; }
+const size_t Request::getEntitySize() const { return this->entity.size(); }
+const int Request::getContentLength() const {
+  int content_length;
+  std::stringstream ss;
+
+  ss << this->header.find("Content-Length")->second;
+  ss >> content_length;
+  return content_length;
+}
+// const bool& Request::getHeadDone() const { return this->head_done; }
+// const bool Request::getEntityDone() const { return this->entity_done; }
+
+//---- setter -----------------------------------------------------------------
 void Request::setRawHead(std::string line) { this->raw_head += line; }
 void Request::setFlag(t_step flag) {
   // this->head_done = type;
   this->flag = flag;
 }  // status? type?
 // void Request::setEntityDone(bool type) { this->entity_done = type; }
+
+//---- parser -----------------------------------------------------------------
+void Request::parserHead() {
+  // std::cout << GRY << "Debug: Request::parserHead\n" << DFT;
+  std::vector<std::string> tmp_head;
+  std::vector<std::string> tmp_start_line;
+
+  // 개행기준으로 split후 space 기준으로 start line split
+  tmp_head = ft::split(this->raw_head, '\n');
+  tmp_start_line = ft::split(tmp_head[0], ' ');
+  this->method = tmp_start_line[0];
+  this->url = tmp_start_line[1];
+  this->http_version = tmp_start_line[2];
+
+  // header를 처리
+  for (std::vector<std::string>::iterator it = tmp_head.begin() + 1;
+       it != tmp_head.end(); ++it) {
+    int pos = it->find(':');
+    header[it->substr(0, pos)] = ft::trim(it->substr(pos + 1));
+  }
+}
 
 void Request::addContentLengthEntity(char* buf, int read_len) {
   for (int i = 0; i < read_len; ++i) {
@@ -68,28 +112,6 @@ void Request::addChunkedEntity(char* buf, size_t read_len) {
     ++i;
   }
 }
-//---- getter --------------------------------------------
-// const bool Request::getEntityDone() const { return this->entity_done; }
-const std::string& Request::getRawHead() const { return this->raw_head; }
-// const bool& Request::getHeadDone() const { return this->head_done; }
-const std::string& Request::getMethod() const { return this->method; }
-const std::string& Request::getUrl() const { return this->url; };
-const std::string& Request::getHttpVersion() const {
-  return this->http_version;
-}
-const std::map<std::string, std::string>& Request::getHeader() const {
-  return this->header;
-}
-const std::vector<char>& Request::getEntity() const { return this->entity; }
-const size_t Request::getEntitySize() const { return this->entity.size(); }
-const int Request::getContentLength() const {
-  int content_length;
-  std::stringstream ss;
-
-  ss << this->header.find("Content-Length")->second;
-  ss >> content_length;
-  return content_length;
-}
 
 //---- utils --------------------------------------------
 void Request::clearSetRawMsg() { this->raw_head.clear(); }
@@ -114,25 +136,4 @@ void Request::toString() const {
   std::cout << DFT << std::endl;
   std::cout << GRY << "----------------------------------------------------"
             << DFT << std::endl;
-  // std::cout << GRY << "Debug: Request::toString\n" << DFT;
-}
-
-void Request::parserHead() {
-  std::vector<std::string> tmp_head;
-  std::vector<std::string> tmp_start_line;
-
-  // 개행기준으로 split후 space 기준으로 start line split
-  tmp_head = ft::split(this->raw_head, '\n');
-  tmp_start_line = ft::split(tmp_head[0], ' ');
-  this->method = tmp_start_line[0];
-  this->url = tmp_start_line[1];
-  this->http_version = tmp_start_line[2];
-
-  // header를 처리
-  for (std::vector<std::string>::iterator it = tmp_head.begin() + 1;
-       it != tmp_head.end(); ++it) {
-    int pos = it->find(':');
-    header[it->substr(0, pos)] = ft::trim(it->substr(pos + 1));
-  }
-  // std::cout << GRY << "Debug: Request::parserHead\n" << DFT;
 }

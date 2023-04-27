@@ -16,7 +16,7 @@ int ft::hexToInt(const std::string& hex_str) {
     } else if (c >= 'A' && c <= 'F') {
       dec = (dec << 4) + (c - 'A' + 10);
     } else {
-      throw std::string("Invalid character in hex string");
+      throw std::string("Error: hexToInt: invalid character in hex string");
     }
   }
   return dec;

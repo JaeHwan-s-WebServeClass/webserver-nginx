@@ -1,4 +1,3 @@
-
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
@@ -13,19 +12,6 @@
 #include "../include/define.hpp"
 #include "../include/include.hpp"
 
-/* Response 리턴할 형식
-    <버전> <상태 코드> <상태 메시지>
-    <헤더>
-
-    <엔터티 본문>
-
-    ex)
-    HTTP/1.1 200 OK
-    Date: Mon, 23 May 2005 22:38:34 GMT
-    (CRLF * 2)
-    본문
-*/
-
 class Response {
  private:
   char *response_msg;
@@ -39,23 +25,38 @@ class Response {
   int event_fl;
 
  public:
+  // ---- constructor -------------------------
   Response();
 
-  void setHttpVersion(std::string);
-  void setStatusCode(std::string);
-  void setStatusMsg(std::string);
-  void setHeader(std::string, std::string);
-  void setEntity(char *, size_t);
-  void setResponseMsg();
-
+  // ---- getter ------------------------------
   const std::string getHttpVersion() const;
   const std::string getStatusCode() const;
   const std::string getStatusMsg() const;
   const std::map<std::string, std::string> getHeader() const;
   const std::vector<char> getEntity() const;
   const std::string getResponseMsg() const;
-
   const std::string getEntitySize() const;
+
+  // ---- setter ------------------------------
+  void setHttpVersion(std::string);
+  void setStatusCode(std::string);
+  void setStatusMsg(std::string);
+  void setHeader(std::string, std::string);
+  void setEntity(char *, size_t);
+  void setResponseMsg();
 };
 
 #endif
+
+/* Response 리턴할 형식
+    <버전> <상태 코드> <상태 메시지>
+    <헤더>
+
+    <엔터티 본문>
+
+    ex)
+    HTTP/1.1 200 OK
+    Date: Mon, 23 May 2005 22:38:34 GMT
+    (CRLF * 2)
+    본문
+*/

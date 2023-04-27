@@ -32,10 +32,11 @@ class ServerConfig {
   std::map<std::string, t_location> locations;
 
  public:
+  // ---- constructor -------------------------
   ServerConfig();
   ServerConfig(const char*);
 
-  // ---- getters ------------------------------
+  // ---- getter ------------------------------
   int getListen() const;
   const std::vector<std::string>& getServerName() const;
   const std::vector<std::string>& getErrorPage() const;
@@ -47,19 +48,15 @@ class ServerConfig {
   // const bool getDELETE() const;
   const std::map<std::string, t_location>& getLocation() const;
 
-  // ---- setters ------------------------------
+  // ---- setter -------------------------------
   void setListen(int);
   void setServerName(const std::vector<std::string>&);
   void setErrorPage(const std::vector<std::string>&);
   void setClientMaxBodySize(int);
   void setClientMaxHeadSize(int);
   void setRoot(const std::string&);
-
-  // ---- Default -------------------------------
   void setDefault();
   void setLocationDefault(const std::string);
-
-  // ---- set after parse ------------------------
   void setDirective(std::string key, std::vector<std::string> value);
   void setLocation(const std::string, const std::string,
                    const std::vector<std::string>&);

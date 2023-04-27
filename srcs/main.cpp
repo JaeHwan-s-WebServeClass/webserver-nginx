@@ -18,8 +18,7 @@ int main(int argc, char **argv) {
   return (0);
 }
 
-// DEBUG
-// ------ for checking parseConfig ------------------------
+// DEBUG: checking result of parseConfig()
 // int tmp_cnt = 2;
 // for (int i = 0; i < tmp_cnt; i++) {
 //   config[i].printConfig(config);

@@ -1,13 +1,10 @@
 #include "ServerConfig.hpp"
 
-// ---- constructors ----------------------------------------------
+//---- constructor -------------------------------------------------------------
 ServerConfig::ServerConfig() { this->setDefault(); }
+ServerConfig::ServerConfig(const char* path) {}
 
-ServerConfig::ServerConfig(const char* path) {
-  //
-}
-
-// ---- getters ---------------------------------------------------
+//---- getter ------------------------------------------------------------------
 int ServerConfig::getListen() const { return this->listen; }
 const std::vector<std::string>& ServerConfig::getServerName() const {
   return this->server_name;
@@ -22,15 +19,15 @@ int ServerConfig::getClientMaxHeadSize() const {
   return this->client_max_head_size;
 }
 const std::string& ServerConfig::getRoot() const { return this->root; }
-// const bool ServerConfig::getGET() const { this->GET; }
-// const bool ServerConfig::getPOST() const { this->POST; }
-// const bool ServerConfig::getDELETE() const { this->DELETE; }
 const std::map<std::string, ServerConfig::t_location>&
 ServerConfig::getLocation() const {
   return this->locations;
 }
+// const bool ServerConfig::getGET() const { this->GET; }
+// const bool ServerConfig::getPOST() const { this->POST; }
+// const bool ServerConfig::getDELETE() const { this->DELETE; }
 
-// ---- setters ---------------------------------------------------
+//---- setter ------------------------------------------------------------------
 void ServerConfig::setListen(int value) { listen = value; }
 void ServerConfig::setServerName(const std::vector<std::string>& value) {
   server_name = value;
@@ -157,14 +154,14 @@ void ServerConfig::setDefault() {
   root = "/rootdir";
 }
 
-// ---- utils ----------------------------------------------------
+//----- utils ------------------------------------------------------------------
 void ServerConfig::printLocation(const t_location& location) {
   std::cout << "    autoindex: " << location.autoindex << std::endl;
   std::cout << "    root: " << location.root << std::endl;
   std::cout << "    index: ";
   ft::printVector(location.index);
-  std::cout << "    http_method: " << location.http_method
-            << "  GET = 1, POST = 2, DELETE = 4. 대충 더해서 보세요"
+  std::cout << "    http_method: " << location.http_method << GRY
+            << "\n    GET = 1, POST = 2, DELETE = 4. 대충 더해서 보세요" << DFT
             << std::endl;
 }
 
