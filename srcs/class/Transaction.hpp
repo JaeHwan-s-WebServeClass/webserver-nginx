@@ -17,8 +17,8 @@
 #include "ServerConfig.hpp"
 
 class Transaction {
- private:
-  int socket_fd;  // client 랑 연결된 socket fd
+private:
+  int socket_fd; // client 랑 연결된 socket fd
   t_step flag;
 
   Response response;
@@ -31,7 +31,7 @@ class Transaction {
 
   Transaction();
 
- public:
+public:
   // ---- constructor -------------------------
   /// @brief Transaction 생성자
   /// @param socket_fd

@@ -13,18 +13,18 @@
 #include "../include/include.hpp"
 
 class Response {
- private:
-  t_step  &flag;
+private:
+  t_step &flag;
   char *response_msg;
   std::string http_version;
   std::string status_code;
   std::string status_msg;
   std::map<std::string, std::string> header;
   std::vector<char> entity;
-  //bool entity_done;
+  // bool entity_done;
   int event_fl;
 
- public:
+public:
   // ---- constructor -------------------------
   Response(t_step &);
   ~Response();

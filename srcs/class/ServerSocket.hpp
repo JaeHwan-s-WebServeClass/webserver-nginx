@@ -1,8 +1,8 @@
 #pragma once
 
-#include <arpa/inet.h>  // sockaddr_in
+#include <arpa/inet.h> // sockaddr_in
 #include <fcntl.h>
-#include <sys/socket.h>  // socket()
+#include <sys/socket.h> // socket()
 
 #include <cstring>
 #include <exception>
@@ -11,12 +11,12 @@
 #include "../include/define.hpp"
 
 class ServerSocket {
- private:
+private:
   int server_socket;
   struct sockaddr_in server_addr;
   int port;
 
- public:
+public:
   // ---- constructor -------------------------
   /// @brief ServerSocket constructor
   /// @param  address_family protocol AF_INET
@@ -36,7 +36,7 @@ class ServerSocket {
   // ---- safe-functions ----------------------
   int safeAccept(void) const;
 
- private:
+private:
   // ---- safe-functions ----------------------
   /// @brief 소켓 생성하는 함수
   /// @param  domain PF_INET

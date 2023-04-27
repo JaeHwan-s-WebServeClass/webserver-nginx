@@ -20,7 +20,7 @@
 #include "Transaction.hpp"
 
 class Server {
- private:
+private:
   std::map<int, Transaction *> clients;
   int kq;
   struct kevent event_list[8];
@@ -28,7 +28,7 @@ class Server {
   const std::vector<ServerConfig> &server_config;
   std::vector<ServerSocket> server_socket;
 
- public:
+public:
   // ---- constructor -------------------------
   /// @param server_socket
   // Server(ServerSocket &);

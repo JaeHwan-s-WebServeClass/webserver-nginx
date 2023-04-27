@@ -2,17 +2,12 @@
 
 //---- constructor ------------------------------------------------------------
 Response::Response(t_step &flag)
-    : flag(flag),
-      http_version("HTTP/1.1"),
-      status_code(""),
-      status_msg("") {
+    : flag(flag), http_version("HTTP/1.1"), status_code(""), status_msg("") {
   this->entity.reserve(512);
   // std::cout << GRY << "Debug: Response::contructor\n" << DFT;
 }
 
-Response::~Response() {
-  delete [] this->response_msg;
-}
+Response::~Response() { delete[] this->response_msg; }
 
 //---- getter -----------------------------------------------------------------
 const std::string Response::getResponseMsg() const {
@@ -48,7 +43,7 @@ void Response::setStatusMsg(std::string status_msg) {
 void Response::setHeader(std::string key, std::string value) {
   this->header[key] = value;
 }
-void Response::setEntity(char* buf, size_t read_len) {
+void Response::setEntity(char *buf, size_t read_len) {
   for (size_t i = 0; i < read_len; ++i) {
     this->entity.push_back(buf[i]);
   }
@@ -67,7 +62,7 @@ void Response::setResponseMsg() {
   }
   this->response_msg = new char[response_head.size() + this->entity.size() + 6];
 
-  char* pos = this->response_msg;
+  char *pos = this->response_msg;
 
   // FIXME c_str 리턴값이 const 인데 copy 로 할당하려고 하는 코드 수정 필요
   std::memcpy(pos, response_head.c_str(), response_head.size());
@@ -77,10 +72,9 @@ void Response::setResponseMsg() {
   std::memcpy(pos, &(this->entity[0]), this->entity.size());
   pos += this->entity.size();
   std::memcpy(pos, "\r\n\r\n", 4);
-  //this->entity_done = true;
-  //if (this->flag == FILE_DONE)
+  // this->entity_done = true;
+  // if (this->flag == FILE_DONE)
   this->flag = RESPONSE_DONE;
-
 
   // DEBUG
   std::cout << "response msg: " << response_msg << std::endl;

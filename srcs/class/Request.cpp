@@ -3,28 +3,26 @@
 #include <cstring>
 
 //---- constructor ------------------------------------------------------------
-Request::Request(t_step& flag)
+Request::Request(t_step &flag)
     : raw_head(""),
       // head_done(0),
       // entity_done(false),
-      chunk_size(0),
-      hex_str(""),
-      flag(flag) {
+      chunk_size(0), hex_str(""), flag(flag) {
   // std::cout << GRY << "Debug: Request::contructor\n" << DFT;
   entity.reserve(256);
 }
 
 //---- getter -----------------------------------------------------------------
-const std::string& Request::getRawHead() const { return this->raw_head; }
-const std::string& Request::getMethod() const { return this->method; }
-const std::string& Request::getUrl() const { return this->url; };
-const std::string& Request::getHttpVersion() const {
+const std::string &Request::getRawHead() const { return this->raw_head; }
+const std::string &Request::getMethod() const { return this->method; }
+const std::string &Request::getUrl() const { return this->url; };
+const std::string &Request::getHttpVersion() const {
   return this->http_version;
 }
-const std::map<std::string, std::string>& Request::getHeader() const {
+const std::map<std::string, std::string> &Request::getHeader() const {
   return this->header;
 }
-const std::vector<char>& Request::getEntity() const { return this->entity; }
+const std::vector<char> &Request::getEntity() const { return this->entity; }
 const size_t Request::getEntitySize() const { return this->entity.size(); }
 const int Request::getContentLength() const {
   int content_length;
@@ -42,7 +40,7 @@ void Request::setRawHead(std::string line) { this->raw_head += line; }
 void Request::setFlag(t_step flag) {
   // this->head_done = type;
   this->flag = flag;
-}  // status? type?
+} // status? type?
 // void Request::setEntityDone(bool type) { this->entity_done = type; }
 
 //---- parser -----------------------------------------------------------------
@@ -66,7 +64,7 @@ void Request::parserHead() {
   }
 }
 
-void Request::addContentLengthEntity(char* buf, int read_len) {
+void Request::addContentLengthEntity(char *buf, int read_len) {
   for (int i = 0; i < read_len; ++i) {
     this->entity.push_back(buf[i]);
   }
@@ -80,7 +78,7 @@ void Request::addContentLengthEntity(char* buf, int read_len) {
   // else if (this->request.getEntitySize < getContentLength())
 }
 
-void Request::addChunkedEntity(char* buf, size_t read_len) {
+void Request::addChunkedEntity(char *buf, size_t read_len) {
   size_t i = 0;
 
   while (i < read_len) {

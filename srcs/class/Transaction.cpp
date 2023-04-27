@@ -5,11 +5,8 @@
 
 //---- constructor -------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
-    : socket_fd(socket_fd),
-      flag(START),
-      server_config(server_config),
-      request(this->flag),
-      response(this->flag) {
+    : socket_fd(socket_fd), flag(START), server_config(server_config),
+      request(this->flag), response(this->flag) {
   // std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
 }
 
@@ -30,32 +27,26 @@ int Transaction::checkResource() {
   std::string resource;
   // 요청이 디렉토리 일 경우
   if (this->request.getUrl().back() == '/') {
-    // autoindex가 있는지 확인 후 해당 로직 처리
-
-    // 요청이 파일 일 경우
-  } else {
+    // TODO autoindex or index 가 있는지 확인 후 해당 로직 처리
+    throw std::string(
+        "checkResource :: request URL is directory. check autoindex\n");
+    // file_fd를 반환하지 않을 수도....? 그러면 FILE_OPEN flag를 켤 수 없다.
+    // autoindex 부분 로직 논의 후 flag 세팅!
+  } else { // 요청이 파일 일 경우
     std::size_t pos = this->request.getUrl().find_last_of("/");
     if (pos == std::string::npos) {
       this->response.setStatusCode("404");
-      //  TODO 에러 파일 받아와서 등록하기
-      std::cout << "checkResource :: return error page fd\n";
+      //  TODO 에러 파일 받아와서 fopen하고 file_fd return
+      throw std::string("checkResource :: return error page fd\n");
       // file_fd = std::fopen(, )._file;
       // return ("404.html");
 
-    } else if (pos == 0) {  // localhost:8080/index.html 일 때.
+    } else if (pos == 0) { // localhost:8080/index.html 일 때.
       request_location = this->request.getUrl().substr(0, pos + 1);
       request_filename = this->request.getUrl().substr(pos + 1);
-
-      std::cout << "case 1 - localhost:8080/index.html\n";
-      std::cout << "request location: " << request_location << std::endl;
-      std::cout << "request filename: " << request_filename << std::endl;
-    } else {  // localhost:8080/example/index.html 일 때.
+    } else { // localhost:8080/example/index.html 일 때.
       request_location = this->request.getUrl().substr(0, pos);
       request_filename = this->request.getUrl().substr(pos);
-
-      std::cout << "case 2 - localhost:8080/example/index.html\n";
-      std::cout << "request location: " << request_location << std::endl;
-      std::cout << "request filename: " << request_filename << std::endl;
     }
   }
 
@@ -68,17 +59,18 @@ int Transaction::checkResource() {
     std::cout << "resource : " << resource << std::endl;
     if (access(resource.c_str(), F_OK) == -1) {
       this->response.setStatusCode("500");
-      //  TODO 에러 파일 받아와서 등록하기
+      //  TODO 에러 파일 받아와서 fopen하고 file_fd return
       // cannot found request_filename
-      std::cout << "Error: Transaction: checkResouce: access error\n";
+      throw std::string("Error: Transaction: checkResouce: access error\n");
     }
     this->file_ptr = std::fopen(resource.c_str(), "r+");
     this->setFlag(FILE_OPEN);
   } else {
-    //  TODO 에러 파일 받아와서 등록하기
+    //  TODO 에러 파일 받아와서 fopen하고 file_fd return
     this->response.setStatusCode("500");
     // Invalid directory: cannot found reqeust_location
-    std::cout << "Error: Transaction: checkResouce: can not find in map\n";
+    throw std::string(
+        "Error: Transaction: checkResouce: can not find in map\n");
   }
   return (file_ptr->_file);
 }
@@ -127,13 +119,20 @@ int Transaction::executeRead(void) {
     }
   }
 
-  if (this->flag == REQUEST_ENTITY) this->setFlag(REQUEST_DONE);
+  // FIXME 아래 주석이 힌트. entity 완료되면 REQUEST_DONE 으로 설정해뒀음.
+  if (this->flag == REQUEST_ENTITY) { // 임시
+    this->setFlag(REQUEST_DONE);
+  }
   // if ((this->request.getMethod() == "POST" && this->flag == REQUEST_ENTITY)
   //      || (this->request.getMethod() != "POST" && this->flag ==
   //      REQUEST_HEAD)) {
   //     this->setFlag(REQUEST_DONE);
   // }
-  if (this->flag == REQUEST_DONE) this->request.toString();
+
+  // DEBUG MSG : REQUEST
+  if (this->flag == REQUEST_DONE) { // 임시
+    this->request.toString();
+  }
   return 0;
 }
 
@@ -211,10 +210,10 @@ void Transaction::executeReadEntity(char *buf, int read_len,
 
 int Transaction::executeWrite(void) {
   // std::cout << GRY << "Debug: Transacåtion::executeWrite\n";
-  if (this->flag == RESPONSE_DONE &&
-      (safeSend(this->socket_fd, this->response) == -1)) {
+  if ((safeSend(this->socket_fd, this->response) == -1)) {
     return -1;
   }
+  this->setFlag(END);
   return 0;
 }
 
@@ -239,28 +238,29 @@ int Transaction::executeMethod(void) {
     }
   }
   switch (status) {
-    // setStatusCode 와 setStatusMsg 를 합치자?
-    case 200:
-      this->response.setStatusCode("200");
-      this->response.setStatusMsg("(◟˙꒳​˙)◟ Good ◝(˙꒳​˙◝)");
-      break;
-    case 404:
-      this->response.setStatusCode("404");
-      this->response.setStatusMsg("Not Found :(");
-      // entity 에 conf 파일 설정된 error_page 추가
-      break;
-    case 500:
-      this->response.setStatusCode("500");
-      this->response.setStatusMsg("Internal Server Error :l");
-      break;
-    case 501:
-      this->response.setStatusCode("501");
-      this->response.setStatusMsg("Not Implemented");
-      break;
-    default:
-      std::cout << "(tmp msg) excuteTransaction: switch: default\n";
-      break;
+  // setStatusCode 와 setStatusMsg 를 합치자?
+  case 200:
+    this->response.setStatusCode("200");
+    this->response.setStatusMsg("(◟˙꒳​˙)◟ Good ◝(˙꒳​˙◝)");
+    break;
+  case 404:
+    this->response.setStatusCode("404");
+    this->response.setStatusMsg("Not Found :(");
+    // entity 에 conf 파일 설정된 error_page 추가
+    break;
+  case 500:
+    this->response.setStatusCode("500");
+    this->response.setStatusMsg("Internal Server Error :l");
+    break;
+  case 501:
+    this->response.setStatusCode("501");
+    this->response.setStatusMsg("Not Implemented");
+    break;
+  default:
+    std::cout << "(tmp msg) excuteTransaction: switch: default\n";
+    break;
   }
+  // if file_done ?
   this->response.setResponseMsg();
   return 0;
 }
@@ -280,14 +280,14 @@ int Transaction::httpGet(void) {
   if (read_len == 0) {
     this->response.setHeader("Content-Length", this->response.getEntitySize());
     fclose(this->file_ptr);
-    flag = FILE_DONE;
+    this->setFlag(FILE_DONE);
   } else {
     // std::cout << "Transaction::httpGet buf : ";
     // for(int i = 0; i < read_len; i++) {
     //   std::cout << buf[i];
     // }
     // std::cout << std::endl;
-    
+
     this->response.setEntity(buf, read_len);
   }
 
