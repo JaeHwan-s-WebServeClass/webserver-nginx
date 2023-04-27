@@ -59,9 +59,9 @@ public:
   int executeMethod(void);
 
   // ---- http methods ------------------------
-  int httpGet(void);
-  int httpDelete(void);
-  int httpPost(void);
+  void httpGet(void);
+  void httpDelete(void);
+  void httpPost(void);
 
   // ---- safe-functions ----------------------
   /// @brief
@@ -77,12 +77,13 @@ public:
   int safeSend(int, Response &);
 
   /// @brief
-  /// @param fd
   /// @param buf
   /// @param size
+  /// @param count
+  /// @param file_ptr
   /// @return read/write size
-  int safeRead(int, char *, int);
-  int safeWrite(int, char *, int);
+  size_t safeFread(char *, int, int, FILE *);
+  size_t safeFwrite(char *, int, int, FILE *);
 };
 
 #endif

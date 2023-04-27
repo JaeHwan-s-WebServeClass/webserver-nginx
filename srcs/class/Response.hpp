@@ -40,8 +40,7 @@ public:
 
   // ---- setter ------------------------------
   void setHttpVersion(std::string);
-  void setStatusCode(std::string);
-  void setStatusMsg(std::string);
+  void setStatus(std::string);
   void setHeader(std::string, std::string);
   void setEntity(char *, size_t);
   void setResponseMsg();

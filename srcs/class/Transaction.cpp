@@ -1,5 +1,6 @@
 #include "Transaction.hpp"
 
+#include <cstdio>
 #include <exception>
 #include <sys/_types/_size_t.h>
 
@@ -35,7 +36,7 @@ int Transaction::checkResource() {
   } else { // 요청이 파일 일 경우
     std::size_t pos = this->request.getUrl().find_last_of("/");
     if (pos == std::string::npos) {
-      this->response.setStatusCode("404");
+      this->response.setStatus("404");
       //  TODO 에러 파일 받아와서 fopen하고 file_fd return
       throw std::string("checkResource :: return error page fd\n");
       // file_fd = std::fopen(, )._file;
@@ -56,9 +57,10 @@ int Transaction::checkResource() {
     this->location = it->second;
     std::string loc_root = this->location.root;
     resource = "." + server_config.getRoot() + loc_root + request_filename;
+    // DEBUG
     std::cout << "resource : " << resource << std::endl;
     if (access(resource.c_str(), F_OK) == -1) {
-      this->response.setStatusCode("500");
+      this->response.setStatus("500");
       //  TODO 에러 파일 받아와서 fopen하고 file_fd return
       // cannot found request_filename
       throw std::string("Error: Transaction: checkResouce: access error\n");
@@ -67,7 +69,7 @@ int Transaction::checkResource() {
     this->setFlag(FILE_OPEN);
   } else {
     //  TODO 에러 파일 받아와서 fopen하고 file_fd return
-    this->response.setStatusCode("500");
+    this->response.setStatus("500");
     // Invalid directory: cannot found reqeust_location
     throw std::string(
         "Error: Transaction: checkResouce: can not find in map\n");
@@ -92,7 +94,7 @@ void Transaction::checkAllowedMethod() {
        (this->location.http_method & DELETE))) {
     return;
   }
-  this->response.setStatusCode("501");
+  this->response.setStatus("501");
 }
 
 //---- executor ----------------------------------------------------------------
@@ -112,6 +114,7 @@ int Transaction::executeRead(void) {
   if (this->flag == START) {
     head_rest_len = this->executeReadHead(buf, read_len);
   }
+
   // 2. entity 파싱
   if (this->flag == REQUEST_HEAD && (this->request.getMethod() == "GET")) {
     if (this->flag < REQUEST_ENTITY) {
@@ -219,49 +222,23 @@ int Transaction::executeWrite(void) {
 
 int Transaction::executeMethod(void) {
   // std::cout << GRY << "Debug: Transaction::executeMethod\n" << DFT;
-  if ((this->request.getMethod() == "POST" && this->flag < REQUEST_ENTITY) ||
-      ((this->request.getMethod() != "POST") && this->flag < REQUEST_HEAD)) {
-    return 0;
-  }
-  this->checkAllowedMethod();
 
-  int status = std::atoi(this->response.getStatusCode().c_str());
-
-  // resource를 open / resource가 없는 경우 or Method가 없는 경우
-  if (!status) {
+  // method 처리
+  if (!std::atoi(this->response.getStatusCode().c_str())) {
     if (this->request.getMethod() == "GET") {
-      status = this->httpGet();
+      this->httpGet();
     } else if (this->request.getMethod() == "POST") {
-      status = this->httpPost();
+      this->httpPost();
     } else if (this->request.getMethod() == "DELETE") {
-      status = this->httpDelete();
+      this->httpDelete();
     }
   }
-  switch (status) {
-  // setStatusCode 와 setStatusMsg 를 합치자?
-  case 200:
-    this->response.setStatusCode("200");
-    this->response.setStatusMsg("(◟˙꒳​˙)◟ Good ◝(˙꒳​˙◝)");
-    break;
-  case 404:
-    this->response.setStatusCode("404");
-    this->response.setStatusMsg("Not Found :(");
-    // entity 에 conf 파일 설정된 error_page 추가
-    break;
-  case 500:
-    this->response.setStatusCode("500");
-    this->response.setStatusMsg("Internal Server Error :l");
-    break;
-  case 501:
-    this->response.setStatusCode("501");
-    this->response.setStatusMsg("Not Implemented");
-    break;
-  default:
-    std::cout << "(tmp msg) excuteTransaction: switch: default\n";
-    break;
+  // 다 됐으면 ====> FILE_DONE
+
+  if (this->flag == FILE_DONE) {
+    this->response.setResponseMsg();
   }
-  // if file_done ?
-  this->response.setResponseMsg();
+
   return 0;
 }
 
@@ -272,38 +249,27 @@ int Transaction::executeMethod(void) {
 3. close
 */
 
-int Transaction::httpGet(void) {
+void Transaction::httpGet(void) {
   // std::cout << GRY << "Debug: Transaction::httpGet\n" << DFT;
   char buf[MAX_BODY_SIZE + 1];
-  int read_len = safeRead(this->file_ptr->_file, buf, MAX_BODY_SIZE);
-
-  if (read_len == 0) {
+  // Todo safeFread?
+  size_t read_len = safeFread(buf, sizeof(char), MAX_BODY_SIZE, this->file_ptr);
+  
+  this->response.setEntity(buf, read_len);
+  if (feof(this->file_ptr)) {
     this->response.setHeader("Content-Length", this->response.getEntitySize());
     fclose(this->file_ptr);
     this->setFlag(FILE_DONE);
-  } else {
-    // std::cout << "Transaction::httpGet buf : ";
-    // for(int i = 0; i < read_len; i++) {
-    //   std::cout << buf[i];
-    // }
-    // std::cout << std::endl;
-
-    this->response.setEntity(buf, read_len);
+    this->response.setStatus("200");
   }
-
-  // content_length를 세기 위함
-
-  return 200;
 }
 
-int Transaction::httpDelete(void) {
+void Transaction::httpDelete(void) {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
-  return 200;
 }
 
-int Transaction::httpPost(void) {
+void Transaction::httpPost(void) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
-  return 200;
 }
 
 //---- safe functions ----------------------------------------------------------
@@ -332,25 +298,25 @@ int Transaction::safeSend(int fd, Response &response) {
   return send_len;
 }
 
-int Transaction::safeRead(int fd, char *buf, int size) {
-  // std::cout << GRY << "Debug: Transaction::safeRecv\n" << DFT;
-  int read_len;
+size_t Transaction::safeFread(char * buf, int size, int count, FILE * file_ptr) {
+  // std::cout << GRY << "Debug: Transaction::safeFread\n" << DFT;
 
   signal(SIGPIPE, SIG_IGN);
-  if ((read_len = read(fd, buf, size)) == -1) {
-    std::cerr << RED << "Error: Transaction: file read() error\n" << DFT;
+  size_t read_len = fread(buf, size, count, file_ptr);
+  if (ferror(file_ptr) || feof(file_ptr)) {
+    std::cerr << RED << "Error: Transaction: file fread() error\n" << DFT;
   }
   signal(SIGPIPE, SIG_DFL);
   return read_len;
 }
 
-int Transaction::safeWrite(int fd, char *buf, int size) {
-  // std::cout << GRY << "Debug: Transaction::safeSend\n";
-  int write_len;
+size_t Transaction::safeFwrite(char * buf, int size, int count, FILE * file_ptr) {
+  // std::cout << GRY << "Debug: Transaction::safeFwrite\n" << DFT;
 
   signal(SIGPIPE, SIG_IGN);
-  if ((write_len = write(fd, buf, size)) == -1) {
-    std::cerr << RED << "Error: Transaction: file write() error\n" << DFT;
+  size_t write_len = fwrite(buf, size, count, file_ptr);
+  if (ferror(file_ptr) || feof(file_ptr)) {
+    std::cerr << RED << "Error: Transaction: file fwrite() error\n" << DFT;
   }
   signal(SIGPIPE, SIG_DFL);
   return write_len;

@@ -34,12 +34,19 @@ const std::string Response::getEntitySize() const {
 void Response::setHttpVersion(std::string http_version) {
   this->http_version = http_version;
 }
-void Response::setStatusCode(std::string status_code) {
-  this->status_code = status_code;
+
+void Response::setStatus(std::string status_code) {
+  if (status_code == "200") {
+    this->status_msg = "(◟˙꒳​˙)◟ Good ◝(˙꒳​˙◝)";
+  } else if (status_code == "404") {
+    this->status_msg = "Not Found :(";
+  } else if (status_code == "500") {
+    this->status_msg = "Internal Server Error :l";
+  } else if (status_code == "501") {
+    this->status_msg = "Not Implemented";
+  }
 }
-void Response::setStatusMsg(std::string status_msg) {
-  this->status_msg = status_msg;
-}
+
 void Response::setHeader(std::string key, std::string value) {
   this->header[key] = value;
 }

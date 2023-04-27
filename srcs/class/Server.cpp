@@ -93,8 +93,11 @@ void Server::run() {
           }
 
           // 파일은 한번만 호출되야 한다
+          // checkAllowMethod() : method의 유효성 검사
           // checkResource() : file open & return file fd
           if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
+            this->clients[curr_event->ident]->checkAllowedMethod();
+            // 위 함수 에서 501 셋팅 시 아래 함수 x?
             int file_fd = this->clients[curr_event->ident]->checkResource();
             fcntl(file_fd, F_SETFL, O_NONBLOCK);
             setChangeList(this->change_list, file_fd, EVFILT_READ,
@@ -111,7 +114,10 @@ void Server::run() {
           Transaction *curr_transaction =
               reinterpret_cast<Transaction *>(curr_event->udata);
 
-          curr_transaction->executeMethod();
+          if (curr_transaction->getFlag() == FILE_OPEN) {
+            std::cout << "file read event\n";
+            curr_transaction->executeMethod();
+          }
           if (curr_transaction->getFlag() == FILE_DONE) {
             setChangeList(this->change_list, curr_event->ident, EVFILT_READ,
                           EV_DELETE, 0, 0, NULL);
@@ -170,7 +176,7 @@ void Server::disconnectClient(int client_fd,
 
 //----- safe-functions --------------------------------------------------------
 int Server::safeKevent(int nevents, const timespec *timeout) {
-  // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
+  // // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
   int new_events;
 
   if ((new_events =
