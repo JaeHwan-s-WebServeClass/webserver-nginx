@@ -15,7 +15,7 @@ Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
 Response &Transaction::getResponse() { return this->response; }
 Request &Transaction::getRequest() { return this->request; }
 const t_step &Transaction::getFlag() const { return this->flag; }
-FILE *Transaction::getFilePtr() const { return this->file_ptr; }
+const FILE *Transaction::getFilePtr() const { return this->file_ptr; }
 
 //---- setter ------------------------------------------------------------------
 void Transaction::setFlag(t_step flag) { this->flag = flag; }
@@ -25,7 +25,6 @@ int Transaction::checkResource() {
   // std::cout << GRY << "Debug: Transaction::checkResource\n" << DFT;
   std::string request_location;
   std::string request_filename = "";
-  std::string resource;
   // 요청이 디렉토리 일 경우
   if (this->request.getUrl().back() == '/') {
     // TODO autoindex or index 가 있는지 확인 후 해당 로직 처리
@@ -56,7 +55,8 @@ int Transaction::checkResource() {
       this->server_config.getLocation().end()) {
     this->location = it->second;
     std::string loc_root = this->location.root;
-    resource = "." + server_config.getRoot() + loc_root + request_filename;
+    std::string resource = "";
+    resource += '.' + server_config.getRoot() + loc_root + request_filename;
     // DEBUG
     std::cout << "resource : " << resource << std::endl;
     if (access(resource.c_str(), F_OK) == -1) {
@@ -65,7 +65,7 @@ int Transaction::checkResource() {
       // cannot found request_filename
       throw std::string("Error: Transaction: checkResouce: access error\n");
     }
-    this->file_ptr = std::fopen(resource.c_str(), "r+");
+    this->safeFopen(resource.c_str(), "r+");
     this->setFlag(FILE_OPEN);
   } else {
     //  TODO 에러 파일 받아와서 fopen하고 file_fd return
@@ -254,7 +254,7 @@ void Transaction::httpGet(void) {
   char buf[MAX_BODY_SIZE + 1];
   // Todo safeFread?
   size_t read_len = safeFread(buf, sizeof(char), MAX_BODY_SIZE, this->file_ptr);
-  
+
   this->response.setEntity(buf, read_len);
   if (feof(this->file_ptr)) {
     this->response.setHeader("Content-Length", this->response.getEntitySize());
@@ -290,34 +290,41 @@ int Transaction::safeSend(int fd, Response &response) {
   int send_len;
 
   signal(SIGPIPE, SIG_IGN);
-  if ((send_len = send(fd, response.getResponseMsg().c_str(),
-                       response.getResponseMsg().size(), 0)) == -1) {
+  if ((send_len = send(fd, response.getResponseMsg(),
+                       response.getResponseMsgSize(), 0)) == -1) {
     std::cerr << RED << "Error: Transaction: send() error\n" << DFT;
   }
   signal(SIGPIPE, SIG_DFL);
   return send_len;
 }
 
-size_t Transaction::safeFread(char * buf, int size, int count, FILE * file_ptr) {
+size_t Transaction::safeFread(char *buf, int size, int count, FILE *file_ptr) {
   // std::cout << GRY << "Debug: Transaction::safeFread\n" << DFT;
 
   signal(SIGPIPE, SIG_IGN);
   size_t read_len = fread(buf, size, count, file_ptr);
-  if (ferror(file_ptr) || feof(file_ptr)) {
+  if (ferror(file_ptr)) {
     std::cerr << RED << "Error: Transaction: file fread() error\n" << DFT;
   }
   signal(SIGPIPE, SIG_DFL);
   return read_len;
 }
 
-size_t Transaction::safeFwrite(char * buf, int size, int count, FILE * file_ptr) {
+size_t Transaction::safeFwrite(char *buf, int size, int count, FILE *file_ptr) {
   // std::cout << GRY << "Debug: Transaction::safeFwrite\n" << DFT;
 
   signal(SIGPIPE, SIG_IGN);
   size_t write_len = fwrite(buf, size, count, file_ptr);
-  if (ferror(file_ptr) || feof(file_ptr)) {
+  if (ferror(file_ptr)) {
     std::cerr << RED << "Error: Transaction: file fwrite() error\n" << DFT;
   }
   signal(SIGPIPE, SIG_DFL);
   return write_len;
+}
+
+void Transaction::safeFopen(const char *filename, const char *mode) {
+  // std::cout << GRY << "Debug: Transaction::safeFopen\n" << DFT;
+  if ((this->file_ptr = std::fopen(filename, mode)) == NULL) {
+    std::cerr << RED << "Error: Transaction: file fopen() error\n" << DFT;
+  }
 }

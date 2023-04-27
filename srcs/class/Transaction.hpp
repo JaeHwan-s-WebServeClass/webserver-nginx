@@ -42,7 +42,7 @@ public:
   Response &getResponse();
   Request &getRequest();
   const t_step &getFlag() const;
-  FILE *getFilePtr() const;
+  const FILE *getFilePtr() const;
 
   // ---- setter ------------------------------
   void setFlag(t_step);
@@ -84,6 +84,7 @@ public:
   /// @return read/write size
   size_t safeFread(char *, int, int, FILE *);
   size_t safeFwrite(char *, int, int, FILE *);
+  void safeFopen(const char *, const char *);
 };
 
 #endif

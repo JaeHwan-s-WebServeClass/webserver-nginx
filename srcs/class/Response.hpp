@@ -21,7 +21,7 @@ private:
   std::string status_msg;
   std::map<std::string, std::string> header;
   std::vector<char> entity;
-  // bool entity_done;
+  size_t response_msg_size;
   int event_fl;
 
 public:
@@ -35,8 +35,9 @@ public:
   const std::string getStatusMsg() const;
   const std::map<std::string, std::string> getHeader() const;
   const std::vector<char> getEntity() const;
-  const std::string getResponseMsg() const;
+  const char *getResponseMsg() const;
   const std::string getEntitySize() const;
+  const size_t getResponseMsgSize() const;
 
   // ---- setter ------------------------------
   void setHttpVersion(std::string);

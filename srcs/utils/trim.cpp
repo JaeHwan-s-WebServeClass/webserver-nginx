@@ -6,7 +6,8 @@ std::string ft::trim(std::string str) {
 
   str.erase(0, str.find_first_not_of(whitespace));
   while (isspace(str.back()))
-    str.erase(str.find_last_not_of(whitespace) + 1, str[str.length() - 1]);
+    str.erase(str.find_last_not_of(whitespace) + 1, str.length() - 1);
+    // str.erase(str.find_last_not_of(whitespace) + 1, str[str.length() - 1]);
   return str;
 }
 
@@ -17,6 +18,7 @@ std::string ft::trim(std::string str, char dlim) {
   whitespace += dlim;
   str.erase(0, str.find_first_not_of(whitespace));
   while (isspace(str.back()) || str.back() == dlim)
-    str.erase(str.find_last_not_of(whitespace) + 1, str[str.length() - 1]);
+    str.erase(str.find_last_not_of(whitespace) + 1, str.length() - 1);
+    // str.erase(str.find_last_not_of(whitespace) + 1, str[str.length() - 1]);
   return str;
 }

@@ -10,9 +10,7 @@ Response::Response(t_step &flag)
 Response::~Response() { delete[] this->response_msg; }
 
 //---- getter -----------------------------------------------------------------
-const std::string Response::getResponseMsg() const {
-  return this->response_msg;
-}
+const char *Response::getResponseMsg() const { return this->response_msg; }
 const std::string Response::getHttpVersion() const {
   return this->http_version;
 }
@@ -28,6 +26,9 @@ const std::string Response::getEntitySize() const {
 
   ss << this->entity.size();
   return ss.str();
+}
+const size_t Response::getResponseMsgSize() const {
+  return this->response_msg_size;
 }
 
 //---- setter -----------------------------------------------------------------
@@ -67,7 +68,8 @@ void Response::setResponseMsg() {
        it != this->header.end(); ++it) {
     response_head += it->first + ": " + it->second + "\r\n";
   }
-  this->response_msg = new char[response_head.size() + this->entity.size() + 6];
+  this->response_msg_size = response_head.size() + this->entity.size() + 6;
+  this->response_msg = new char[this->response_msg_size];
 
   char *pos = this->response_msg;
 
@@ -84,5 +86,5 @@ void Response::setResponseMsg() {
   this->flag = RESPONSE_DONE;
 
   // DEBUG
-  std::cout << "response msg: " << response_msg << std::endl;
+  // std::cout << "response msg: " << response_msg << std::endl;
 }
