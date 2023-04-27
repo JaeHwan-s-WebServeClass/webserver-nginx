@@ -495,7 +495,7 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
  * END flag 추가
  * fread 와 fwrite 추가
 
-[17:10 ~ 18:10]
+[16:45 ~ 17:30] trim segfault 잡기 및 코드 살짝 리팩토링
 
 
 <br>
