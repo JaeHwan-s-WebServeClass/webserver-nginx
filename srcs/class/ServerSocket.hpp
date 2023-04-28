@@ -24,8 +24,8 @@ public:
   ServerSocket(sa_family_t, int);
 
   // ---- getter ------------------------------
-  int getServerSocket(void) const;
-  int getPort() const;
+  const int & getServerSocket(void) const;
+  const int & getPort() const;
 
   // ---- setter ------------------------------
   /// @brief  fd 를 NonBlock 방식으로 설정하는 함수

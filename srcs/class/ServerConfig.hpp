@@ -34,18 +34,14 @@ private:
 public:
   // ---- constructor -------------------------
   ServerConfig();
-  ServerConfig(const char *);
 
   // ---- getter ------------------------------
-  int getListen() const;
+  const int &getListen() const;
   const std::vector<std::string> &getServerName() const;
   const std::vector<std::string> &getErrorPage() const;
   int getClientMaxBodySize() const;
   int getClientMaxHeadSize() const;
   const std::string &getRoot() const;
-  // const bool getGET() const;
-  // const bool getPOST() const;
-  // const bool getDELETE() const;
   const std::map<std::string, t_location> &getLocation() const;
 
   // ---- setter -------------------------------
@@ -63,5 +59,5 @@ public:
 
   // ---- utils --------------------------------
   void printLocation(const t_location &location);
-  void printConfig(const std::vector<ServerConfig> &config);
+  void printConfig(void);
 };

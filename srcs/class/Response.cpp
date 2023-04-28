@@ -2,7 +2,8 @@
 
 //---- constructor ------------------------------------------------------------
 Response::Response(t_step &flag)
-    : flag(flag), http_version("HTTP/1.1"), status_code(""), status_msg("") {
+    : flag(flag), response_msg(0), http_version("HTTP/1.1"), status_code(""),
+      status_msg("") {
   this->entity.reserve(512);
   // std::cout << GRY << "Debug: Response::contructor\n" << DFT;
 }
@@ -11,25 +12,23 @@ Response::~Response() { delete[] this->response_msg; }
 
 //---- getter -----------------------------------------------------------------
 const char *Response::getResponseMsg() const { return this->response_msg; }
-const std::string Response::getHttpVersion() const {
+const std::string &Response::getHttpVersion() const {
   return this->http_version;
 }
-const std::string Response::getStatusCode() const { return this->status_code; }
-const std::string Response::getStatusMsg() const { return this->status_msg; }
-const std::map<std::string, std::string> Response::getHeader() const {
+const std::string &Response::getStatusCode() const { return this->status_code; }
+const std::string &Response::getStatusMsg() const { return this->status_msg; }
+const std::map<std::string, std::string> &Response::getHeader() const {
   return this->header;
 }
-const std::vector<char> Response::getEntity() const { return this->entity; }
+const std::vector<char> &Response::getEntity() const { return this->entity; }
 
-const std::string Response::getEntitySize() const {
+std::string Response::getEntitySize() const {
   std::ostringstream ss;
 
   ss << this->entity.size();
   return ss.str();
 }
-const size_t Response::getResponseMsgSize() const {
-  return this->response_msg_size;
-}
+size_t Response::getResponseMsgSize() const { return this->response_msg_size; }
 
 //---- setter -----------------------------------------------------------------
 void Response::setHttpVersion(std::string http_version) {
@@ -86,5 +85,5 @@ void Response::setResponseMsg() {
   this->flag = RESPONSE_DONE;
 
   // DEBUG
-  // std::cout << "response msg: " << response_msg << std::endl;
+  std::cout << "response msg: " << response_msg << std::endl;
 }

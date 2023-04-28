@@ -1,7 +1,7 @@
-#include "class/ServerConfig.hpp"
 #include "include/webserv.hpp"
 
 int main(int argc, char **argv) {
+  (void)argc; // temporary
   try {
     // step 1 - config file parsing
     std::vector<ServerConfig> config = parseConfig(argv[1]);

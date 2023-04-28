@@ -27,7 +27,7 @@ private:
   const ServerConfig &server_config;
   ServerConfig::t_location location;
 
-  FILE *file_ptr;
+  std::FILE *file_ptr;
 
   Transaction();
 
@@ -39,8 +39,8 @@ public:
   Transaction(int, const ServerConfig &);
 
   // ---- getter ------------------------------
-  Response &getResponse();
-  Request &getRequest();
+  const Response &getResponse() const;
+  const Request &getRequest() const;
   const t_step &getFlag() const;
   const FILE *getFilePtr() const;
 
@@ -56,35 +56,12 @@ public:
   int executeReadHead(char *, int);
   void executeReadEntity(char *, int, int);
   int executeWrite(void);
-  int executeMethod(void);
+  int executeMethod(int);
 
   // ---- http methods ------------------------
-  void httpGet(void);
+  void httpGet(int);
   void httpDelete(void);
   void httpPost(void);
-
-  // ---- safe-functions ----------------------
-  /// @brief
-  /// @param fd
-  /// @param buf
-  /// @return read size
-  int safeRecv(int, char *, int);
-
-  /// @brief
-  /// @param fd
-  /// @param response
-  /// @return write size
-  int safeSend(int, Response &);
-
-  /// @brief
-  /// @param buf
-  /// @param size
-  /// @param count
-  /// @param file_ptr
-  /// @return read/write size
-  size_t safeFread(char *, int, int, FILE *);
-  size_t safeFwrite(char *, int, int, FILE *);
-  void safeFopen(const char *, const char *);
 };
 
 #endif

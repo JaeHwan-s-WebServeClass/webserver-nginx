@@ -1,6 +1,7 @@
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <sys/socket.h>
 
 #include <cctype>
 #include <exception>
@@ -10,6 +11,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include "./define.hpp"
+
+class Response;
 
 namespace ft {
 // ---- parser --------------------------------------------
@@ -28,4 +33,32 @@ std::string trim(std::string str, char);
 
 void printVector(const std::vector<std::string> &vec);
 
+// ---- safe-functions ------------------------------------
+/// @brief
+/// @param fd
+/// @param buf
+/// @return read size
+int safeRecv(int, char *, int);
+
+/// @brief
+/// @param fd
+/// @param response
+/// @return write size
+int safeSend(int, Response &);
+
+/// @brief
+/// @param buf
+/// @param size
+/// @param count
+/// @param file_ptr
+/// @return read/write size
+size_t safeFread(char *, int, int, FILE *);
+size_t safeFwrite(char *, int, int, FILE *);
+std::FILE *safeFopen(const char *, const char *);
+
+/// @brief
+/// @param nevents
+/// @param timeout
+/// @return
+int safeKevent(int, const timespec *);
 } // namespace ft
