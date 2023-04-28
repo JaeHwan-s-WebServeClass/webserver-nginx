@@ -255,8 +255,9 @@ void Transaction::httpGet(int data_size) {
   size_t read_len =
       ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
 
+  std::cout << "data_size: " << data_size << std::endl;
   this->response.setEntity(buf, read_len);
-  if (static_cast<int>(read_len) <= data_size) {
+  if (static_cast<int>(read_len) >= data_size) {
     this->response.setHeader("Content-Length", this->response.getEntitySize());
     std::fclose(this->file_ptr);
     this->setFlag(FILE_DONE);
