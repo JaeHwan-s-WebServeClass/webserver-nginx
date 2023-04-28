@@ -20,6 +20,12 @@
 #include "Transaction.hpp"
 
 class Server {
+  typedef struct errpage {
+    // ?????
+    // ?????
+    // ?????
+  } t_errpage;
+
 private:
   std::map<int, Transaction *> clients;
   int kq;

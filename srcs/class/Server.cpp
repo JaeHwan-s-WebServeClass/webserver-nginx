@@ -21,6 +21,11 @@ Server::Server(std::vector<ServerConfig> &server_config)
 void Server::run() {
   // std::cout << GRY << "Debug: Server::run\n" << DFT;
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
+  // TODO 여기서 파일을 다 읽어서 server 에 error page 버퍼에 담아두기
+  // for () {
+    
+  // }
+  // kevent 클리어
   for (; it != this->server_socket.end(); it++) {
     //  FIXME: udata 추가하기
     setChangeList(this->change_list, it->getServerSocket(), EVFILT_READ,
@@ -29,7 +34,7 @@ void Server::run() {
 
   int new_events;
   struct kevent *curr_event;
-
+  // error page 
   while (1) {
     new_events = this->safeKevent(8, NULL);
     this->change_list.clear();
@@ -49,13 +54,44 @@ void Server::run() {
             break;
           }
         }
-        if (it != this->server_socket.end()) {
-          this->runReadEventServer(client_socket, it);
-        } else if (this->clients.find(curr_event->ident) !=
-                   this->clients.end()) {
-          this->runReadEventClient(curr_event);
-        } else {
-          this->runReadEventFile(curr_event);
+        try {
+          if (it != this->server_socket.end()) {
+            this->runReadEventServer(client_socket, it);
+          } else if (this->clients.find(curr_event->ident) !=
+                    this->clients.end()) {
+            this->runReadEventClient(curr_event);
+          } else {
+            this->runReadEventFile(curr_event);
+            // TODO 우리가 처음 등록한 error page 인 경우 server 에 있는 버퍼에 담도록 설정해줘야 함.
+          }
+        } catch (std::exception &e) {
+          // TODO error page 를 request 에 담기위함.
+          // Server::error_handler(e, curr_event);  만들어서 에러처리 로직을 분리
+          switch(std::atoi(e.what())) {
+            case 404:
+            // 
+              break;
+            case 500:
+            // 
+              break;
+            case 501:
+              break;
+            default:
+              break;
+          }
+
+          if (curr_event->udata) {
+            reinterpret_cast<Transaction *>(curr_event->udata)->setFlag(RESPONSE_DONE);
+            std::fclose(const_cast<FILE *>((reinterpret_cast<Transaction *>(curr_event->udata))->getFilePtr()));
+          } else {
+            this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
+          } 
+          // std::cerr << e.what() << std::endl;
+          // error page를 위한 response msg를 setting해주고
+          // RESPONSE_DONE flag를 켜줌
+
+          // exception 상속받아서 404, 500, 501 등 처리하고,
+          // 미리 정해두지 않은 에러의 경우 default error string 적용해주기
         }
       } else if (curr_event->filter == EVFILT_WRITE) {
         this->runWriteEventClient(curr_event);
@@ -78,8 +114,7 @@ void Server::runErrorServer(struct kevent *&curr_event) {
   }
 }
 
-void Server::runReadEventServer(int client_socket,
-                                std::vector<ServerSocket>::const_iterator it) {
+void Server::runReadEventServer(int client_socket, std::vector<ServerSocket>::const_iterator it) {
   // std::cout << GRY << "Debug: Server::runReadEventServer\n" << DFT;
   client_socket = it->safeAccept();
   std::cout << GRN << "accept new client: " << client_socket << DFT
@@ -202,3 +237,10 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
   }
   return new_events;
 }
+
+/*
+  이벤트 fd open 등록.
+  read 이벤크 발생.
+  등록한 error page 인 경우 server 에 있는 버퍼에 담도록 설정.
+  
+*/

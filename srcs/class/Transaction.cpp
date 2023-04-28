@@ -37,7 +37,7 @@ int Transaction::checkResource() {
     if (pos == std::string::npos) {
       this->response.setStatus("404");
       //  TODO 에러 파일 받아와서 fopen하고 file_fd return
-      throw std::string("checkResource :: return error page fd\n");
+      throw std::string("checkResource :: return  fd\n");
       // file_fd = std::fopen(, )._file;
       // return ("404.html");
 
