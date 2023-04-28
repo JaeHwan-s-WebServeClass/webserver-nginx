@@ -38,11 +38,9 @@ void Server::run() {
 
       if (curr_event->flags & EV_ERROR) {
         this->runErrorServer(curr_event);
+      } else if (curr_event->flags & EV_EOF) { // TODO : client가 일방적으로 연결을 끊으면 EV_EOF flag가 켜짐
+        this->disconnectClient(curr_event->ident, this->clients);
       } else if (curr_event->filter == EVFILT_READ) {
-        if (curr_event->flags & EV_EOF) { // 소켓 연결이 끊어진 걸 감지하는 조건문.
-          std::cout << "EV_EOF1\n";
-        }
-        std::cout << "DEBUG" << std::endl;
         int client_socket = 0;
         std::vector<ServerSocket>::const_iterator it =
             this->server_socket.begin();
@@ -58,9 +56,6 @@ void Server::run() {
           this->runReadEventClient(curr_event);
         } else {
           this->runReadEventFile(curr_event);
-          if (curr_event->flags & EV_EOF) {
-            std::cout << "EV_EOF2\n";
-          }
         }
       } else if (curr_event->filter == EVFILT_WRITE) {
         this->runWriteEventClient(curr_event);
