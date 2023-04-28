@@ -140,7 +140,7 @@ void Server::runReadEventFile(struct kevent *&curr_event) {
       reinterpret_cast<Transaction *>(curr_event->udata);
 
   if (curr_transaction->getFlag() == FILE_OPEN) {
-    curr_transaction->executeMethod();
+    curr_transaction->executeMethod(static_cast<int>(curr_event->data));
   }
   if (curr_transaction->getFlag() == FILE_DONE) {
     std::cout << GRY << "Debug: Server::runReadEventFile : FILE_DONE\n" << DFT;

@@ -220,13 +220,13 @@ int Transaction::executeWrite(void) {
   return 0;
 }
 
-int Transaction::executeMethod(void) {
+int Transaction::executeMethod(int data_size) {
   // std::cout << GRY << "Debug: Transaction::executeMethod\n" << DFT;
 
   // method 처리
   if (!std::atoi(this->response.getStatusCode().c_str())) {
     if (this->request.getMethod() == "GET") {
-      this->httpGet();
+      this->httpGet(data_size);
     } else if (this->request.getMethod() == "POST") {
       this->httpPost();
     } else if (this->request.getMethod() == "DELETE") {
@@ -249,42 +249,19 @@ int Transaction::executeMethod(void) {
 3. close
 */
 
-void Transaction::httpGet(void) {
+void Transaction::httpGet(int data_size) {
   std::cout << GRY << "Debug: Transaction::httpGet\n" << DFT;
   char buf[MAX_BODY_SIZE + 1];
-  // Todo safeFread?
   size_t read_len =
       ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
-  std::cout << GRY << "read_len: " << read_len << '\n' << DFT;
-  // int fseek ( FILE * stream, long int offset, int origin );
-  // size_t read_len = read(this->file_ptr->_file, buf, 50);
-
-  // this->response.setEntity(buf, read_len);
-  // if (read_len == 0) {
-  //   this->response.setHeader("Content-Length",
-  //   this->response.getEntitySize()); std::fclose(this->file_ptr);
-  //   this->setFlag(FILE_DONE);
-  //   this->response.setStatus("200");
-  // }
-
-  /*
-    1. server.cpp에서 EV_EOF 쓰는 부분 실행 안됨 => 지워야할 듯?
-    2. 아래 코드.......되긴 되는데 걍 야매..........
-      fseek을 추가해서 READ_EVENT가 read_len이 0임에도 불구하고 수십 번 감지되다가 eof가 켜짐. 도대체 왜???????????? 내일 해결하자
-      (279번 line으로 file은 eof를 만났을 것으로 예상중임.........근데 요지경으로 돌아가네.....................)
-  */
 
   this->response.setEntity(buf, read_len);
-  //  TODO 웨됌?
-  std::fseek(this->file_ptr, std::ftell(this->file_ptr) + 1, SEEK_CUR);
-  if (std::feof(this->file_ptr) || read_len == 0) {
+  if (static_cast<int>(read_len) <= data_size) {
     this->response.setHeader("Content-Length", this->response.getEntitySize());
     std::fclose(this->file_ptr);
     this->setFlag(FILE_DONE);
     this->response.setStatus("200");
   }
-  // 맙소사...
-  std::fseek(this->file_ptr, std::ftell(this->file_ptr) - 1, SEEK_CUR);
 }
 
 void Transaction::httpDelete(void) {

@@ -56,10 +56,10 @@ public:
   int executeReadHead(char *, int);
   void executeReadEntity(char *, int, int);
   int executeWrite(void);
-  int executeMethod(void);
+  int executeMethod(int);
 
   // ---- http methods ------------------------
-  void httpGet(void);
+  void httpGet(int);
   void httpDelete(void);
   void httpPost(void);
 };
