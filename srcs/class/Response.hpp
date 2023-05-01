@@ -13,7 +13,7 @@
 #include "../include/include.hpp"
 
 class Response {
-private:
+ private:
   t_step &flag;
   char *response_msg;
   std::string http_version;
@@ -23,7 +23,7 @@ private:
   std::vector<char> entity;
   size_t response_msg_size;
 
-public:
+ public:
   // ---- constructor -------------------------
   Response(t_step &);
   ~Response();
@@ -42,8 +42,9 @@ public:
   void setHttpVersion(std::string);
   void setStatus(std::string);
   void setHeader(std::string, std::string);
-  void setEntity(char *, size_t);
+  void setEntity(const char *, size_t);
   void setResponseMsg();
+  void setErrorMsg(std::string, const std::string &);
 };
 
 #endif

@@ -20,19 +20,35 @@
 #include "Transaction.hpp"
 
 class Server {
-private:
+ private:
   std::map<int, Transaction *> clients;
   int kq;
-  struct kevent event_list[8];
+  struct kevent event_list[MAX_EVENT_SIZE];
   std::vector<struct kevent> change_list;
   const std::vector<ServerConfig> &server_config;
   std::vector<ServerSocket> server_socket;
 
-public:
+  // error_status, 시작줄 + 헤더 + 엔티
+  std::map<std::string, std::string> error_page;
+
+ public:
   // ---- constructor -------------------------
   /// @param server_socket
   Server(std::vector<ServerConfig> &);
 
+  // ---- error page --------------------------
+  void loadErrorPage();
+  void setErrorPage(std::string, Transaction *&);
+
+  // ---- main loop ---------------------------
+  void run(void);
+  void runErrorServer(struct kevent *&);
+  void runReadEventServer(int, std::vector<ServerSocket>::const_iterator);
+  void runReadEventClient(struct kevent *&);
+  void runReadEventFile(struct kevent *&);
+  void runWriteEventClient(struct kevent *&);
+
+  // ---- utils -------------------------------
   /// @brief
   /// @param change_list
   /// @param ident
@@ -43,14 +59,6 @@ public:
   /// @param udata
   void setChangeList(std::vector<struct kevent> &, uintptr_t, int16_t, uint16_t,
                      uint32_t, intptr_t, void *);
-
-  // ---- main loop ---------------------------
-  void run(void);
-  void runErrorServer(struct kevent *&);
-  void runReadEventServer(int, std::vector<ServerSocket>::const_iterator);
-  void runReadEventClient(struct kevent *&);
-  void runReadEventFile(struct kevent *&);
-  void runWriteEventClient(struct kevent *&);
 
   /// @brief
   /// @param client_fd

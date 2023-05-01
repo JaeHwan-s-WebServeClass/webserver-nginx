@@ -2,7 +2,10 @@
 
 //---- constructor ------------------------------------------------------------
 Response::Response(t_step &flag)
-    : flag(flag), response_msg(0), http_version("HTTP/1.1"), status_code(""),
+    : flag(flag),
+      response_msg(0),
+      http_version("HTTP/1.1"),
+      status_code(""),
       status_msg("") {
   this->entity.reserve(512);
   // std::cout << GRY << "Debug: Response::contructor\n" << DFT;
@@ -37,20 +40,24 @@ void Response::setHttpVersion(std::string http_version) {
 
 void Response::setStatus(std::string status_code) {
   if (status_code == "200") {
+    this->status_code = "200";
     this->status_msg = "(◟˙꒳​˙)◟ Good ◝(˙꒳​˙◝)";
   } else if (status_code == "404") {
+    this->status_code = "404";
     this->status_msg = "Not Found :(";
   } else if (status_code == "500") {
+    this->status_code = "500";
     this->status_msg = "Internal Server Error :l";
   } else if (status_code == "501") {
-    this->status_msg = "Not Implemented";
+    this->status_code = "501";
+    this->status_msg = "Not Implemented :O";
   }
 }
 
 void Response::setHeader(std::string key, std::string value) {
   this->header[key] = value;
 }
-void Response::setEntity(char *buf, size_t read_len) {
+void Response::setEntity(const char *buf, size_t read_len) {
   for (size_t i = 0; i < read_len; ++i) {
     this->entity.push_back(buf[i]);
   }
@@ -86,4 +93,18 @@ void Response::setResponseMsg() {
 
   // DEBUG
   std::cout << "response msg: " << response_msg << std::endl;
+}
+
+// HTTP/1.1 404 Not Found\r\n
+// Content-Type: text/html\r\n
+// Content-Length:
+// Connection:
+void Response::setErrorMsg(std::string status_code,
+                         const std::string &error_msg) {
+  this->setStatus(status_code);
+  this->setEntity(error_msg.c_str(), error_msg.size());
+  this->setHeader("Content-Type", "text/html");
+  this->setHeader("Content-Length", ft::intToStr(error_msg.length()));
+  this->setHeader("Connection", "close");
+  this->setResponseMsg();
 }

@@ -22,7 +22,7 @@ CLASS_NAME 	=	Server.cpp \
 UTILS_DIR 	:=	./srcs/utils/
 UTILS_NAME 	=	split.cpp \
 				errorhandler.cpp \
-				hexToInt.cpp \
+				convert.cpp \
 				trim.cpp \
 				printVector.cpp \
 				safe.cpp
@@ -54,7 +54,7 @@ re : fclean all
 
 $(NAME): $(OBJ)
 	@ $(CC) $(CPPFLAGS) $(INCLUDE) $(OBJ) -o $@
-	@ echo " $(NAME) is $(GRN)ready$(DFT)"
+	@ echo "$(NAME) is $(GRN)ready$(DFT)"
 
 .PHONY : all clean fclean
 
