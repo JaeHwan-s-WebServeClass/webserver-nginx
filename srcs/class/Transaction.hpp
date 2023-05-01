@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <exception>
 
 #include "../include/define.hpp"
 #include "../include/include.hpp"

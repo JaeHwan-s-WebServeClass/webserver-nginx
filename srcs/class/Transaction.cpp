@@ -1,10 +1,5 @@
 #include "Transaction.hpp"
 
-#include <sys/_types/_size_t.h>
-
-#include <cstdio>
-#include <exception>
-
 //---- constructor -------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
     : socket_fd(socket_fd),
@@ -35,6 +30,7 @@ int Transaction::checkResource() {
   // 요청이 디렉토리 일 경우
   if (this->request.getUrl().back() == '/') {
     // TODO autoindex or index 가 있는지 확인 후 해당 로직 처리
+    
     throw std::string(
         "checkResource :: request URL is directory. check autoindex\n");
     // file_fd를 반환하지 않을 수도....? 그러면 FILE_OPEN flag를 켤 수 없다.
@@ -62,7 +58,7 @@ int Transaction::checkResource() {
     // DEBUG
     std::cout << "resource : " << resource << std::endl;
     if (access(resource.c_str(), F_OK) == -1) {
-      throw ErrorPage500Exception();
+      throw ErrorPage404Exception();
     }
     this->file_ptr = ft::safeFopen(resource.c_str(), "r+");
     this->setFlag(FILE_OPEN);
