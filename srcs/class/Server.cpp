@@ -15,18 +15,20 @@ Server::Server(std::vector<ServerConfig> &server_config)
                       std::string(strerror(errno)));
   }
 }
-// key 값이 config, value 가 페이지 내용
+
+//---- error page -------------------------------------------------------------
 void Server::loadErrorPage() {
+  // key 값이 config, value 가 페이지 내용
   ServerConfig temp_conf = this->server_config[0];
   std::vector<std::string> conf_error_page = temp_conf.getErrorPage();
 
   std::vector<std::string>::const_iterator it = conf_error_page.begin();
-  conf_error_page.begin() + 1;
-
+  
+// FIXME for 문에서 세그먼트 발생
   for (; it != conf_error_page.end(); ++it) {
     //  error_page map 초기화
     //  open && event 등록
-    int key = std::atoi(it->c_str());
+    std::string key = *it;
     it++;
     std::string filename = *it;
     std::string rootdir = temp_conf.getRoot();
@@ -52,14 +54,18 @@ void Server::loadErrorPage() {
     std::fclose(fp);
   }
   this->change_list.clear();
-
   // DEBUG
-  std::map<int, std::string>::iterator mapit = this->error_page.begin();
-  for (; mapit != this->error_page.end(); ++mapit) {
-    std::cout << " [ " << mapit->first << " ] \n"
-              << mapit->second << std::endl
-              << std::endl;
-  }
+  // std::map<std::string, std::string>::iterator mapit = this->error_page.begin();
+  // for (; mapit != this->error_page.end(); ++mapit) {
+  //   std::cout << " [ " << mapit->first << " ] \n"
+  //             << mapit->second << std::endl
+  //             << std::endl;
+  // }
+}
+
+void Server::setErrorPage(std::string error_code, Transaction *&transaction) {
+  transaction->getResponse().setErrorMsg(error_code,
+                                         this->error_page[error_code]);
 }
 
 //---- main loop --------------------------------------------------------------
@@ -107,7 +113,7 @@ void Server::run() {
             // 버퍼에 담도록 설정해줘야 함.
           }
         } catch (std::exception &e) {
-          std::cout << e.what();
+          // std::cout << e.what();
           // TODO error page 를 request 에 담기위함.
           // Server::error_handler(e, curr_event);  만들어서 에러처리 로직을
           // 분리
@@ -120,19 +126,18 @@ void Server::run() {
           // Content-Type: text/html\r\n
           // Content-Length:
           // \r\n
-          // if (curr_event->udata) {  // 파일일 때
-          //   // setErrorPage(error_page[std::atoi(e.what())],
-          //                reinterpret_cast<Transaction *>(curr_event->udata));
-          //   reinterpret_cast<Transaction *>(curr_event->udata)
-          //       ->setFlag(RESPONSE_DONE);
-          //   std::fclose(const_cast<FILE *>(
-          //       (reinterpret_cast<Transaction *>(curr_event->udata))
-          //           ->getFilePtr()));
-          // } else {  // 클라이언트일 때
-          //   // setErrorPage(error_page[std::atoi(e.what())],
-          //                this->clients[curr_event->ident]);
-          //   this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
-          // }
+          if (curr_event->udata) {  // 파일일 때
+            setErrorPage(e.what(),
+                         reinterpret_cast<Transaction *&>(curr_event->udata));
+            reinterpret_cast<Transaction *>(curr_event->udata)
+                ->setFlag(RESPONSE_DONE);
+            std::fclose(const_cast<FILE *>(
+                (reinterpret_cast<Transaction *>(curr_event->udata))
+                    ->getFilePtr()));
+          } else {  // 클라이언트일 때
+            setErrorPage(e.what(), this->clients[curr_event->ident]);
+            this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
+          }
         }
         // std::cerr << e.what() << std::endl;
         // error page를 위한 response msg를 setting해주고

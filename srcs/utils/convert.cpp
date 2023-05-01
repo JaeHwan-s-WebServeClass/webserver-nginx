@@ -21,3 +21,9 @@ int ft::hexToInt(const std::string& hex_str) {
   }
   return dec;
 }
+
+std::string ft::intToStr(int num) {
+  std::stringstream out;
+  out << num;
+  return out.str();
+}

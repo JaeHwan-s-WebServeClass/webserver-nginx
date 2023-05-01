@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cstdlib>
 #include <sys/socket.h>
 
 #include <cctype>
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -23,15 +23,16 @@ void parser(std::string);
 // ---- utils ---------------------------------------------
 void errorHandler(std::string);
 
+int hexToInt(const std::string &);
+std::string intToStr(int);
+
 std::vector<std::string> split(std::string, char);
 std::vector<std::string> split(std::string, std::string);
 
-int hexToInt(const std::string &hex_str);
+std::string trim(std::string);
+std::string trim(std::string, char);
 
-std::string trim(std::string str);
-std::string trim(std::string str, char);
-
-void printVector(const std::vector<std::string> &vec);
+void printVector(const std::vector<std::string> &);
 
 // ---- safe-functions ------------------------------------
 /// @brief
@@ -61,4 +62,4 @@ std::FILE *safeFopen(const char *, const char *);
 /// @param timeout
 /// @return
 int safeKevent(int, const timespec *);
-} // namespace ft
+}  // namespace ft

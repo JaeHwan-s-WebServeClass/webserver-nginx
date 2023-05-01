@@ -29,12 +29,16 @@ class Server {
   std::vector<ServerSocket> server_socket;
 
   // error_status, 시작줄 + 헤더 + 엔티
-  std::map<int, std::string> error_page;
+  std::map<std::string, std::string> error_page;
 
  public:
   // ---- constructor -------------------------
   /// @param server_socket
   Server(std::vector<ServerConfig> &);
+
+  // ---- error page --------------------------
+  void loadErrorPage();
+  void setErrorPage(std::string, Transaction *&);
 
   // ---- main loop ---------------------------
   void run(void);
@@ -43,10 +47,6 @@ class Server {
   void runReadEventClient(struct kevent *&);
   void runReadEventFile(struct kevent *&);
   void runWriteEventClient(struct kevent *&);
-
-  // ---- error page --------------------------
-  void loadErrorPage();
-  // void setErrorPage(std::string, Transaction *);
 
   // ---- utils -------------------------------
   /// @brief

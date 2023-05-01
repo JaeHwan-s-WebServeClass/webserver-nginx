@@ -39,8 +39,8 @@ class Transaction {
   Transaction(int, const ServerConfig &);
 
   // ---- getter ------------------------------
-  const Response &getResponse() const;
-  const Request &getRequest() const;
+  Response &getResponse();
+  Request &getRequest();
   const ServerConfig &getServerConfig() const;
   const t_step &getFlag() const;
   const FILE *getFilePtr() const;
@@ -63,6 +63,17 @@ class Transaction {
   void httpGet(int);
   void httpDelete(void);
   void httpPost(void);
+
+  // --- error class --------------------------
+  class ErrorPage404Exception : public std::exception {
+    virtual const char *what(void) const throw();
+  };
+  class ErrorPage500Exception : public std::exception {
+    virtual const char *what(void) const throw();
+  };
+  class ErrorPage501Exception : public std::exception {
+    virtual const char *what(void) const throw();
+  };
 };
 
 #endif

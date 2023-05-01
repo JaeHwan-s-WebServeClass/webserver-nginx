@@ -16,8 +16,8 @@ Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
 }
 
 //---- getter ------------------------------------------------------------------
-const Response &Transaction::getResponse() const { return this->response; }
-const Request &Transaction::getRequest() const { return this->request; }
+Response &Transaction::getResponse() { return this->response; }
+Request &Transaction::getRequest() { return this->request; }
 const ServerConfig &Transaction::getServerConfig() const {
   return this->server_config;
 }
@@ -42,12 +42,7 @@ int Transaction::checkResource() {
   } else {  // 요청이 파일 일 경우
     std::size_t pos = this->request.getUrl().find_last_of("/");
     if (pos == std::string::npos) {
-      this->response.setStatus("404");
-      //  TODO 에러 파일 받아와서 fopen하고 file_fd return
-      throw std::string("checkResource :: return  fd\n");
-      // file_fd = std::fopen(, )._file;
-      // return ("404.html");
-
+      throw ErrorPage404Exception();
     } else if (pos == 0) {  // localhost:8080/index.html 일 때.
       request_location = this->request.getUrl().substr(0, pos + 1);
       request_filename = this->request.getUrl().substr(pos + 1);
@@ -67,19 +62,12 @@ int Transaction::checkResource() {
     // DEBUG
     std::cout << "resource : " << resource << std::endl;
     if (access(resource.c_str(), F_OK) == -1) {
-      this->response.setStatus("500");
-      //  TODO 에러 파일 받아와서 fopen하고 file_fd return
-      // cannot found request_filename
-      throw std::string("Error: Transaction: checkResouce: access error\n");
+      throw ErrorPage500Exception();
     }
     this->file_ptr = ft::safeFopen(resource.c_str(), "r+");
     this->setFlag(FILE_OPEN);
   } else {
-    //  TODO 에러 파일 받아와서 fopen하고 file_fd return
-    this->response.setStatus("500");
-    // Invalid directory: cannot found reqeust_location
-    throw std::string(
-        "Error: Transaction: checkResouce: can not find in map\n");
+    throw ErrorPage500Exception();
   }
   return (file_ptr->_file);
 }
@@ -101,7 +89,7 @@ void Transaction::checkAllowedMethod() {
        (this->location.http_method & DELETE))) {
     return;
   }
-  this->response.setStatus("501");
+  throw ErrorPage501Exception();
 }
 
 //---- executor ----------------------------------------------------------------
@@ -121,7 +109,6 @@ int Transaction::executeRead(void) {
   if (this->flag == START) {
     head_rest_len = this->executeReadHead(buf, read_len);
   }
-
   // 2. entity 파싱
   if (this->flag == REQUEST_HEAD && (this->request.getMethod() == "POST")) {
     if (this->flag < REQUEST_ENTITY) {
@@ -250,14 +237,8 @@ int Transaction::executeMethod(int data_size) {
 }
 
 //---- HTTP methods ------------------------------------------------------------
-/*
-1. read
-2. response
-3. close
-*/
-
 void Transaction::httpGet(int data_size) {
-  std::cout << GRY << "Debug: Transaction::httpGet\n" << DFT;
+  // std::cout << GRY << "Debug: Transaction: httpGet\n" << DFT;
   char buf[MAX_BODY_SIZE + 1];
   size_t read_len =
       ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
@@ -279,3 +260,8 @@ void Transaction::httpDelete(void) {
 void Transaction::httpPost(void) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
 }
+
+//---- error class -------------------------------------------------------------
+const char *Transaction::ErrorPage404Exception::what() const throw() { return "404"; }
+const char *Transaction::ErrorPage500Exception::what() const throw() { return "500"; }
+const char *Transaction::ErrorPage501Exception::what() const throw() { return "501"; }
