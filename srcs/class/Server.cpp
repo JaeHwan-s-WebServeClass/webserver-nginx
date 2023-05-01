@@ -173,7 +173,6 @@ void Server::runReadEventServer(int client_socket,
   std::cout << GRN << "accept new client: " << client_socket << DFT
             << std::endl;
   fcntl(client_socket, F_SETFL, O_NONBLOCK);
-
   setChangeList(this->change_list, client_socket, EVFILT_READ,
                 EV_ADD | EV_ENABLE, 0, 0, NULL);
   setChangeList(this->change_list, client_socket, EVFILT_WRITE,
@@ -202,6 +201,9 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
   // checkResource() : file open & return file fd
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->checkResource();
+    if (file_fd == -1) {
+      return;
+    }
     this->clients[curr_event->ident]->checkAllowedMethod();
     fcntl(file_fd, F_SETFL, O_NONBLOCK);
     setChangeList(this->change_list, file_fd, EVFILT_READ,
@@ -225,7 +227,8 @@ void Server::runReadEventFile(struct kevent *&curr_event) {
     curr_transaction->executeMethod(static_cast<int>(curr_event->data));
   }
   if (curr_transaction->getFlag() == FILE_DONE) {
-    std::cout << GRY << "Debug: Server::runReadEventFile : FILE_DONE\n" << DFT;
+    // std::cout << GRY << "Debug: Server: runReadEventFile: FILE_DONE\n" <<
+    // DFT;
 
     //  TODO delete 할 때 udata 를 NULL 로 둬도 될까...?
     setChangeList(this->change_list, curr_event->ident, EVFILT_READ, EV_DELETE,
@@ -260,7 +263,7 @@ void Server::runWriteEventClient(struct kevent *&curr_event) {
 void Server::setChangeList(std::vector<struct kevent> &change_list,
                            uintptr_t ident, int16_t filter, uint16_t flags,
                            uint32_t fflags, intptr_t data, void *udata) {
-  // std::cout << GRY << "Debug: Server::setChangeList\n" << DFT;
+  // std::cout << GRY << "Debug: Server: setChangeList\n" << DFT;
   struct kevent temp_event;
 
   EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
@@ -269,7 +272,7 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
 
 void Server::disconnectClient(int client_fd,
                               std::map<int, Transaction *> &clients) {
-  // std::cout << GRY << "Debug: Server::disconnectClient\n" << DFT;
+  // std::cout << GRY << "Debug: Server: disconnectClient\n" << DFT;
   delete clients[client_fd];
   close(client_fd);
   clients.erase(client_fd);
@@ -278,7 +281,7 @@ void Server::disconnectClient(int client_fd,
 
 //----- safe_method ------------------------------------------------------------
 int Server::safeKevent(int nevents, const timespec *timeout) {
-  // std::cout << GRY << "Debug: Server::safeKevent\n" << DFT;
+  // std::cout << GRY << "Debug: Server: safeKevent\n" << DFT;
   int new_events;
 
   if ((new_events =

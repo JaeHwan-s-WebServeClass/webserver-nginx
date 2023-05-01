@@ -540,7 +540,7 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
     * 열린 Error Page 를 버퍼에 담기
     * Server 객체 안에 Error Page buffers 들고다니기
 2. 에러 페이지 리턴 방법 논의하기
-
+3. autoindex 처리
 
 
 ### 결과
@@ -552,6 +552,9 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 [17:20 ~ 18:20] 세그먼트 에러 픽스 & method issue 픽스
 * 에러 이벤트 등록 후 clear 추가
 * 메서드 체크 전에 resource 체크
+
+[19:10 ~ 21:00] autoindex 처리 후...
+
 
 <br>
 
