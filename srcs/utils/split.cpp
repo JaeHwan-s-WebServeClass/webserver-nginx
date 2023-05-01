@@ -20,13 +20,13 @@ std::vector<std::string> ft::split(std::string input, std::string dlim) {
 
   while (1) {
     size_t pos = input.find(dlim);
-    if (pos == std::string::npos) {  // delimiter not found
+    if (pos == std::string::npos) {
       result.push_back(input);
       break;
-    } else if (pos == 0) {  // delimiter at the beginning
+    } else if (pos == 0) {
       input = input.substr(dlim_len);
       continue;
-    } else {  // delimiter found
+    } else {
       result.push_back(input.substr(0, pos));
       input = input.substr(pos + dlim_len);
     }

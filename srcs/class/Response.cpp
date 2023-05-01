@@ -40,13 +40,17 @@ void Response::setHttpVersion(std::string http_version) {
 
 void Response::setStatus(std::string status_code) {
   if (status_code == "200") {
+    this->status_code = "200";
     this->status_msg = "(◟˙꒳​˙)◟ Good ◝(˙꒳​˙◝)";
   } else if (status_code == "404") {
+    this->status_code = "404";
     this->status_msg = "Not Found :(";
   } else if (status_code == "500") {
+    this->status_code = "500";
     this->status_msg = "Internal Server Error :l";
   } else if (status_code == "501") {
-    this->status_msg = "Not Implemented";
+    this->status_code = "501";
+    this->status_msg = "Not Implemented :O";
   }
 }
 

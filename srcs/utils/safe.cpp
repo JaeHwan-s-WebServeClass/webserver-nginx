@@ -59,7 +59,6 @@ std::FILE *ft::safeFopen(const char *filename, const char *mode) {
   if ((fp = std::fopen(filename, mode)) == NULL) {
     std::cerr << RED << "Error: Transaction: file fopen() error\n" << DFT;
   }
-
   // 1024 로 설정된 fp 의 stream 을 F_STREAM_SIZE 크기로 설정한다.
   std::setvbuf(fp, 0, _IONBF, F_STREAM_SIZE);
   return fp;

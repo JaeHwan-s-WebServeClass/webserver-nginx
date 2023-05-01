@@ -36,8 +36,8 @@ OBJ 		=	$(SRC:.cpp=.o)
 
 INCLUDE		:=	-I./srcs/include/
 CC 			:=	c++
-# CPPFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
-CPPFLAGS 	:=	-fsanitize=address -g3
+CPPFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
+# CPPFLAGS 	:=	-fsanitize=address -g3
 
 all : $(NAME)
 

@@ -262,6 +262,12 @@ void Transaction::httpPost(void) {
 }
 
 //---- error class -------------------------------------------------------------
-const char *Transaction::ErrorPage404Exception::what() const throw() { return "404"; }
-const char *Transaction::ErrorPage500Exception::what() const throw() { return "500"; }
-const char *Transaction::ErrorPage501Exception::what() const throw() { return "501"; }
+const char *Transaction::ErrorPage404Exception::what() const throw() {
+  return "404";
+}
+const char *Transaction::ErrorPage500Exception::what() const throw() {
+  return "500";
+}
+const char *Transaction::ErrorPage501Exception::what() const throw() {
+  return "501";
+}

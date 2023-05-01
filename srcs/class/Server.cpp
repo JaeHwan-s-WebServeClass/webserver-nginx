@@ -23,8 +23,7 @@ void Server::loadErrorPage() {
   std::vector<std::string> conf_error_page = temp_conf.getErrorPage();
 
   std::vector<std::string>::const_iterator it = conf_error_page.begin();
-  
-// FIXME for 문에서 세그먼트 발생
+
   for (; it != conf_error_page.end(); ++it) {
     //  error_page map 초기화
     //  open && event 등록
@@ -37,8 +36,7 @@ void Server::loadErrorPage() {
     setChangeList(this->change_list, fp->_file, EVFILT_READ, EV_ADD | EV_ENABLE,
                   0, 0, fp);
     //  이벤트 탐지해서 읽고 map 에 넘겨주기
-    int new_events;
-    new_events = this->safeKevent(1, NULL);
+    this->safeKevent(1, NULL);
     this->change_list.clear();
 
     char buf[9999];
@@ -51,12 +49,14 @@ void Server::loadErrorPage() {
     this->error_page[key] = buf;
     setChangeList(this->change_list, fp->_file, EVFILT_READ, EV_DELETE, 0, 0,
                   NULL);
+    this->change_list.clear();
     std::fclose(fp);
   }
   this->change_list.clear();
   // DEBUG
-  // std::map<std::string, std::string>::iterator mapit = this->error_page.begin();
-  // for (; mapit != this->error_page.end(); ++mapit) {
+  // std::map<std::string, std::string>::iterator mapit =
+  // this->error_page.begin(); for (; mapit != this->error_page.end(); ++mapit)
+  // {
   //   std::cout << " [ " << mapit->first << " ] \n"
   //             << mapit->second << std::endl
   //             << std::endl;
@@ -201,9 +201,8 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
   // checkAllowMethod() : method의 유효성 검사
   // checkResource() : file open & return file fd
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
-    this->clients[curr_event->ident]->checkAllowedMethod();
-    // 위 함수 에서 501 셋팅 시 아래 함수 x?
     int file_fd = this->clients[curr_event->ident]->checkResource();
+    this->clients[curr_event->ident]->checkAllowedMethod();
     fcntl(file_fd, F_SETFL, O_NONBLOCK);
     setChangeList(this->change_list, file_fd, EVFILT_READ,
                   EV_ADD | EV_ENABLE | EV_EOF, 0, 0,
