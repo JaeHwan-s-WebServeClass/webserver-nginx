@@ -15,7 +15,7 @@ ServerSocket::ServerSocket(sa_family_t address_family, int port) {
   this->server_addr.sin_port = htons(port);
   this->safeSocket(address_family, SOCK_STREAM, 0);
   this->safeBind();
-  this->safeListen(2); // backlog : 대기열의 길이
+  this->safeListen(2);  // backlog : 대기열의 길이
   this->setNonBlock(this->server_socket);
 
   // DEBUG: check server socket port number

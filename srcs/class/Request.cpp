@@ -37,7 +37,7 @@ void Request::setRawHead(std::string line) { this->raw_head += line; }
 void Request::setFlag(t_step flag) {
   // this->head_done = type;
   this->flag = flag;
-} // status? type?
+}  // status? type?
 // void Request::setEntityDone(bool type) { this->entity_done = type; }
 
 //---- parser -----------------------------------------------------------------

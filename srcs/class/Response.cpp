@@ -100,7 +100,7 @@ void Response::setResponseMsg() {
 // Content-Length:
 // Connection:
 void Response::setErrorMsg(std::string status_code,
-                         const std::string &error_msg) {
+                           const std::string &error_msg) {
   this->setStatus(status_code);
   this->setEntity(error_msg.c_str(), error_msg.size());
   this->setHeader("Content-Type", "text/html");
