@@ -1,19 +1,26 @@
 #include "Transaction.hpp"
 
+#include <sys/_types/_size_t.h>
+
 #include <cstdio>
 #include <exception>
-#include <sys/_types/_size_t.h>
 
 //---- constructor -------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
-    : socket_fd(socket_fd), flag(START), response(this->flag),
-      request(this->flag), server_config(server_config) {
+    : socket_fd(socket_fd),
+      flag(START),
+      response(this->flag),
+      request(this->flag),
+      server_config(server_config) {
   // std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
 }
 
 //---- getter ------------------------------------------------------------------
 const Response &Transaction::getResponse() const { return this->response; }
 const Request &Transaction::getRequest() const { return this->request; }
+const ServerConfig &Transaction::getServerConfig() const {
+  return this->server_config;
+}
 const t_step &Transaction::getFlag() const { return this->flag; }
 const FILE *Transaction::getFilePtr() const { return this->file_ptr; }
 
@@ -32,7 +39,7 @@ int Transaction::checkResource() {
         "checkResource :: request URL is directory. check autoindex\n");
     // file_fd를 반환하지 않을 수도....? 그러면 FILE_OPEN flag를 켤 수 없다.
     // autoindex 부분 로직 논의 후 flag 세팅!
-  } else { // 요청이 파일 일 경우
+  } else {  // 요청이 파일 일 경우
     std::size_t pos = this->request.getUrl().find_last_of("/");
     if (pos == std::string::npos) {
       this->response.setStatus("404");
@@ -41,10 +48,10 @@ int Transaction::checkResource() {
       // file_fd = std::fopen(, )._file;
       // return ("404.html");
 
-    } else if (pos == 0) { // localhost:8080/index.html 일 때.
+    } else if (pos == 0) {  // localhost:8080/index.html 일 때.
       request_location = this->request.getUrl().substr(0, pos + 1);
       request_filename = this->request.getUrl().substr(pos + 1);
-    } else { // localhost:8080/example/index.html 일 때.
+    } else {  // localhost:8080/example/index.html 일 때.
       request_location = this->request.getUrl().substr(0, pos);
       request_filename = this->request.getUrl().substr(pos);
     }
@@ -132,7 +139,7 @@ int Transaction::executeRead(void) {
   }
 
   // DEBUG MSG : REQUEST
-  if (this->flag == REQUEST_DONE) { // 임시
+  if (this->flag == REQUEST_DONE) {  // 임시
     this->request.toString();
   }
   return 0;

@@ -54,7 +54,7 @@ re : fclean all
 
 $(NAME): $(OBJ)
 	@ $(CC) $(CPPFLAGS) $(INCLUDE) $(OBJ) -o $@
-	@ echo " $(NAME) is $(GRN)ready$(DFT)"
+	@ echo "$(NAME) is $(GRN)ready$(DFT)"
 
 .PHONY : all clean fclean
 

@@ -9,7 +9,10 @@ int main(int argc, char **argv) {
     // step 2 - setting server & create socket & init kqueue
     Server server(config);
 
-    // step 3 - main loop
+    // step 3 - caching error page
+    server.loadErrorPage();
+
+    // step 4 - main loop
     server.run();
 
   } catch (std::string msg) {
