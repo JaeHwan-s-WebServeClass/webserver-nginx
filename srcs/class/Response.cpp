@@ -75,6 +75,8 @@ void Response::setResponseMsg() {
 
   response_head = this->http_version + " " + this->status_code + " " +
                   this->status_msg + "\r\n";
+
+  this->setHeader("Content-Length", ft::intToStr(this->entity.size()));
   for (std::map<std::string, std::string>::const_iterator it =
            this->header.begin();
        it != this->header.end(); ++it) {
@@ -93,7 +95,6 @@ void Response::setResponseMsg() {
   std::memcpy(pos, &(this->entity[0]), this->entity.size());
   pos += this->entity.size();
   std::memcpy(pos, "\r\n\r\n", 4);
-  // this->entity_done = true;
   // if (this->flag == FILE_DONE)
   this->flag = RESPONSE_DONE;
 
@@ -110,7 +111,6 @@ void Response::setErrorMsg(std::string status_code,
   this->setStatus(status_code);
   this->setEntity(error_msg.c_str(), error_msg.size());
   this->setHeader("Content-Type", "text/html");
-  this->setHeader("Content-Length", ft::intToStr(error_msg.length()));
   this->setHeader("Connection", "close");
   this->setResponseMsg();
 }
