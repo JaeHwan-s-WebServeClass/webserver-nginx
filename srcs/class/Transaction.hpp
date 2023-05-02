@@ -66,6 +66,9 @@ class Transaction {
   void httpDelete(void);
   void httpPost(void);
 
+  // ---- cgi ---------------------------------
+  int executeCGI(void);
+
   // --- error class --------------------------
   class ErrorPage404Exception : public std::exception {
     virtual const char *what(void) const throw();

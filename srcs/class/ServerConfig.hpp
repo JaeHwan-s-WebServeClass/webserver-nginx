@@ -13,15 +13,16 @@
 #include "../include/include.hpp"
 
 class ServerConfig {
-public:
+ public:
   typedef struct s_location {
     std::string root;
     std::vector<std::string> index;
     bool autoindex;
     int http_method;
+    std::string cgi;
   } t_location;
 
-private:
+ private:
   int listen;
   std::vector<std::string> server_name;
   std::vector<std::string> error_page;
@@ -31,7 +32,7 @@ private:
   int http_method;
   std::map<std::string, t_location> locations;
 
-public:
+ public:
   // ---- constructor -------------------------
   ServerConfig();
 

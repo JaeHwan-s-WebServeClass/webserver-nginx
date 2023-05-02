@@ -285,32 +285,46 @@ void Transaction::httpDelete(void) {
 void Transaction::httpPost(void) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
   char buf[BUFFER_SIZE];
-  ssize_t read_len;
+  int read_len;
+  int fd = this->executeCGI();
+
+  read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
+  this->response.setEntity(buf, read_len);
+  buf[read_len] = '\0';
+  // DEBUG
+  std::cout << buf << std::endl;
+  this->setFlag(FILE_DONE);
+  close(fd);
+}
+
+//---- cgi ---------------------------------------------------------------------
+int Transaction::executeCGI(void) {
+  // std::cout << GRY << "Debug: Transaction: executeCGI\n" << DFT;
   int fd[2];
+  int status;
 
   ft::safePipe(fd);  // pipe 는 반이중(Half-duplex) 통신
 
-  char const *const args[] = {"/usr/bin/python3", this->resource.c_str(),
-                              ft::vecToCharArr(this->request.getEntity()),
-                              NULL};
+  char const *const args[] = {
+      (this->location.cgi).c_str(), this->resource.c_str(),
+      ft::vecToCharArr(this->request.getEntity()), NULL};
   pid_t cgi_pid = ft::safeFork();
-  if (cgi_pid == 0) {  // 자식은 쓰고
-    close(fd[0]);      // read closed
-    dup2(fd[1], 1);
-    if (execve("/usr/bin/python3", (char **)args, NULL) == -1) {
-      // 자식 프로세스이기 때문에 throw 가 아니라 exit(errno)
-      throw Transaction::ErrorPage500Exception();
-    }
-  } else {         // 부모는 읽고?
-    close(fd[1]);  // write closed
-    read_len = ft::safeRead(fd[0], buf, BUFFER_SIZE);
-    this->response.setEntity(buf, read_len);
-    buf[read_len] = '\0';
-    // DEBUG
-//    std::cout << buf << std::endl;  
-    this->setFlag(FILE_DONE);
+  if (cgi_pid == 0) {  // 자식은 쓰고 -> read closed
     close(fd[0]);
+    dup2(fd[1], 1);
+    if (execve((this->location.cgi).c_str(), (char **)args, NULL) == -1) {
+      exit(1);
+    }
+  } else {  // 부모는 읽고 -> write closed
+    close(fd[1]);
+    // FIXME: nonblocking waitpid
+    waitpid(cgi_pid, &status, 0);
+    if (!WIFEXITED(status) && WEXITSTATUS(status)) {
+      std::cout << RED << "child error" << std::endl << DFT;
+      throw ErrorPage500Exception();
+    }
   }
+  return fd[0];
 }
 
 //---- error class -------------------------------------------------------------
