@@ -267,7 +267,6 @@ void Transaction::httpGet(int data_size) {
   std::cout << "data_size: " << data_size << std::endl;
   this->response.setEntity(buf, read_len);
   if (static_cast<int>(read_len) >= data_size) {
-    this->response.setHeader("Content-Length", this->response.getEntitySize());
     std::fclose(this->file_ptr);
     this->setFlag(FILE_DONE);
     this->response.setStatus("200");
@@ -276,8 +275,6 @@ void Transaction::httpGet(int data_size) {
 
 void Transaction::httpDelete(void) {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
-  // std::string file_path = "." + this->server_config.getRoot() +
-  // this->location.root + this->request.getUrl();
   if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
     this->response.setStatus("200");
   } else {  // 파일 삭제 실패
@@ -287,41 +284,33 @@ void Transaction::httpDelete(void) {
 
 void Transaction::httpPost(void) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
-  // Check if the file exists
-  if (access(this->resource.c_str(), F_OK) != -1) {
-    // File exists, update the file
-    ft::safeFwrite(&(this->request.getEntity()[0]), sizeof(char),
-                   this->request.getEntitySize(), this->file_ptr);
-    this->response.setStatus("200");  // OK
-    // No content in the response body
-    this->response.setHeader("Content-Length", "0");
-  } else {
-    // File doesn't exist, create a new file
-    this->file_ptr = ft::safeFopen(this->resource.c_str(), "w+");
-    ft::safeFwrite(&(this->request.getEntity()[0]), sizeof(char),
-                   this->request.getEntitySize(), this->file_ptr);
-    this->response.setStatus("201");  // Created
-    // No content in the response body
-    this->response.setHeader("Content-Length", "0");
+  char buf[BUFFER_SIZE];
+  ssize_t read_len;
+  int fd[2];
+
+  ft::safePipe(fd);  // pipe 는 반이중(Half-duplex) 통신
+
+  char const *const args[] = {"/usr/bin/python3", this->resource.c_str(),
+                              ft::vecToCharArr(this->request.getEntity()),
+                              NULL};
+  pid_t cgi_pid = ft::safeFork();
+  if (cgi_pid == 0) {  // 자식은 쓰고
+    close(fd[0]);      // read closed
+    dup2(fd[1], 1);
+    if (execve("/usr/bin/python3", (char **)args, NULL) == -1) {
+      // 자식 프로세스이기 때문에 throw 가 아니라 exit(errno)
+      throw Transaction::ErrorPage500Exception();
+    }
+  } else {         // 부모는 읽고?
+    close(fd[1]);  // write closed
+    read_len = ft::safeRead(fd[0], buf, BUFFER_SIZE);
+    this->response.setEntity(buf, read_len);
+    buf[read_len] = '\0';
+    // DEBUG
+//    std::cout << buf << std::endl;  
+    this->setFlag(FILE_DONE);
+    close(fd[0]);
   }
-  std::fclose(this->file_ptr);
-  this->setFlag(FILE_DONE);
-
-  // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
-  // std::string file_path = "." + this->server_config.getRoot() +
-  // this->request.getUrl();
-
-  // std::ofstream ofs(this->file_path.c_str(), std::ios::out |
-  // std::ios::trunc); if (!ofs.is_open()) {  // 파일 생성 실패
-  //   throw ErrorPage500Exception();
-  // } else {  // 파일 생성 성공
-  //   // ofs << this->request.getBody();
-  //   for (size_t i; i < this->request.getEntity().size(); ++i) {
-  //     ofs << this->request.getEntity()[i];
-  //   }
-  //   ofs.close();
-  //   this->response.setStatus("200");
-  // }
 }
 
 //---- error class -------------------------------------------------------------
