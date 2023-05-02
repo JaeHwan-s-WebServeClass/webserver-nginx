@@ -95,6 +95,8 @@ void ServerConfig::setLocation(const std::string map_key, const std::string key,
   } else if (key == "index") {
     this->locations[map_key].index.clear();
     this->locations[map_key].index = value;
+  } else if (key == "cgi") {
+    this->locations[map_key].cgi = value.front();
   } else if (key == "allow") {
     std::vector<std::string>::const_iterator it = value.begin();
     for (; it != value.end(); it++) {
@@ -132,6 +134,7 @@ void ServerConfig::setLocationDefault(const std::string key) {
   this->locations[key].root = "/";
   this->locations[key].autoindex = false;
   this->locations[key].index.push_back("index.html");
+  this->locations[key].cgi = "";
   this->locations[key].http_method = (0b111);
 }
 
@@ -157,8 +160,8 @@ void ServerConfig::printLocation(const t_location &location) {
   std::cout << "    index: ";
   ft::printVector(location.index);
   std::cout << "    http_method: " << location.http_method << GRY
-            << "\n    GET = 1, POST = 2, DELETE = 4. 대충 더해서 보세요" << DFT
-            << std::endl;
+            << "\n    GET = 1, POST = 2, DELETE = 4" << DFT << std::endl;
+  std::cout << "    cgi: " << location.cgi << std::endl;
 }
 
 void ServerConfig::printConfig(void) {
@@ -178,8 +181,8 @@ void ServerConfig::printConfig(void) {
   std::cout << "root: " << this->getRoot() << std::endl;
   std::cout << "location: " << std::endl;
   std::map<std::string, t_location>::const_iterator it =
-      this->getLocation().begin();
-  for (; it != this->getLocation().end(); it++) {
+      this->locations.begin();
+  for (; it != this->locations.end(); it++) {
     printLocation(it->second);
   }
   std::cout << "\n";

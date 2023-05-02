@@ -1,4 +1,5 @@
 #include "../class/Response.hpp"
+#include "../class/Transaction.hpp"
 #include "../include/include.hpp"
 
 //----- transcation -----------------------------------------------------------
@@ -39,13 +40,35 @@ size_t ft::safeFread(char *buf, int size, int count, FILE *file_ptr) {
   return read_len;
 }
 
-size_t ft::safeFwrite(char *buf, int size, int count, FILE *file_ptr) {
+size_t ft::safeFwrite(const char *buf, int size, int count, FILE *file_ptr) {
   // std::cout << GRY << "Debug: safeFwrite\n" << DFT;
 
   signal(SIGPIPE, SIG_IGN);
   size_t write_len = std::fwrite(buf, size, count, file_ptr);
   if (std::ferror(file_ptr)) {
     std::cerr << RED << "Error: Transaction: file fwrite() error\n" << DFT;
+  }
+  signal(SIGPIPE, SIG_DFL);
+  return write_len;
+}
+
+ssize_t ft::safeRead(int fd, char *buf, int size) {
+  // std::cout << GRY << "Debug: safeRead\n" << DFT;
+  signal(SIGPIPE, SIG_IGN);
+  ssize_t read_len = read(fd, buf, size);
+  if (read_len == -1) {
+    throw Transaction::ErrorPage500Exception();
+  }
+  signal(SIGPIPE, SIG_DFL);
+  return read_len;
+}
+
+ssize_t ft::safeWrite(int fd, char *buf, int size) {
+  // std::cout << GRY << "Debug: safeWrite\n" << DFT;
+  signal(SIGPIPE, SIG_IGN);
+  ssize_t write_len = write(fd, buf, size);
+  if (write_len == -1) {
+    throw Transaction::ErrorPage500Exception();
   }
   signal(SIGPIPE, SIG_DFL);
   return write_len;
@@ -62,4 +85,22 @@ std::FILE *ft::safeFopen(const char *filename, const char *mode) {
   // 1024 로 설정된 fp 의 stream 을 F_STREAM_SIZE 크기로 설정한다.
   std::setvbuf(fp, 0, _IONBF, F_STREAM_SIZE);
   return fp;
+}
+
+pid_t ft::safeFork() {
+  // std::cout << GRY << "Debug: safeFork\n" << DFT;
+  pid_t pid;
+
+  pid = fork();
+  if (pid == -1) {
+    throw Transaction::ErrorPage500Exception();
+  }
+  return pid;
+}
+
+void ft::safePipe(int *fd) {
+  // std::cout << GRY << "Debug: safePipe\n" << DFT;
+  if (pipe(fd) == -1) {
+    throw Transaction::ErrorPage500Exception();
+  }
 }

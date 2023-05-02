@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Comments</title>
+</head>
+
+<body>
+    <form action="/cgi-bin/post.py" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username"><br>
+
+        <label for="comment">Comment:</label>
+        <input type="text" name="comment" id="comment"><br>
+
+        <input type="submit" value="Submit">
+    </form>
+
+    <form action="/cgi-bin/delete.py" method="POST">
+        <label for="comment_id">Comment ID:</label>
+        <input type="text" name="comment_id" id="comment_id"><br>
+
+        <input type="submit" value="Delete">
+    </form>
+</body>
+
+</html>
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Post Example</title>
+</head>
+<body>
+	<h1>Post Example</h1>
+	<form action="" method="POST">
+		<label for="id">ID:</label>
+		<input type="text" id="id" name="id"><br><br>
+		<label for="comment">Comment:</label>
+		<textarea id="comment" name="comment" rows="4" cols="50"></textarea><br><br>
+		<input type="submit" value="Submit">
+	</form>
+	<hr>
+	<h2>Comments</h2>
+	<ul>
+		{% for comment in comments %}
+			<li>{{ comment.id }}: {{ comment.comment }} <a href="?delete={{ comment.id }}">[delete]</a></li>
+		{% endfor %}
+	</ul>
+</body>
+</html> -->

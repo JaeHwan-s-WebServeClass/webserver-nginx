@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include <cctype>
 #include <cstdlib>
@@ -25,6 +26,7 @@ void errorHandler(std::string);
 
 int hexToInt(const std::string &);
 std::string intToStr(int);
+const char *vecToCharArr(const std::vector<char> &vec);
 
 std::vector<std::string> split(std::string, char);
 std::vector<std::string> split(std::string, std::string);
@@ -54,12 +56,12 @@ int safeSend(int, Response &);
 /// @param file_ptr
 /// @return read/write size
 size_t safeFread(char *, int, int, FILE *);
-size_t safeFwrite(char *, int, int, FILE *);
+size_t safeFwrite(const char *, int, int, FILE *);
 std::FILE *safeFopen(const char *, const char *);
 
-/// @brief
-/// @param nevents
-/// @param timeout
-/// @return
-int safeKevent(int, const timespec *);
+ssize_t safeWrite(int, char *, int);
+ssize_t safeRead(int, char *, int);
+
+void safePipe(int *);
+pid_t safeFork(void);
 }  // namespace ft

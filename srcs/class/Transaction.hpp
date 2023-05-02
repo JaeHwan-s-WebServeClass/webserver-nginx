@@ -7,9 +7,9 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <exception>
 #include <fstream>
 #include <iostream>
-#include <exception>
 
 #include "../include/define.hpp"
 #include "../include/include.hpp"
@@ -28,6 +28,7 @@ class Transaction {
   const ServerConfig &server_config;
   ServerConfig::t_location location;
 
+  std::string resource;
   std::FILE *file_ptr;
 
   Transaction();
@@ -65,6 +66,9 @@ class Transaction {
   void httpDelete(void);
   void httpPost(void);
 
+  // ---- cgi ---------------------------------
+  int executeCGI(void);
+
   // --- error class --------------------------
   class ErrorPage404Exception : public std::exception {
     virtual const char *what(void) const throw();
@@ -73,6 +77,9 @@ class Transaction {
     virtual const char *what(void) const throw();
   };
   class ErrorPage501Exception : public std::exception {
+    virtual const char *what(void) const throw();
+  };
+  class ErrorPageDefaultException : public std::exception {
     virtual const char *what(void) const throw();
   };
 };

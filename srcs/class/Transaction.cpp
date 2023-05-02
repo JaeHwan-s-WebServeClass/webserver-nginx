@@ -29,7 +29,6 @@ int Transaction::checkResource() {
   // std::cout << GRY << "Debug: Transaction: checkResource\n" << DFT;
   std::string request_location;
   std::string request_filename = "";
-  std::string resource;
 
   // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
   std::size_t pos = this->request.getUrl().find_last_of("/");
@@ -49,7 +48,8 @@ int Transaction::checkResource() {
       this->server_config.getLocation().end()) {
     this->location = it->second;
     std::string loc_root = this->location.root;
-    resource += '.' + server_config.getRoot() + loc_root + request_filename;
+    this->resource +=
+        '.' + server_config.getRoot() + loc_root + request_filename;
   } else {
     throw ErrorPage500Exception();
   }
@@ -59,7 +59,7 @@ int Transaction::checkResource() {
     std::vector<std::string>::const_iterator it = this->location.index.begin();
 
     for (; it != this->location.index.end(); ++it) {
-      std::string tmp = resource + *it;
+      std::string tmp = this->resource + *it;
       if (access(tmp.c_str(), F_OK) != -1) {
         // 찾았을 경우
         this->file_ptr = ft::safeFopen(tmp.c_str(), "r");
@@ -70,7 +70,7 @@ int Transaction::checkResource() {
     if (this->location.autoindex) {
       DIR *dir;
       struct dirent *ent;
-      if ((dir = opendir(resource.c_str())) != NULL) {
+      if ((dir = opendir(this->resource.c_str())) != NULL) {
         std::string body = "<html><body>";
         while ((ent = readdir(dir)) != NULL) {
           body += "<a href=\"" + std::string(ent->d_name) + "\">" +
@@ -88,14 +88,14 @@ int Transaction::checkResource() {
         throw ErrorPage404Exception();  // 403 Forbidden
       }
     } else {
-      throw ErrorPage404Exception(); // 403 Forbidden
+      throw ErrorPage404Exception();  // 403 Forbidden
     }
     return -1;
   } else {  // 파일 일 경우
-    if (access(resource.c_str(), F_OK) == -1) {
+    if (access(this->resource.c_str(), F_OK) == -1) {
       throw ErrorPage404Exception();
     }
-    this->file_ptr = ft::safeFopen(resource.c_str(), "r+");
+    this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
     this->setFlag(FILE_OPEN);
     return (file_ptr->_file);
   }
@@ -267,7 +267,6 @@ void Transaction::httpGet(int data_size) {
   std::cout << "data_size: " << data_size << std::endl;
   this->response.setEntity(buf, read_len);
   if (static_cast<int>(read_len) >= data_size) {
-    this->response.setHeader("Content-Length", this->response.getEntitySize());
     std::fclose(this->file_ptr);
     this->setFlag(FILE_DONE);
     this->response.setStatus("200");
@@ -276,10 +275,56 @@ void Transaction::httpGet(int data_size) {
 
 void Transaction::httpDelete(void) {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
+  if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
+    this->response.setStatus("200");
+  } else {  // 파일 삭제 실패
+    throw ErrorPage500Exception();
+  }
 }
 
 void Transaction::httpPost(void) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
+  char buf[BUFFER_SIZE];
+  int read_len;
+  int fd = this->executeCGI();
+
+  read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
+  this->response.setEntity(buf, read_len);
+  buf[read_len] = '\0';
+  // DEBUG
+  std::cout << buf << std::endl;
+  this->setFlag(FILE_DONE);
+  close(fd);
+}
+
+//---- cgi ---------------------------------------------------------------------
+int Transaction::executeCGI(void) {
+  // std::cout << GRY << "Debug: Transaction: executeCGI\n" << DFT;
+  int fd[2];
+  int status;
+
+  ft::safePipe(fd);  // pipe 는 반이중(Half-duplex) 통신
+
+  char const *const args[] = {
+      (this->location.cgi).c_str(), this->resource.c_str(),
+      ft::vecToCharArr(this->request.getEntity()), NULL};
+  pid_t cgi_pid = ft::safeFork();
+  if (cgi_pid == 0) {  // 자식은 쓰고 -> read closed
+    close(fd[0]);
+    dup2(fd[1], 1);
+    if (execve((this->location.cgi).c_str(), (char **)args, NULL) == -1) {
+      exit(1);
+    }
+  } else {  // 부모는 읽고 -> write closed
+    close(fd[1]);
+    // FIXME: nonblocking waitpid
+    waitpid(cgi_pid, &status, 0);
+    if (!WIFEXITED(status) && WEXITSTATUS(status)) {
+      std::cout << RED << "child error" << std::endl << DFT;
+      throw ErrorPage500Exception();
+    }
+  }
+  return fd[0];
 }
 
 //---- error class -------------------------------------------------------------
@@ -291,6 +336,9 @@ const char *Transaction::ErrorPage500Exception::what() const throw() {
 }
 const char *Transaction::ErrorPage501Exception::what() const throw() {
   return "501";
+}
+const char *Transaction::ErrorPageDefaultException::what() const throw() {
+  return "default";
 }
 
 //  1. uri 를 자르기
