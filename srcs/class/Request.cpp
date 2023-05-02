@@ -29,8 +29,6 @@ size_t Request::getContentLength() const {
   ss >> content_length;
   return content_length;
 }
-// const bool& Request::getHeadDone() const { return this->head_done; }
-// const bool Request::getEntityDone() const { return this->entity_done; }
 
 //---- setter -----------------------------------------------------------------
 void Request::setRawHead(std::string line) { this->raw_head += line; }
@@ -38,7 +36,6 @@ void Request::setFlag(t_step flag) {
   // this->head_done = type;
   this->flag = flag;
 }  // status? type?
-// void Request::setEntityDone(bool type) { this->entity_done = type; }
 
 //---- parser -----------------------------------------------------------------
 void Request::parserHead() {
