@@ -54,17 +54,20 @@ class Transaction {
   int checkResource(void);
   void checkAllowedMethod(void);
 
+  int CheckResourceFile(void);
+  int CheckResourceDir(void);
+
   // ---- executor ----------------------------
   int executeRead(void);
   int executeReadHead(char *, int);
   void executeReadEntity(char *, int, int);
   int executeWrite(void);
-  int executeMethod(int);
+  int executeMethod(int, int);
 
   // ---- http methods ------------------------
   void httpGet(int);
-  void httpDelete(void);
-  void httpPost(void);
+  void httpDelete(int);
+  void httpPost(int);
 
   // ---- cgi ---------------------------------
   int executeCGI(void);

@@ -16,7 +16,7 @@ int ft::safeRecv(int fd, char *buf, int size) {
 }
 
 int ft::safeSend(int fd, Response &response) {
-  // std::cout << GRY << "Debug: safeSend\n";
+  // std::cout << GRY << "Debug: safeSend\n" << DFT;
   int send_len;
 
   signal(SIGPIPE, SIG_IGN);
