@@ -334,6 +334,9 @@ const char *Transaction::ErrorPage500Exception::what() const throw() {
 const char *Transaction::ErrorPage501Exception::what() const throw() {
   return "501";
 }
+const char *Transaction::ErrorPageDefaultException::what() const throw() {
+  return "default";
+}
 
 //  1. uri 를 자르기
 //  2. request_location 찾기

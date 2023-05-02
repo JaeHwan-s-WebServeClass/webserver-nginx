@@ -76,6 +76,9 @@ class Transaction {
   class ErrorPage501Exception : public std::exception {
     virtual const char *what(void) const throw();
   };
+  class ErrorPageDefaultException : public std::exception {
+    virtual const char *what(void) const throw();
+  };
 };
 
 #endif

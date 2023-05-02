@@ -48,15 +48,15 @@ void Response::setStatus(std::string status_code) {
   } else if (status_code == "404") {
     this->status_code = "404";
     this->status_msg = "Not Found :(";
-  } else if (status_code == "418") {
-    this->status_code = "418";
-    this->status_msg = "I'm a teapot";
   } else if (status_code == "500") {
     this->status_code = "500";
     this->status_msg = "Internal Server Error :l";
   } else if (status_code == "501") {
     this->status_code = "501";
     this->status_msg = "Not Implemented :O";
+  } else {
+    this->status_code = "418";
+    this->status_msg = "I'm a teapot";
   }
 }
 
