@@ -1,0 +1,30 @@
+@font-face {
+    src: url("../fonts/HBIOS-SYS-prop.ttf");
+    font-family: HBIOS-SYS;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+body {
+    background-color: #000000;
+}
+
+h1 {
+    border-bottom-width: 1;
+    text-align: center;
+    font-size: 30px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    color: #ffffff;
+    font-family: HBIOS-SYS;
+}
+
+.sample {
+    width: 500px;
+    margin: 200px auto auto auto;
+    text-align: center;
+}
+
+.sample p {
+    font-size: 16px;
+    font-family: HBIOS-SYS;
+}
