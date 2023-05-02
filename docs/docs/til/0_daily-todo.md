@@ -579,6 +579,8 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 [18:40 ~ 20:35] CGI 구현
 
+[21:00 ~ 22:40] POST 구현
+
 <br>
 
 ***
