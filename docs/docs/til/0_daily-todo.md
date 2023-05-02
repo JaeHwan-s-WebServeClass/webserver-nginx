@@ -571,8 +571,9 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 ### 결과
 
-[13:00 ~]
+[13:00 ~ 14:50] CGI 어떻게 구현할지 논의
 
+[15:00 ~ ] 각자 할 것 진행 (이스터에그, pipe 를 통한 로직 논의, docs 정리)
 
 <br>
 
