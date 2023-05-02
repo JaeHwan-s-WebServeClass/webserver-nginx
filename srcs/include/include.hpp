@@ -54,7 +54,7 @@ int safeSend(int, Response &);
 /// @param file_ptr
 /// @return read/write size
 size_t safeFread(char *, int, int, FILE *);
-size_t safeFwrite(char *, int, int, FILE *);
+size_t safeFwrite(const char *, int, int, FILE *);
 std::FILE *safeFopen(const char *, const char *);
 
 /// @brief

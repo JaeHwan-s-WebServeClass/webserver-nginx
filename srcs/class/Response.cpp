@@ -42,9 +42,15 @@ void Response::setStatus(std::string status_code) {
   if (status_code == "200") {
     this->status_code = "200";
     this->status_msg = "(◟˙꒳​˙)◟ Good ◝(˙꒳​˙◝)";
+  } else if (status_code == "201") {
+    this->status_code = "201";
+    this->status_msg = "Created";
   } else if (status_code == "404") {
     this->status_code = "404";
     this->status_msg = "Not Found :(";
+  } else if (status_code == "418") {
+    this->status_code = "418";
+    this->status_msg = "I'm a teapot";
   } else if (status_code == "500") {
     this->status_code = "500";
     this->status_msg = "Internal Server Error :l";

@@ -39,7 +39,7 @@ size_t ft::safeFread(char *buf, int size, int count, FILE *file_ptr) {
   return read_len;
 }
 
-size_t ft::safeFwrite(char *buf, int size, int count, FILE *file_ptr) {
+size_t ft::safeFwrite(const char *buf, int size, int count, FILE *file_ptr) {
   // std::cout << GRY << "Debug: safeFwrite\n" << DFT;
 
   signal(SIGPIPE, SIG_IGN);

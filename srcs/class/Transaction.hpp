@@ -7,9 +7,9 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <exception>
 #include <fstream>
 #include <iostream>
-#include <exception>
 
 #include "../include/define.hpp"
 #include "../include/include.hpp"
@@ -28,6 +28,7 @@ class Transaction {
   const ServerConfig &server_config;
   ServerConfig::t_location location;
 
+  std::string resource;
   std::FILE *file_ptr;
 
   Transaction();

@@ -29,7 +29,6 @@ int Transaction::checkResource() {
   // std::cout << GRY << "Debug: Transaction: checkResource\n" << DFT;
   std::string request_location;
   std::string request_filename = "";
-  std::string resource;
 
   // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
   std::size_t pos = this->request.getUrl().find_last_of("/");
@@ -49,7 +48,8 @@ int Transaction::checkResource() {
       this->server_config.getLocation().end()) {
     this->location = it->second;
     std::string loc_root = this->location.root;
-    resource += '.' + server_config.getRoot() + loc_root + request_filename;
+    this->resource +=
+        '.' + server_config.getRoot() + loc_root + request_filename;
   } else {
     throw ErrorPage500Exception();
   }
@@ -59,7 +59,7 @@ int Transaction::checkResource() {
     std::vector<std::string>::const_iterator it = this->location.index.begin();
 
     for (; it != this->location.index.end(); ++it) {
-      std::string tmp = resource + *it;
+      std::string tmp = this->resource + *it;
       if (access(tmp.c_str(), F_OK) != -1) {
         // 찾았을 경우
         this->file_ptr = ft::safeFopen(tmp.c_str(), "r");
@@ -70,7 +70,7 @@ int Transaction::checkResource() {
     if (this->location.autoindex) {
       DIR *dir;
       struct dirent *ent;
-      if ((dir = opendir(resource.c_str())) != NULL) {
+      if ((dir = opendir(this->resource.c_str())) != NULL) {
         std::string body = "<html><body>";
         while ((ent = readdir(dir)) != NULL) {
           body += "<a href=\"" + std::string(ent->d_name) + "\">" +
@@ -88,14 +88,14 @@ int Transaction::checkResource() {
         throw ErrorPage404Exception();  // 403 Forbidden
       }
     } else {
-      throw ErrorPage404Exception(); // 403 Forbidden
+      throw ErrorPage404Exception();  // 403 Forbidden
     }
     return -1;
   } else {  // 파일 일 경우
-    if (access(resource.c_str(), F_OK) == -1) {
+    if (access(this->resource.c_str(), F_OK) == -1) {
       throw ErrorPage404Exception();
     }
-    this->file_ptr = ft::safeFopen(resource.c_str(), "r+");
+    this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
     this->setFlag(FILE_OPEN);
     return (file_ptr->_file);
   }
@@ -276,10 +276,52 @@ void Transaction::httpGet(int data_size) {
 
 void Transaction::httpDelete(void) {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
+  // std::string file_path = "." + this->server_config.getRoot() +
+  // this->location.root + this->request.getUrl();
+  if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
+    this->response.setStatus("200");
+  } else {  // 파일 삭제 실패
+    throw ErrorPage500Exception();
+  }
 }
 
 void Transaction::httpPost(void) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
+  // Check if the file exists
+  if (access(this->resource.c_str(), F_OK) != -1) {
+    // File exists, update the file
+    ft::safeFwrite(&(this->request.getEntity()[0]), sizeof(char),
+                   this->request.getEntitySize(), this->file_ptr);
+    this->response.setStatus("200");  // OK
+    // No content in the response body
+    this->response.setHeader("Content-Length", "0");
+  } else {
+    // File doesn't exist, create a new file
+    this->file_ptr = ft::safeFopen(this->resource.c_str(), "w+");
+    ft::safeFwrite(&(this->request.getEntity()[0]), sizeof(char),
+                   this->request.getEntitySize(), this->file_ptr);
+    this->response.setStatus("201");  // Created
+    // No content in the response body
+    this->response.setHeader("Content-Length", "0");
+  }
+  std::fclose(this->file_ptr);
+  this->setFlag(FILE_DONE);
+
+  // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
+  // std::string file_path = "." + this->server_config.getRoot() +
+  // this->request.getUrl();
+
+  // std::ofstream ofs(this->file_path.c_str(), std::ios::out |
+  // std::ios::trunc); if (!ofs.is_open()) {  // 파일 생성 실패
+  //   throw ErrorPage500Exception();
+  // } else {  // 파일 생성 성공
+  //   // ofs << this->request.getBody();
+  //   for (size_t i; i < this->request.getEntity().size(); ++i) {
+  //     ofs << this->request.getEntity()[i];
+  //   }
+  //   ofs.close();
+  //   this->response.setStatus("200");
+  // }
 }
 
 //---- error class -------------------------------------------------------------
