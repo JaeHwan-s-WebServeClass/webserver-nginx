@@ -623,3 +623,35 @@ c. access 를 이용해서 b 에서 만든 위치가 접근 가능한지 확인�
 <img src="https://user-images.githubusercontent.com/85930183/234231482-585545f6-1664-4b41-97a3-4a4af5dc6409.jpeg" width="70%">
 
 <img src="https://user-images.githubusercontent.com/85930183/234231516-38e7df29-d5b6-47e7-807c-89145b5326c9.jpeg" width="70%">
+
+
+---
+
+## 12. [2023.05.02(화)] cgi???
+
+### 12-1. 상황
+구현해야될 기능은 post, delete 와 cgi 만 남았다. http 프로토콜은 정적인 처리밖에 못하기 때문에 동적인 처리를 할 수 있는 cgi 가 필요하다. cgi 는 common gateway inerface 의 줄임말로 서로 다른 프로토콜을 연결해주는 인터페이스라고 생각하면된다.
+
+예를 들어 아래와 같은 코드가 있다고 하자.
+```
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Post</title>
+</head>
+
+<body>
+    <form action="post.py" method="POST">
+        <input type="text" name="name" />
+        <input type="text" name="email" />
+        <input type="submit" value="Submit" />
+    </form>
+</body>
+
+</html>
+```
+`form` 태그 안에 `action="post.py"` 가 있다. `.py` 파일은 http 프로토콜로 처리할 수 없다.
+
+<img src="https://user-images.githubusercontent.com/85930183/235587194-b95b80c3-83ce-4785-bd3a-a913394ed8ae.jpeg" width="90%">
+

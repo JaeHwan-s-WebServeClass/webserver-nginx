@@ -553,7 +553,25 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 * 에러 이벤트 등록 후 clear 추가
 * 메서드 체크 전에 resource 체크
 
-[19:10 ~ 21:00] autoindex 처리 후...
+[19:10 ~ 21:00] autoindex 처리...!
+
+
+<br>
+
+***
+
+## [27일차] 2023.05.01 (월)
+
+### 진행 계획
+
+1. 뭘 해야하는지 알아보기
+2. CGI config file 만들기
+3. CGI 구현하기
+
+
+### 결과
+
+[13:00 ~]
 
 
 <br>
