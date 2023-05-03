@@ -560,7 +560,7 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 ***
 
-## [27일차] 2023.05.01 (월)
+## [27일차] 2023.05.02 (화)
 
 ### 진행 계획
 
@@ -580,6 +580,27 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 [18:40 ~ 20:35] CGI 구현
 
 [21:00 ~ 22:40] POST 구현
+
+<br>
+
+***
+
+## [28일차] 2023.05.03 (수)
+
+### 진행 계획
+
+1. post 구현하기
+    * cgi 아닌 요청이 들어왔을 때 처리하기
+2. waitpid Nonblocking
+3. delete 구현하기
+
+
+### 결과
+
+[13:40 ~ 14:25] post 구현하기
+    * cgi 아닌 post 처리
+    * post 로 업로드한 파일 get 으로 접근하는 테스트
+    
 
 <br>
 
