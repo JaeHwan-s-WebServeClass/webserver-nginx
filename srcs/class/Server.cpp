@@ -225,7 +225,7 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
 }
 
 void Server::runReadEventFile(struct kevent *&curr_event) {
-  std::cout << GRY << "Debug: Server: runReadEventFile\n" << DFT;
+  // std::cout << GRY << "Debug: Server: runReadEventFile\n" << DFT;
   // TODO file_fd를 vector로 관리할지는 추후 논의 필요.
   // udata에 있는 Transaction의 method를 호출한다.
   // executeMethod() : FILE_DONE -> RESPONSE_DONE (file을 읽고, method

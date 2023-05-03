@@ -262,7 +262,7 @@ int Transaction::executeMethod(int data_size, int fd) {
     } else if (this->request.getMethod() == "POST") {
       this->httpPost(fd);
     } else if (this->request.getMethod() == "DELETE") {
-      this->httpDelete(fd);
+      this->httpDelete();
     }
   }
   // 다 됐으면 ====> FILE_DONE
@@ -288,11 +288,13 @@ void Transaction::httpGet(int data_size) {
   }
 }
 
-void Transaction::httpDelete(int fd) {
+void Transaction::httpDelete() {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
-  (void)fd;                                        // temporary
   if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
+    this->setFlag(FILE_DONE);
     this->response.setStatus("200");
+    this->response.setHeader("Content-Type", "text/plain");
+    this->response.setEntity("200 OK", 6);
   } else {  // 파일 삭제 실패
     throw ErrorPage500Exception();
   }
