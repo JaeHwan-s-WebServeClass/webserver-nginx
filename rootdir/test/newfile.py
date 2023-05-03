@@ -1,6 +1,7 @@
 import time
 
-html = """
+html="""
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,7 +9,7 @@ html = """
 </head>
 <body>
 <b>server time : {}</b><br>
-<b>new.py</b><br>
+<b>python file for get method</b><br>
 </body>
 </html>
 """.format(str(time.time()))
