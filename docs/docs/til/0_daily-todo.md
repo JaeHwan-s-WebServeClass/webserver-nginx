@@ -591,8 +591,8 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 1. post 구현하기
     * cgi 아닌 요청이 들어왔을 때 처리하기
-2. waitpid Nonblocking
-3. delete 구현하기
+2. delete 구현하기
+3. waitpid Nonblocking
 
 
 ### 결과
@@ -600,7 +600,8 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 [13:40 ~ 14:25] post 구현하기
     * cgi 아닌 post 처리
     * post 로 업로드한 파일 get 으로 접근하는 테스트
-    
+
+[14:30 ~ 14:40] delete 구현하기
 
 <br>
 
