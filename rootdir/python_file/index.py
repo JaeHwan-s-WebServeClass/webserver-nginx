@@ -1,3 +1,5 @@
+html="""
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -5,6 +7,9 @@
     <title>Hello, World!</title>
   </head>
   <body>
-    <h1>Hello, jnam yichoi seunghye jrim jimin jaekim!</h1>
+    <h1>This is python_file/index.py</h1>
   </body>
 </html>
+"""
+
+print(html)

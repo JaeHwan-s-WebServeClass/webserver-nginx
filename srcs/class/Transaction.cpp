@@ -83,10 +83,17 @@ int Transaction::checkDirectory() {
   for (; it != this->location.index.end(); ++it) {
     std::string tmp = this->resource + *it;
     if (access(tmp.c_str(), F_OK) != -1) {
+      this->resource = tmp;
       // 찾았을 경우
-      this->file_ptr = ft::safeFopen(tmp.c_str(), "r");
-      this->setFlag(FILE_READ);
-      return file_ptr->_file;
+      if ((this->location.cgi_exec != "") &&
+          ft::findSuffix(this->resource, ".py")) {
+        this->setFlag(FILE_READ);
+        return this->executeCGI();
+      } else {
+        this->file_ptr = ft::safeFopen(this->resource.c_str(), "r");
+        this->setFlag(FILE_READ);
+        return this->file_ptr->_file;
+      }
     }
   }
   if (this->location.autoindex) {
