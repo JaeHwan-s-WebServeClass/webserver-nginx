@@ -24,6 +24,7 @@ typedef enum step {
   REQUEST_ENTITY,  // Request.cpp line 75(length), 96(chunked)
   REQUEST_DONE,    // T.cpp executeRead line 131
   FILE_READ,       // T.cpp checkResource line 76
+  FILE_CGI,
   FILE_WRITE,
   FILE_DONE,      // T.cpp httpGet line 290
   RESPONSE_DONE,  // Response.cpp setResponseMsg line 82
