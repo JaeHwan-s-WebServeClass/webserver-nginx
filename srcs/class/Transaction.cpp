@@ -154,17 +154,23 @@ int Transaction::checkDirectory() {
 int Transaction::checkFile() {
   if ((this->location.cgi_exec != "") &&
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
+    std::cout << "CGI FILE\n";
     if ((this->request.getMethod() == "GET") &&
         (access(this->resource.c_str(), F_OK) == -1)) {
       throw ErrorPage404Exception();
     }
     this->setFlag(FILE_READ);
     return this->executeCGI();
-  } else {
+  } else if (this->request.getMethod() == "POST") {
+    std::cout << "POST FILE\n";
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
     this->setFlag(FILE_WRITE);
-    return (this->file_ptr->_file);
+  } else {
+    std::cout << "GET FILE\n";
+    this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
+    this->setFlag(FILE_READ);
   }
+  return (this->file_ptr->_file);
 }
 
 void Transaction::checkAllowedMethod() {
@@ -233,10 +239,12 @@ int Transaction::executeReadHead(char *buf, int read_len) {
       this->flag = REQUEST_HEAD;
 
       // DEBUG: checking raw head
-      // std::cout << GRY << "------------------ raw head ------------------"
+      // std::cout << GRY << "------------------ raw head
+      // ------------------"
       //           << DFT << std::endl;
-      // std::cout << GRY << this->request.getRawHead() << DFT << std::endl;
-      // std::cout << GRY << "----------------------------------------------"
+      // std::cout << GRY << this->request.getRawHead() << DFT <<
+      // std::endl; std::cout << GRY <<
+      // "----------------------------------------------"
       //           << DFT << std::endl;
 
       this->request.parserHead();
@@ -246,13 +254,15 @@ int Transaction::executeReadHead(char *buf, int read_len) {
       this->request.setRawHead(line + "\n");
       if (read_stream.eof()) {
         throw std::string(
-            "Error: Transaction: executeReadHead: Over MAX HEADER SIZE");
+            "Error: Transaction: executeReadHead: Over MAX HEADER "
+            "SIZE");
       }
     }
   }
   if (this->request.getRawHead().length() > MAX_HEAD_SIZE) {
     throw std::string(
-        "Error: Transaction: executeReadHead: Request Head Over MAX HEAD "
+        "Error: Transaction: executeReadHead: Request Head Over "
+        "MAX HEAD "
         "SIZE");
   }
   return (read_len - this->request.getRawHead().length());
@@ -287,7 +297,8 @@ void Transaction::executeReadEntity(char *buf, int read_len,
   // }
   if (this->request.getEntitySize() > MAX_BODY_SIZE) {
     throw std::string(
-        "Error: Transaction: executeReadEntity: Request Entity Over MAX BODY "
+        "Error: Transaction: executeReadEntity: Request Entity "
+        "Over MAX BODY "
         "SIZE");
   }
 }
@@ -326,6 +337,8 @@ void Transaction::httpGet(int data_size, int fd) {
     int read_len;
     read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
     this->response.setEntity(buf, read_len);
+    this->response.setStatus("200");
+    this->response.setHeader("Content-Type", "text/html");
     buf[read_len] = '\0';
     // DEBUG
     // std::cout << buf << std::endl;
