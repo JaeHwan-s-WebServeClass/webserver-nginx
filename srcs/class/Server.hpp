@@ -43,9 +43,10 @@ class Server {
   // ---- main loop ---------------------------
   void run(void);
   void runErrorServer(struct kevent *&);
-  void runReadEventServer(int, std::vector<ServerSocket>::const_iterator);
+  void runReadEventServer(std::vector<ServerSocket>::const_iterator);
   void runReadEventClient(struct kevent *&);
   void runReadEventFile(struct kevent *&);
+  void runWriteEventFile(struct kevent *&curr_event);
   void runWriteEventClient(struct kevent *&);
 
   // ---- utils -------------------------------

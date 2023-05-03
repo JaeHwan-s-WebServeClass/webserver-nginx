@@ -116,8 +116,13 @@ int Transaction::checkDirectory() {
 
 int Transaction::checkFile() {
   // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
+
   if (this->request.getMethod() == "POST") {  // 파일 새로 생성 or pipe fd 반환
-    if ((this->location.cgi != "") && ft::findSuffix(this->resource, ".py")) {
+    if (this->flag == FILE_CGI) {
+      this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
+      this->setFlag(FILE_WRITE);
+    } else if ((this->location.cgi_exec != "") &&
+               ft::findSuffix(this->resource, ".py")) {
       this->setFlag(FILE_READ);
       return this->executeCGI();
     } else {
@@ -125,7 +130,7 @@ int Transaction::checkFile() {
       this->setFlag(FILE_WRITE);
     }
   } else if ((this->request.getMethod() == "GET") &&
-             (this->location.cgi != "") &&
+             (this->location.cgi_exec != "") &&
              ft::findSuffix(
                  this->resource,
                  ".py")) {  // 파일 일 경우 (이미 존재하는 파일을 조회하는 경우)
@@ -341,11 +346,13 @@ void Transaction::httpPost(int fd) {
     char buf[BUFFER_SIZE];
     int read_len;
     read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
-    this->response.setEntity(buf, read_len);
+    // this->response.setEntity(buf, read_len);
     buf[read_len] = '\0';
     // DEBUG
-    // std::cout << buf << std::endl;
-    this->setFlag(FILE_DONE);
+    // this->setFlag(FILE_DONE);
+    this->request.setEntity(buf, read_len);
+
+    this->setFlag(FILE_CGI);
     close(fd);
   } else if (this->flag == FILE_WRITE) {  // upload file
     ft::safeFwrite(&this->request.getEntity()[0], sizeof(char),
@@ -363,16 +370,23 @@ int Transaction::executeCGI(void) {
   // std::cout << GRY << "Debug: Transaction: executeCGI\n" << DFT;
   int fd[2];
   int status;
+  std::string cgi_path;
 
   ft::safePipe(fd);  // pipe 는 반이중(Half-duplex) 통신
+  if (this->request.getMethod() == "POST") {
+    cgi_path = ("." + this->server_config.getRoot() + this->location.root +
+                this->location.cgi_path);
+  } else if (this->request.getMethod() == "GET") {
+    cgi_path = this->resource;
+  }
   char const *const args[] = {
-      (this->location.cgi).c_str(), this->resource.c_str(),
+      (this->location.cgi_exec).c_str(), cgi_path.c_str(),
       ft::vecToCharArr(this->request.getEntity()), NULL};
   pid_t cgi_pid = ft::safeFork();
   if (cgi_pid == 0) {  // 자식은 쓰고 -> read closed
     close(fd[0]);
     dup2(fd[1], 1);
-    if (execve((this->location.cgi).c_str(), (char **)args, NULL) == -1) {
+    if (execve((this->location.cgi_exec).c_str(), (char **)args, NULL) == -1) {
       exit(1);
     }
   } else {  // 부모는 읽고 -> write closed

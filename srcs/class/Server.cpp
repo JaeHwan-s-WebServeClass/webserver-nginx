@@ -95,7 +95,6 @@ void Server::run() {
                (curr_event->flags & EV_EOF)) {
         this->disconnectClient(curr_event->ident, this->clients);
       } else if (curr_event->filter == EVFILT_READ) {
-        int client_socket = 0;
         std::vector<ServerSocket>::const_iterator it =
             this->server_socket.begin();
         for (; it != this->server_socket.end(); it++) {
@@ -105,7 +104,7 @@ void Server::run() {
         }
         try {
           if (it != this->server_socket.end()) {
-            this->runReadEventServer(client_socket, it);
+            this->runReadEventServer(it);
           } else if (this->clients.find(curr_event->ident) !=
                      this->clients.end()) {
             this->runReadEventClient(curr_event);
@@ -148,7 +147,11 @@ void Server::run() {
         // exception 상속받아서 404, 500, 501 등 처리하고,
         // 미리 정해두지 않은 에러의 경우 default error string 적용해주기
       } else if (curr_event->filter == EVFILT_WRITE) {
-        this->runWriteEventClient(curr_event);
+        if (curr_event->udata) {
+          this->runWriteEventFile(curr_event);
+        } else {
+          this->runWriteEventClient(curr_event);
+        }
       }
     }
   }
@@ -168,10 +171,11 @@ void Server::runErrorServer(struct kevent *&curr_event) {
   }
 }
 
-void Server::runReadEventServer(int client_socket,
-                                std::vector<ServerSocket>::const_iterator it) {
+void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
   // std::cout << GRY << "Debug: Server: runReadEventServer\n" << DFT;
-  client_socket = it->safeAccept();
+  std::cout << YLW << "it->getServerSocket : " << it->getServerSocket() << DFT
+            << std::endl;
+  int client_socket = it->safeAccept();
   std::cout << GRN << "accept new client: " << client_socket << DFT
             << std::endl;
   fcntl(client_socket, F_SETFL, O_NONBLOCK);
@@ -236,26 +240,45 @@ void Server::runReadEventFile(struct kevent *&curr_event) {
   if (curr_transaction->getFlag() == FILE_READ) {
     curr_transaction->executeMethod(static_cast<int>(curr_event->data),
                                     curr_event->ident);
+    if (curr_transaction->getFlag() == FILE_CGI) {
+      // std::cout << curr_transaction->getFlag();
+      int file_fd = curr_transaction->checkFile();
+      fcntl(file_fd, F_SETFL, O_NONBLOCK);
+      setChangeList(this->change_list, file_fd, EVFILT_WRITE,
+                    EV_ADD | EV_ENABLE | EV_EOF, 0, 0, curr_transaction);
+      // setChangeList(this->change_list, curr_event->ident, EVFILT_READ,
+      // EV_DELETE,
+      //             0, 0, NULL);
+    }
   }
   if (curr_transaction->getFlag() == FILE_DONE) {
     // std::cout << GRY << "Debug: Server: runReadEventFile\n" << DFT;
-    //  TODO delete 할 때 udata 를 NULL 로 둬도 될까...?
     setChangeList(this->change_list, curr_event->ident, EVFILT_READ, EV_DELETE,
                   0, 0, NULL);
   }
 }
 
+void Server::runWriteEventFile(struct kevent *&curr_event) {
+  std::cout << GRY << "Debug: Server: runWriteEventFile\n" << DFT;
+  Transaction *curr_transaction =
+      reinterpret_cast<Transaction *>(curr_event->udata);
+
+  if (curr_transaction->getFlag() == FILE_WRITE) {
+    curr_transaction->executeMethod(static_cast<int>(curr_event->data),
+                                    curr_event->ident);
+  }
+  // 이게 있으면 왜 에러 뜨지??
+  // if (curr_transaction->getFlag() == RESPONSE_DONE) {
+  //   setChangeList(this->change_list, curr_event->ident, EVFILT_WRITE,
+  //   EV_DELETE,
+  //               0, 0, NULL);
+  // }
+}
+
 void Server::runWriteEventClient(struct kevent *&curr_event) {
   std::map<int, Transaction *>::iterator it = clients.find(curr_event->ident);
   // std::cout << GRY << "Debug: Server: runWriteEventClient\n" << DFT;
-  // 3-1. client에서 이벤트 발생
-  //  response 를 완료한 client 인 경우
-  if (curr_event->udata &&
-      reinterpret_cast<Transaction *>(curr_event->udata)->getFlag() ==
-          FILE_WRITE) {
-    reinterpret_cast<Transaction *>(curr_event->udata)
-        ->executeMethod(static_cast<int>(curr_event->data), curr_event->ident);
-  } else if (it != clients.end()) {
+  if (it != clients.end()) {
     // 응답시간이 너무 길어질 때의 처리도 필요하다.
     if (it->second->getFlag() == RESPONSE_DONE) {
       if (this->clients[curr_event->ident]->executeWrite() == -1) {
