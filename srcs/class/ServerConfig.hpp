@@ -19,7 +19,8 @@ class ServerConfig {
     std::vector<std::string> index;
     bool autoindex;
     int http_method;
-    std::string cgi;
+    std::string cgi_exec;
+    std::string cgi_path;
   } t_location;
 
  private:

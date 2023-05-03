@@ -95,8 +95,10 @@ void ServerConfig::setLocation(const std::string map_key, const std::string key,
   } else if (key == "index") {
     this->locations[map_key].index.clear();
     this->locations[map_key].index = value;
-  } else if (key == "cgi") {
-    this->locations[map_key].cgi = value.front();
+  } else if (key == "cgi_exec") {
+    this->locations[map_key].cgi_exec = value.front();
+  } else if (key == "cgi_path") {
+    this->locations[map_key].cgi_path = value.front();
   } else if (key == "allow") {
     std::vector<std::string>::const_iterator it = value.begin();
     for (; it != value.end(); it++) {
@@ -128,7 +130,8 @@ void ServerConfig::setLocationDefault(const std::string key) {
   this->locations[key].root = "/";
   this->locations[key].autoindex = false;
   this->locations[key].index.push_back("index.html");
-  this->locations[key].cgi = "";
+  this->locations[key].cgi_exec = "";
+  this->locations[key].cgi_path = "";
   this->locations[key].http_method = (0b111);
 }
 
@@ -155,7 +158,8 @@ void ServerConfig::printLocation(const t_location &location) {
   ft::printVector(location.index);
   std::cout << "     http_method:  " << location.http_method << GRY
             << " (GET = 1, POST = 2, DELETE = 4)" << DFT << std::endl;
-  std::cout << "     cgi:  " << location.cgi << std::endl;
+  std::cout << "     cgi_exec:  " << location.cgi_exec << std::endl;
+  std::cout << "     cgi_path:  " << location.cgi_path << std::endl;
 }
 
 void ServerConfig::printConfig(std::vector<ServerConfig> config) {
