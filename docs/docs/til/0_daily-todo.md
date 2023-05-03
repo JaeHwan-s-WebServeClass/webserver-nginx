@@ -603,6 +603,8 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 [14:30 ~ 14:40] delete 구현하기
 
+[14:50 ~ 17:00] get cgi 구현 및 post 재논의 
+
 <br>
 
 ***
