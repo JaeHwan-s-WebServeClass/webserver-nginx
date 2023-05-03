@@ -45,6 +45,9 @@ void Response::setStatus(std::string status_code) {
   } else if (status_code == "201") {
     this->status_code = "201";
     this->status_msg = "Created";
+  } else if (status_code == "301") {
+    this->status_code = "301";
+    this->status_msg = "Moved Permanently";
   } else if (status_code == "404") {
     this->status_code = "404";
     this->status_msg = "Not Found :(";

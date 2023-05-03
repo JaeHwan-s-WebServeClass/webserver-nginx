@@ -89,8 +89,10 @@ void Server::run() {
 
       if (curr_event->flags & EV_ERROR) {
         this->runErrorServer(curr_event);
-      } else if (curr_event->flags & EV_EOF) {
-        // TODO : client가 일방적으로 연결을 끊으면 EV_EOF flag가 켜짐
+      }
+      // TODO : client가 일방적으로 연결을 끊으면 EV_EOF flag가 켜짐
+      else if ((this->clients.find(curr_event->ident) != this->clients.end()) &&
+               (curr_event->flags & EV_EOF)) {
         this->disconnectClient(curr_event->ident, this->clients);
       } else if (curr_event->filter == EVFILT_READ) {
         int client_socket = 0;
@@ -204,11 +206,19 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
     if (file_fd == -1) {
       return;
     }
-    this->clients[curr_event->ident]->checkAllowedMethod();
+    // std::cout << "file_fd : " << file_fd << std::endl;
+    // checkResource 내부에서 호출
+    // this->clients[curr_event->ident]->checkAllowedMethod();
     fcntl(file_fd, F_SETFL, O_NONBLOCK);
-    setChangeList(this->change_list, file_fd, EVFILT_READ,
-                  EV_ADD | EV_ENABLE | EV_EOF, 0, 0,
-                  this->clients[curr_event->ident]);
+    if (this->clients[curr_event->ident]->getFlag() == FILE_READ) {
+      setChangeList(this->change_list, file_fd, EVFILT_READ,
+                    EV_ADD | EV_ENABLE | EV_EOF, 0, 0,
+                    this->clients[curr_event->ident]);
+    } else if (this->clients[curr_event->ident]->getFlag() == FILE_WRITE) {
+      setChangeList(this->change_list, file_fd, EVFILT_WRITE,
+                    EV_ADD | EV_ENABLE | EV_EOF, 0, 0,
+                    this->clients[curr_event->ident]);
+    }
     // setChangeList(this->change_list, file_fd, EV_EOF, EV_ADD | EV_ENABLE,
     //               0, 0, this->clients[curr_event->ident]);
   }
@@ -223,13 +233,12 @@ void Server::runReadEventFile(struct kevent *&curr_event) {
   Transaction *curr_transaction =
       reinterpret_cast<Transaction *>(curr_event->udata);
 
-  if (curr_transaction->getFlag() == FILE_OPEN) {
-    curr_transaction->executeMethod(static_cast<int>(curr_event->data));
+  if (curr_transaction->getFlag() == FILE_READ) {
+    curr_transaction->executeMethod(static_cast<int>(curr_event->data),
+                                    curr_event->ident);
   }
   if (curr_transaction->getFlag() == FILE_DONE) {
-    // std::cout << GRY << "Debug: Server: runReadEventFile: FILE_DONE\n" <<
-    // DFT;
-
+    // std::cout << GRY << "Debug: Server: runReadEventFile\n" << DFT;
     //  TODO delete 할 때 udata 를 NULL 로 둬도 될까...?
     setChangeList(this->change_list, curr_event->ident, EVFILT_READ, EV_DELETE,
                   0, 0, NULL);
@@ -241,7 +250,12 @@ void Server::runWriteEventClient(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runWriteEventClient\n" << DFT;
   // 3-1. client에서 이벤트 발생
   //  response 를 완료한 client 인 경우
-  if (it != clients.end()) {
+  if (curr_event->udata &&
+      reinterpret_cast<Transaction *>(curr_event->udata)->getFlag() ==
+          FILE_WRITE) {
+    reinterpret_cast<Transaction *>(curr_event->udata)
+        ->executeMethod(static_cast<int>(curr_event->data), curr_event->ident);
+  } else if (it != clients.end()) {
     // 응답시간이 너무 길어질 때의 처리도 필요하다.
     if (it->second->getFlag() == RESPONSE_DONE) {
       if (this->clients[curr_event->ident]->executeWrite() == -1) {
@@ -256,7 +270,7 @@ void Server::runWriteEventClient(struct kevent *&curr_event) {
     // } else {
     //   this->clients[curr_event->ident]->getRequest().clearSetRawMsg();
     // }
-  }  // TODO write 이벤트가 파일 일 때 else{}
+  }
 }
 
 //----- utils -----------------------------------------------------------------

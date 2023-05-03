@@ -49,6 +49,9 @@ int safeRecv(int, char *, int);
 /// @return write size
 int safeSend(int, Response &);
 
+ssize_t safeRead(int, char *, int);
+ssize_t safeWrite(int, char *, int);
+
 /// @brief
 /// @param buf
 /// @param size
@@ -57,11 +60,11 @@ int safeSend(int, Response &);
 /// @return read/write size
 size_t safeFread(char *, int, int, FILE *);
 size_t safeFwrite(const char *, int, int, FILE *);
+
 std::FILE *safeFopen(const char *, const char *);
-
-ssize_t safeWrite(int, char *, int);
-ssize_t safeRead(int, char *, int);
-
+int safeFclose(FILE *);
+int safeClose(int);
+    
 void safePipe(int *);
 pid_t safeFork(void);
 }  // namespace ft

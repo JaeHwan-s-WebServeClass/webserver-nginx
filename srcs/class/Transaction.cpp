@@ -9,7 +9,7 @@ Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
       response(this->flag),
       request(this->flag),
       server_config(server_config) {
-  // std::cout << GRY << "Debug: Transaction::constructor\n" << DFT;
+  // std::cout << GRY << "Debug: Transaction: constructor\n" << DFT;
 }
 
 //---- getter ------------------------------------------------------------------
@@ -30,6 +30,7 @@ int Transaction::checkResource() {
   std::string request_location;
   std::string request_filename = "";
 
+  // -- split point 1 ---------------------------------------------------------
   // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
   std::size_t pos = this->request.getUrl().find_last_of("/");
   if (pos == std::string::npos) {
@@ -53,17 +54,19 @@ int Transaction::checkResource() {
   } else {
     throw ErrorPage500Exception();
   }
+  // -- split point 2 ---------------------------------------------------------
   // STEP 3 . URL이 "/"로 끝났냐 or 아니냐 => 디렉토리(3)냐 파일(4)이냐
   // 디렉토리일 때
   if (this->request.getUrl().back() == '/') {
     std::vector<std::string>::const_iterator it = this->location.index.begin();
 
+    // index.html
     for (; it != this->location.index.end(); ++it) {
       std::string tmp = this->resource + *it;
       if (access(tmp.c_str(), F_OK) != -1) {
         // 찾았을 경우
         this->file_ptr = ft::safeFopen(tmp.c_str(), "r");
-        this->setFlag(FILE_OPEN);
+        this->setFlag(FILE_READ);
         return file_ptr->_file;
       }
     }
@@ -91,14 +94,28 @@ int Transaction::checkResource() {
       throw ErrorPage404Exception();  // 403 Forbidden
     }
     return -1;
-  } else {  // 파일 일 경우
+  }
+  // 여기까지 왔다면 디렉토리 처리는 완료된 상태입니다...
+  // -- split point 3 ---------------------------------------------------------
+  this->checkAllowedMethod();
+
+  if (this->request.getMethod() == "POST") {  // 파일 새로 생성 or pipe fd 반환
+    if ((this->location.cgi != "") &&
+        (request_filename.find_last_of(".py") != std::string::npos)) {
+      this->setFlag(FILE_READ);
+      return this->executeCGI();
+    } else {
+      this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
+      this->setFlag(FILE_WRITE);
+    }
+  } else {  // 파일 일 경우 (이미 존재하는 파일을 조회하는 경우)
     if (access(this->resource.c_str(), F_OK) == -1) {
       throw ErrorPage404Exception();
     }
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
-    this->setFlag(FILE_OPEN);
-    return (file_ptr->_file);
+    this->setFlag(FILE_READ);
   }
+  return (file_ptr->_file);
 }
 
 void Transaction::checkAllowedMethod() {
@@ -116,7 +133,7 @@ void Transaction::checkAllowedMethod() {
 
 //---- executor ----------------------------------------------------------------
 int Transaction::executeRead(void) {
-  // std::cout << GRY << "Debug: Transaction::executeRead\n" << DFT;
+  //  std::cout << GRY << "Debug: Transaction: executeRead\n" << DFT;
 
   // BUFFER_SIZE + 1을 할 것인가에 대한 논의
   char buf[BUFFER_SIZE + 1];
@@ -153,7 +170,7 @@ int Transaction::executeRead(void) {
 }
 
 int Transaction::executeReadHead(char *buf, int read_len) {
-  // std::cout << GRY << "Debug: Transaction::executeReadHead\n" << DFT;
+  //  std::cout << GRY << "Debug: Transaction: executeReadHead\n" << DFT;
   // 들어오는 데이터가 텍스트가 아닐수도있어 필요가 없?
   // 헤드는 무조건 텍스트로 들어오지 않을까요?
   // 터미널에서 보내는게 아니어서 상관없을거같아요..
@@ -194,7 +211,7 @@ int Transaction::executeReadHead(char *buf, int read_len) {
 
 void Transaction::executeReadEntity(char *buf, int read_len,
                                     int head_rest_len) {
-  // std::cout << GRY << "Debug: Transaction::executeReadEntity\n" << DFT;
+  //  std::cout << GRY << "Debug: Transaction: executeReadEntity\n" << DFT;
   std::map<std::string, std::string>::const_iterator it;
 
   if ((it = this->request.getHeader().find("Content-Length")) !=
@@ -235,25 +252,23 @@ int Transaction::executeWrite(void) {
   return 0;
 }
 
-int Transaction::executeMethod(int data_size) {
-  // std::cout << GRY << "Debug: Transaction::executeMethod\n" << DFT;
+int Transaction::executeMethod(int data_size, int fd) {
+  //  std::cout << GRY << "Debug: Transaction: executeMethod\n" << DFT;
 
   // method 처리
   if (!std::atoi(this->response.getStatusCode().c_str())) {
     if (this->request.getMethod() == "GET") {
       this->httpGet(data_size);
     } else if (this->request.getMethod() == "POST") {
-      this->httpPost();
+      this->httpPost(fd);
     } else if (this->request.getMethod() == "DELETE") {
       this->httpDelete();
     }
   }
   // 다 됐으면 ====> FILE_DONE
-
   if (this->flag == FILE_DONE) {
     this->response.setResponseMsg();
   }
-
   return 0;
 }
 
@@ -273,28 +288,39 @@ void Transaction::httpGet(int data_size) {
   }
 }
 
-void Transaction::httpDelete(void) {
+void Transaction::httpDelete() {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
   if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
+    this->setFlag(FILE_DONE);
     this->response.setStatus("200");
+    this->response.setHeader("Content-Type", "text/plain");
+    this->response.setEntity("200 OK", 6);
   } else {  // 파일 삭제 실패
     throw ErrorPage500Exception();
   }
 }
 
-void Transaction::httpPost(void) {
+void Transaction::httpPost(int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
-  char buf[BUFFER_SIZE];
-  int read_len;
-  int fd = this->executeCGI();
-
-  read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
-  this->response.setEntity(buf, read_len);
-  buf[read_len] = '\0';
-  // DEBUG
-  std::cout << buf << std::endl;
-  this->setFlag(FILE_DONE);
-  close(fd);
+  if (this->flag == FILE_READ) {  // cgi pipe read
+    char buf[BUFFER_SIZE];
+    int read_len;
+    read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
+    this->response.setEntity(buf, read_len);
+    buf[read_len] = '\0';
+    // DEBUG
+    std::cout << buf << std::endl;
+    this->setFlag(FILE_DONE);
+    close(fd);
+  } else if (this->flag == FILE_WRITE) {  // upload file
+    ft::safeFwrite(&this->request.getEntity()[0], sizeof(char),
+                   this->request.getEntitySize(), this->file_ptr);
+    ft::safeFclose(this->file_ptr);
+    this->setFlag(FILE_DONE);
+    this->response.setStatus("201");
+    this->response.setHeader("Content-Type", "text/plain");
+    this->response.setEntity("201 Created", 12);
+  }
 }
 
 //---- cgi ---------------------------------------------------------------------
@@ -304,7 +330,6 @@ int Transaction::executeCGI(void) {
   int status;
 
   ft::safePipe(fd);  // pipe 는 반이중(Half-duplex) 통신
-
   char const *const args[] = {
       (this->location.cgi).c_str(), this->resource.c_str(),
       ft::vecToCharArr(this->request.getEntity()), NULL};
@@ -340,11 +365,3 @@ const char *Transaction::ErrorPage501Exception::what() const throw() {
 const char *Transaction::ErrorPageDefaultException::what() const throw() {
   return "default";
 }
-
-//  1. uri 를 자르기
-//  2. request_location 찾기
-//  3. request_filename 찾기
-//  4. request_location 으로 locale_root 찾기
-//  5. doc_root 와 loc_root 와 file_name 을 합쳐서 local 파일 생성하기
-//  6. 파일을 열고 fd 반환하기
-//  7. 필요한 부분 = request_location

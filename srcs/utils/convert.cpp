@@ -30,11 +30,13 @@ std::string ft::intToStr(int num) {
 }
 
 const char* ft::vecToCharArr(const std::vector<char>& vec) {
-  // 벡터가 비어있을 경우 빈 문자열 반환
-  if (vec.empty()) {
-    return "";
+  const size_t size = vec.size();
+  char* charArr = new char[size + 1];
+
+  for (size_t i = 0; i < size; ++i) {
+    charArr[i] = vec[i];
   }
-  // 벡터의 첫 번째 요소의 주소 반환
-  // c++11 version
-  return vec.data();
+  charArr[size] = '\0';
+
+  return charArr;
 }

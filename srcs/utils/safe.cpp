@@ -2,7 +2,20 @@
 #include "../class/Transaction.hpp"
 #include "../include/include.hpp"
 
-//----- transcation -----------------------------------------------------------
+//----- send/recv --------------------------------------------------------------
+int ft::safeSend(int fd, Response &response) {
+  // std::cout << GRY << "Debug: safeSend\n" << DFT;
+  int send_len;
+
+  signal(SIGPIPE, SIG_IGN);
+  if ((send_len = send(fd, response.getResponseMsg(),
+                       response.getResponseMsgSize(), 0)) == -1) {
+    std::cerr << RED << "Error: Transaction: send() error\n" << DFT;
+  }
+  signal(SIGPIPE, SIG_DFL);
+  return send_len;
+}
+
 int ft::safeRecv(int fd, char *buf, int size) {
   // std::cout << GRY << "Debug: safeRecv\n" << DFT;
   int recv_len;
@@ -15,19 +28,30 @@ int ft::safeRecv(int fd, char *buf, int size) {
   return recv_len;
 }
 
-int ft::safeSend(int fd, Response &response) {
-  // std::cout << GRY << "Debug: safeSend\n";
-  int send_len;
-
+//----- read/write -------------------------------------------------------------
+ssize_t ft::safeRead(int fd, char *buf, int size) {
+  // std::cout << GRY << "Debug: safeRead\n" << DFT;
   signal(SIGPIPE, SIG_IGN);
-  if ((send_len = send(fd, response.getResponseMsg(),
-                       response.getResponseMsgSize(), 0)) == -1) {
-    std::cerr << RED << "Error: Transaction: send() error\n" << DFT;
+  ssize_t read_len = read(fd, buf, size);
+  if (read_len == -1) {
+    throw Transaction::ErrorPage500Exception();
   }
   signal(SIGPIPE, SIG_DFL);
-  return send_len;
+  return read_len;
 }
 
+ssize_t ft::safeWrite(int fd, char *buf, int size) {
+  // std::cout << GRY << "Debug: safeWrite\n" << DFT;
+  signal(SIGPIPE, SIG_IGN);
+  ssize_t write_len = write(fd, buf, size);
+  if (write_len == -1) {
+    throw Transaction::ErrorPage500Exception();
+  }
+  signal(SIGPIPE, SIG_DFL);
+  return write_len;
+}
+
+//----- fread/fwrite -----------------------------------------------------------
 size_t ft::safeFread(char *buf, int size, int count, FILE *file_ptr) {
   // std::cout << GRY << "Debug: safeFread\n" << DFT;
 
@@ -52,28 +76,16 @@ size_t ft::safeFwrite(const char *buf, int size, int count, FILE *file_ptr) {
   return write_len;
 }
 
-ssize_t ft::safeRead(int fd, char *buf, int size) {
-  // std::cout << GRY << "Debug: safeRead\n" << DFT;
-  signal(SIGPIPE, SIG_IGN);
-  ssize_t read_len = read(fd, buf, size);
-  if (read_len == -1) {
-    throw Transaction::ErrorPage500Exception();
+//----- open/close -------------------------------------------------------------
+int ft::safeClose(int fd) {
+  // std::cout << GRY << "Debug: safeClose\n" << DFT;
+  if (close(fd) != 0) {
+    std::cerr << RED << "Error: Transaction: file close() error\n" << DFT;
   }
-  signal(SIGPIPE, SIG_DFL);
-  return read_len;
+  return 0;
 }
 
-ssize_t ft::safeWrite(int fd, char *buf, int size) {
-  // std::cout << GRY << "Debug: safeWrite\n" << DFT;
-  signal(SIGPIPE, SIG_IGN);
-  ssize_t write_len = write(fd, buf, size);
-  if (write_len == -1) {
-    throw Transaction::ErrorPage500Exception();
-  }
-  signal(SIGPIPE, SIG_DFL);
-  return write_len;
-}
-
+//----- fopen/fclose -----------------------------------------------------------
 std::FILE *ft::safeFopen(const char *filename, const char *mode) {
   // std::cout << GRY << "Debug: safeFopen\n" << DFT;
   std::FILE *fp;
@@ -87,6 +99,15 @@ std::FILE *ft::safeFopen(const char *filename, const char *mode) {
   return fp;
 }
 
+int ft::safeFclose(FILE *fp) {
+  // std::cout << GRY << "Debug: safeFclose\n" << DFT;
+  if (std::fclose(fp) != 0) {
+    std::cerr << RED << "Error: Transaction: file fclose() error\n" << DFT;
+  }
+  return 0;
+}
+
+//----- fork/pipe --------------------------------------------------------------
 pid_t ft::safeFork() {
   // std::cout << GRY << "Debug: safeFork\n" << DFT;
   pid_t pid;
