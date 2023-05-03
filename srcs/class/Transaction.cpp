@@ -114,39 +114,57 @@ int Transaction::checkDirectory() {
   return -1;
 }
 
-int Transaction::checkFile() {
-  // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
+// int Transaction::checkFile() {
+//   // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
 
-  if (this->request.getMethod() == "POST") {  // 파일 새로 생성 or pipe fd 반환
-    if (this->flag == FILE_CGI) {
-      this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
-      this->setFlag(FILE_WRITE);
-    } else if ((this->location.cgi_exec != "") &&
-               ft::findSuffix(this->resource, ".py")) {
-      this->setFlag(FILE_READ);
-      return this->executeCGI();
-    } else {
-      this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
-      this->setFlag(FILE_WRITE);
-    }
-  } else if ((this->request.getMethod() == "GET") &&
-             (this->location.cgi_exec != "") &&
-             ft::findSuffix(
-                 this->resource,
-                 ".py")) {  // 파일 일 경우 (이미 존재하는 파일을 조회하는 경우)
-    if (access(this->resource.c_str(), F_OK) == -1) {
+//   if (this->request.getMethod() == "POST") {  // 파일 새로 생성 or pipe fd
+//   반환
+//     if (this->flag == FILE_CGI) {
+//       this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
+//       this->setFlag(FILE_WRITE);
+//     } else if ((this->location.cgi_exec != "") &&
+//                ft::findSuffix(this->resource, ".py")) {
+//       this->setFlag(FILE_READ);
+//       return this->executeCGI();
+//     } else {
+//       this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
+//       this->setFlag(FILE_WRITE);
+//     }
+//   } else if ((this->request.getMethod() == "GET") &&
+//              (this->location.cgi_exec != "") &&
+//              ft::findSuffix(
+//                  this->resource,
+//                  ".py")) {  // 파일 일 경우 (이미 존재하는 파일을 조회하는
+//                  경우)
+//     if (access(this->resource.c_str(), F_OK) == -1) {
+//       throw ErrorPage404Exception();
+//     }
+//     this->setFlag(FILE_READ);
+//     return this->executeCGI();
+//   } else {
+//     if (access(this->resource.c_str(), F_OK) == -1) {
+//       throw ErrorPage404Exception();
+//     }
+//     this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
+//     this->setFlag(FILE_READ);
+//   }
+//   return this->file_ptr->_file;
+// }
+
+int Transaction::checkFile() {
+  if ((this->location.cgi_exec != "") &&
+      ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
+    if ((this->request.getMethod() == "GET") &&
+        (access(this->resource.c_str(), F_OK) == -1)) {
       throw ErrorPage404Exception();
     }
     this->setFlag(FILE_READ);
     return this->executeCGI();
   } else {
-    if (access(this->resource.c_str(), F_OK) == -1) {
-      throw ErrorPage404Exception();
-    }
-    this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
-    this->setFlag(FILE_READ);
+    this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
+    this->setFlag(FILE_WRITE);
+    return (this->file_ptr->_file);
   }
-  return this->file_ptr->_file;
 }
 
 void Transaction::checkAllowedMethod() {
