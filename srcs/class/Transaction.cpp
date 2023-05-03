@@ -30,6 +30,7 @@ int Transaction::checkResource() {
   std::string request_location;
   std::string request_filename = "";
 
+  // -- split point 1 ---------------------------------------------------------
   // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
   std::size_t pos = this->request.getUrl().find_last_of("/");
   if (pos == std::string::npos) {
@@ -53,6 +54,7 @@ int Transaction::checkResource() {
   } else {
     throw ErrorPage500Exception();
   }
+  // -- split point 2 ---------------------------------------------------------
   // STEP 3 . URL이 "/"로 끝났냐 or 아니냐 => 디렉토리(3)냐 파일(4)이냐
   // 디렉토리일 때
   if (this->request.getUrl().back() == '/') {
@@ -94,32 +96,26 @@ int Transaction::checkResource() {
     return -1;
   }
   // 여기까지 왔다면 디렉토리 처리는 완료된 상태입니다...
-
+  // -- split point 3 ---------------------------------------------------------
   this->checkAllowedMethod();
 
-  if (this->request.getMethod() == "POST") {
-    if (this->location.cgi == "") {  // cgi 없을 때
+  if (this->request.getMethod() == "POST") {  // 파일 새로 생성 or pipe fd 반환
+    if ((this->location.cgi != "") &&
+        (request_filename.find_last_of(".py") != std::string::npos)) {
+      this->setFlag(FILE_READ);
+      return this->executeCGI();
+    } else {
       this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
-      this->flag = FILE_WRITE;
-    } else {  // cgi 있을 때
-      // .py 가 아닐 때
-      if (request_filename.find_last_of(".py") == std::string::npos) {
-        this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
-        this->flag = FILE_WRITE;
-      } else {  // .py 일 때
-        this->setFlag(FILE_READ);
-        return this->executeCGI();
-      }
+      this->setFlag(FILE_WRITE);
     }
-    return (file_ptr->_file);
-  } else {  // 파일 일 경우
+  } else {  // 파일 일 경우 (이미 존재하는 파일을 조회하는 경우)
     if (access(this->resource.c_str(), F_OK) == -1) {
       throw ErrorPage404Exception();
     }
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
     this->setFlag(FILE_READ);
-    return (file_ptr->_file);
   }
+  return (file_ptr->_file);
 }
 
 void Transaction::checkAllowedMethod() {
@@ -315,6 +311,13 @@ void Transaction::httpPost(int fd) {
     this->setFlag(FILE_DONE);
     close(fd);
   } else if (this->flag == FILE_WRITE) {  // upload file
+    ft::safeFwrite(&this->request.getEntity()[0], sizeof(char),
+                   this->request.getEntitySize(), this->file_ptr);
+    ft::safeFclose(this->file_ptr);
+    this->setFlag(FILE_DONE);
+    this->response.setStatus("201");
+    this->response.setHeader("Content-Type", "text/plain");
+    this->response.setEntity("201 Created", 12);
   }
 }
 
