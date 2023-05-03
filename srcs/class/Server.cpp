@@ -200,14 +200,14 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
   }
   // 파일은 한번만 호출되야 한다
   // checkAllowMethod() : method의 유효성 검사
-  // checkResource() : file open & return file fd
+  // executeResource() : file open & return file fd
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
-    int file_fd = this->clients[curr_event->ident]->checkResource();
+    int file_fd = this->clients[curr_event->ident]->executeResource();
     if (file_fd == -1) {
       return;
     }
     // std::cout << "file_fd : " << file_fd << std::endl;
-    // checkResource 내부에서 호출
+    // executeResource 내부에서 호출
     // this->clients[curr_event->ident]->checkAllowedMethod();
     fcntl(file_fd, F_SETFL, O_NONBLOCK);
     if (this->clients[curr_event->ident]->getFlag() == FILE_READ) {

@@ -36,6 +36,8 @@ std::string trim(std::string, char);
 
 void printVector(const std::vector<std::string> &);
 
+bool findSuffix(std::string filename, std::string suffix);
+
 // ---- safe-functions ------------------------------------
 /// @brief
 /// @param fd
@@ -64,7 +66,7 @@ size_t safeFwrite(const char *, int, int, FILE *);
 std::FILE *safeFopen(const char *, const char *);
 int safeFclose(FILE *);
 int safeClose(int);
-    
+
 void safePipe(int *);
 pid_t safeFork(void);
 }  // namespace ft

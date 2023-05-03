@@ -25,13 +25,32 @@ const FILE *Transaction::getFilePtr() const { return this->file_ptr; }
 void Transaction::setFlag(t_step flag) { this->flag = flag; }
 
 //---- checker -----------------------------------------------------------------
-int Transaction::checkResource() {
+// - request done 상황
+// 1. 리소스가 파일인지 폴더인지 체크
+// 1-1. autoindex 처리
+// 3. method 유효성 확인
+// 4. 파일 오픈 후 fd 반환
+// - 파일을 이벤트 등록 전
+
+int Transaction::executeResource() {
+  // std::cout << GRY << "Debug: Transaction: executeResource\n" << DFT;
+  // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
+  this->checkResource();
+  // STEP 2 . URL이 "/"로 끝났을 때 => 디렉토리
+  if (this->request.getUrl().back() == '/') {
+    return this->checkDirectory();
+  }
+  // STEP 3 . 처리할 수 있는 method인지 확인
+  this->checkAllowedMethod();
+  // STEP 4 . 각 상황에 따른 fd값 반환
+  return this->checkFile();
+}
+
+void Transaction::checkResource() {
   // std::cout << GRY << "Debug: Transaction: checkResource\n" << DFT;
   std::string request_location;
   std::string request_filename = "";
 
-  // -- split point 1 ---------------------------------------------------------
-  // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
   std::size_t pos = this->request.getUrl().find_last_of("/");
   if (pos == std::string::npos) {
     throw ErrorPage404Exception();
@@ -54,68 +73,75 @@ int Transaction::checkResource() {
   } else {
     throw ErrorPage500Exception();
   }
-  // -- split point 2 ---------------------------------------------------------
-  // STEP 3 . URL이 "/"로 끝났냐 or 아니냐 => 디렉토리(3)냐 파일(4)이냐
-  // 디렉토리일 때
-  if (this->request.getUrl().back() == '/') {
-    std::vector<std::string>::const_iterator it = this->location.index.begin();
+}
 
-    // index.html
-    for (; it != this->location.index.end(); ++it) {
-      std::string tmp = this->resource + *it;
-      if (access(tmp.c_str(), F_OK) != -1) {
-        // 찾았을 경우
-        this->file_ptr = ft::safeFopen(tmp.c_str(), "r");
-        this->setFlag(FILE_READ);
-        return file_ptr->_file;
-      }
+int Transaction::checkDirectory() {
+  // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
+  std::vector<std::string>::const_iterator it = this->location.index.begin();
+
+  // index.html
+  for (; it != this->location.index.end(); ++it) {
+    std::string tmp = this->resource + *it;
+    if (access(tmp.c_str(), F_OK) != -1) {
+      // 찾았을 경우
+      this->file_ptr = ft::safeFopen(tmp.c_str(), "r");
+      this->setFlag(FILE_READ);
+      return file_ptr->_file;
     }
-    if (this->location.autoindex) {
-      DIR *dir;
-      struct dirent *ent;
-      if ((dir = opendir(this->resource.c_str())) != NULL) {
-        std::string body = "<html><body>";
-        while ((ent = readdir(dir)) != NULL) {
-          body += "<a href=\"" + std::string(ent->d_name) + "\">" +
-                  std::string(ent->d_name) + "</a><br>";
-        }
-        body += "</body></html>";
-        closedir(dir);
-        this->response.setEntity(body.c_str(), body.size());
-        this->response.setStatus("200");
-        this->response.setHeader("Content-Type", "text/html");
-        this->response.setHeader("Content-Length", ft::intToStr(body.size()));
-        this->response.setResponseMsg();
-        return -1;
-      } else {                          //  디렉토리가 없는 경우
-        throw ErrorPage404Exception();  // 403 Forbidden
+  }
+  if (this->location.autoindex) {
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir(this->resource.c_str())) != NULL) {
+      std::string body = "<html><body>";
+      while ((ent = readdir(dir)) != NULL) {
+        body += "<a href=\"" + std::string(ent->d_name) + "\">" +
+                std::string(ent->d_name) + "</a><br>";
       }
-    } else {
+      body += "</body></html>";
+      closedir(dir);
+      this->response.setEntity(body.c_str(), body.size());
+      this->response.setStatus("200");
+      this->response.setHeader("Content-Type", "text/html");
+      this->response.setResponseMsg();
+      return -1;
+    } else {                          //  디렉토리가 없는 경우
       throw ErrorPage404Exception();  // 403 Forbidden
     }
-    return -1;
+  } else {
+    throw ErrorPage404Exception();  // 403 Forbidden
   }
-  // 여기까지 왔다면 디렉토리 처리는 완료된 상태입니다...
-  // -- split point 3 ---------------------------------------------------------
-  this->checkAllowedMethod();
+  return -1;
+}
 
+int Transaction::checkFile() {
+  // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
   if (this->request.getMethod() == "POST") {  // 파일 새로 생성 or pipe fd 반환
-    if ((this->location.cgi != "") &&
-        (request_filename.find_last_of(".py") != std::string::npos)) {
+    if ((this->location.cgi != "") && ft::findSuffix(this->resource, ".py")) {
       this->setFlag(FILE_READ);
       return this->executeCGI();
     } else {
       this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
       this->setFlag(FILE_WRITE);
     }
-  } else {  // 파일 일 경우 (이미 존재하는 파일을 조회하는 경우)
+  } else if ((this->request.getMethod() == "GET") &&
+             (this->location.cgi != "") &&
+             ft::findSuffix(
+                 this->resource,
+                 ".py")) {  // 파일 일 경우 (이미 존재하는 파일을 조회하는 경우)
+    if (access(this->resource.c_str(), F_OK) == -1) {
+      throw ErrorPage404Exception();
+    }
+    this->setFlag(FILE_READ);
+    return this->executeCGI();
+  } else {
     if (access(this->resource.c_str(), F_OK) == -1) {
       throw ErrorPage404Exception();
     }
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
     this->setFlag(FILE_READ);
   }
-  return (file_ptr->_file);
+  return this->file_ptr->_file;
 }
 
 void Transaction::checkAllowedMethod() {
@@ -133,7 +159,7 @@ void Transaction::checkAllowedMethod() {
 
 //---- executor ----------------------------------------------------------------
 int Transaction::executeRead(void) {
-  //  std::cout << GRY << "Debug: Transaction: executeRead\n" << DFT;
+  // std::cout << GRY << "Debug: Transaction: executeRead\n" << DFT;
 
   // BUFFER_SIZE + 1을 할 것인가에 대한 논의
   char buf[BUFFER_SIZE + 1];
@@ -163,14 +189,14 @@ int Transaction::executeRead(void) {
   }
 
   // DEBUG MSG : REQUEST
-  if (this->flag == REQUEST_DONE) {  // 임시
+  if (this->flag == REQUEST_DONE) {
     this->request.toString();
   }
   return 0;
 }
 
 int Transaction::executeReadHead(char *buf, int read_len) {
-  //  std::cout << GRY << "Debug: Transaction: executeReadHead\n" << DFT;
+  // std::cout << GRY << "Debug: Transaction: executeReadHead\n" << DFT;
   // 들어오는 데이터가 텍스트가 아닐수도있어 필요가 없?
   // 헤드는 무조건 텍스트로 들어오지 않을까요?
   // 터미널에서 보내는게 아니어서 상관없을거같아요..
@@ -211,7 +237,7 @@ int Transaction::executeReadHead(char *buf, int read_len) {
 
 void Transaction::executeReadEntity(char *buf, int read_len,
                                     int head_rest_len) {
-  //  std::cout << GRY << "Debug: Transaction: executeReadEntity\n" << DFT;
+  // std::cout << GRY << "Debug: Transaction: executeReadEntity\n" << DFT;
   std::map<std::string, std::string>::const_iterator it;
 
   if ((it = this->request.getHeader().find("Content-Length")) !=
@@ -244,7 +270,7 @@ void Transaction::executeReadEntity(char *buf, int read_len,
 }
 
 int Transaction::executeWrite(void) {
-  // std::cout << GRY << "Debug: Transacåtion::executeWrite\n";
+  // std::cout << GRY << "Debug: Transacation: executeWrite\n";
   if ((ft::safeSend(this->socket_fd, this->response) == -1)) {
     return -1;
   }
@@ -253,19 +279,16 @@ int Transaction::executeWrite(void) {
 }
 
 int Transaction::executeMethod(int data_size, int fd) {
-  //  std::cout << GRY << "Debug: Transaction: executeMethod\n" << DFT;
-
-  // method 처리
+  // std::cout << GRY << "Debug: Transaction: executeMethod\n" << DFT;
   if (!std::atoi(this->response.getStatusCode().c_str())) {
     if (this->request.getMethod() == "GET") {
-      this->httpGet(data_size);
+      this->httpGet(data_size, fd);
     } else if (this->request.getMethod() == "POST") {
       this->httpPost(fd);
     } else if (this->request.getMethod() == "DELETE") {
       this->httpDelete();
     }
   }
-  // 다 됐으면 ====> FILE_DONE
   if (this->flag == FILE_DONE) {
     this->response.setResponseMsg();
   }
@@ -273,18 +296,30 @@ int Transaction::executeMethod(int data_size, int fd) {
 }
 
 //---- HTTP methods ------------------------------------------------------------
-void Transaction::httpGet(int data_size) {
+void Transaction::httpGet(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpGet\n" << DFT;
-  char buf[MAX_BODY_SIZE + 1];
-  size_t read_len =
-      ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
-
-  std::cout << "data_size: " << data_size << std::endl;
-  this->response.setEntity(buf, read_len);
-  if (static_cast<int>(read_len) >= data_size) {
-    std::fclose(this->file_ptr);
+  if (ft::findSuffix(this->resource, ".py")) {
+    char buf[BUFFER_SIZE];
+    int read_len;
+    read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
+    this->response.setEntity(buf, read_len);
+    buf[read_len] = '\0';
+    // DEBUG
+    // std::cout << buf << std::endl;
     this->setFlag(FILE_DONE);
-    this->response.setStatus("200");
+    close(fd);
+  } else {
+    char buf[MAX_BODY_SIZE + 1];
+    size_t read_len =
+        ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
+
+    std::cout << "data_size: " << data_size << std::endl;
+    this->response.setEntity(buf, read_len);
+    if (static_cast<int>(read_len) >= data_size) {
+      std::fclose(this->file_ptr);
+      this->setFlag(FILE_DONE);
+      this->response.setStatus("200");
+    }
   }
 }
 
@@ -309,7 +344,7 @@ void Transaction::httpPost(int fd) {
     this->response.setEntity(buf, read_len);
     buf[read_len] = '\0';
     // DEBUG
-    std::cout << buf << std::endl;
+    // std::cout << buf << std::endl;
     this->setFlag(FILE_DONE);
     close(fd);
   } else if (this->flag == FILE_WRITE) {  // upload file
@@ -345,7 +380,7 @@ int Transaction::executeCGI(void) {
     // FIXME: nonblocking waitpid
     waitpid(cgi_pid, &status, 0);
     if (!WIFEXITED(status) && WEXITSTATUS(status)) {
-      std::cout << RED << "child error" << std::endl << DFT;
+      // std::cout << RED << "child error" << std::endl << DFT;
       throw ErrorPage500Exception();
     }
   }

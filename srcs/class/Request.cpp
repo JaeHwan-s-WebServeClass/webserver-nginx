@@ -32,10 +32,7 @@ size_t Request::getContentLength() const {
 
 //---- setter -----------------------------------------------------------------
 void Request::setRawHead(std::string line) { this->raw_head += line; }
-void Request::setFlag(t_step flag) {
-  // this->head_done = type;
-  this->flag = flag;
-}  // status? type?
+void Request::setFlag(t_step flag) { this->flag = flag; }
 
 //---- parser -----------------------------------------------------------------
 void Request::parserHead() {
@@ -43,14 +40,12 @@ void Request::parserHead() {
   std::vector<std::string> tmp_head;
   std::vector<std::string> tmp_start_line;
 
-  // 개행기준으로 split후 space 기준으로 start line split
   tmp_head = ft::split(this->raw_head, '\n');
   tmp_start_line = ft::split(tmp_head[0], ' ');
   this->method = tmp_start_line[0];
   this->url = tmp_start_line[1];
   this->http_version = tmp_start_line[2];
 
-  // header를 처리
   for (std::vector<std::string>::iterator it = tmp_head.begin() + 1;
        it != tmp_head.end(); ++it) {
     int pos = it->find(':');
@@ -63,7 +58,6 @@ void Request::addContentLengthEntity(char *buf, int read_len) {
     this->entity.push_back(buf[i]);
   }
   if (this->getEntitySize() == this->getContentLength()) {
-    // this->setEntityDone(true);
     this->setFlag(REQUEST_ENTITY);
   } else if (this->getEntitySize() > this->getContentLength()) {
     throw std::string("Error: Transaction: Request Entity Over Content-Length");
@@ -84,7 +78,6 @@ void Request::addChunkedEntity(char *buf, size_t read_len) {
         chunk_size = ft::hexToInt(hex_str);
         std::cout << "chunk_size: " << chunk_size << "\n";
         if (chunk_size == 0) {
-          // this->setEntityDone(true);
           this->setFlag(REQUEST_ENTITY);
           return;
         } else if (chunk_size < 0) {

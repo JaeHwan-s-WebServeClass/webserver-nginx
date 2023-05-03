@@ -51,11 +51,16 @@ class Transaction {
   void setFlag(t_step);
 
   // ---- checker -----------------------------
-  int checkResource(void);
-  void checkAllowedMethod(void);
+  void checkResource(void);  // set this->location, this->resoure
+  // 1. setResource
+  int checkDirectory(
+      void);  // URI가 directory일 때 처리 (index 처리 or 없으면 autoindex)
+  // 1. getIndex 2. openIndex 3. handleUriDirectory
+  void checkAllowedMethod(
+      void);  // 유효한 method인지 체크 (requset의 method와 conf의 method 비교)
 
-  int CheckResourceFile(void);
-  int CheckResourceDir(void);
+  int checkFile(void);  // file descriptor를 반환해야 하는 경우 처리
+  // this->file_ptr setting, setFlag
 
   // ---- executor ----------------------------
   int executeRead(void);
@@ -63,9 +68,10 @@ class Transaction {
   void executeReadEntity(char *, int, int);
   int executeWrite(void);
   int executeMethod(int, int);
+  int executeResource(void);
 
   // ---- http methods ------------------------
-  void httpGet(int);
+  void httpGet(int, int);
   void httpDelete(void);
   void httpPost(int);
 

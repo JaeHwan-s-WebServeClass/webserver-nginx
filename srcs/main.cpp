@@ -1,10 +1,12 @@
 #include "include/webserv.hpp"
 
 int main(int argc, char **argv) {
-  (void)argc; // temporary
+  (void)argc;  // temporary
   try {
     // step 1 - config file parsing
     std::vector<ServerConfig> config = parseConfig(argv[1]);
+    // DEBUG
+    // config.begin()->printConfig(config);
 
     // step 2 - setting server & create socket & init kqueue
     Server server(config);
@@ -20,10 +22,3 @@ int main(int argc, char **argv) {
   }
   return (0);
 }
-
-// DEBUG: checking result of parseConfig()
-// int tmp_cnt = 2;
-// for (int i = 0; i < tmp_cnt; i++) {
-//   config[i].printConfig(config);
-// }
-// std::cout << "---------------------------------------\n";

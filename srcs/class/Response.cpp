@@ -105,10 +105,6 @@ void Response::setResponseMsg() {
   std::cout << "response msg: " << response_msg << std::endl;
 }
 
-// HTTP/1.1 404 Not Found\r\n
-// Content-Type: text/html\r\n
-// Content-Length:
-// Connection:
 void Response::setErrorMsg(std::string status_code,
                            const std::string &error_msg) {
   this->setStatus(status_code);

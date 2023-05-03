@@ -59,6 +59,6 @@ class ServerConfig {
                    const std::vector<std::string> &);
 
   // ---- utils --------------------------------
-  void printLocation(const t_location &location);
-  void printConfig(void);
+  void printLocation(const t_location &);
+  void printConfig(std::vector<ServerConfig>);
 };

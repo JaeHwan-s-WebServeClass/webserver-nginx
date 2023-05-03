@@ -120,12 +120,6 @@ void ServerConfig::setLocation(const std::string map_key, const std::string key,
       }
     }
   } else {
-    // std::cout << "key : " << key << std::endl;
-    // std::cout << "value : ";
-    // std::vector<std::string *>::const_iterator it = value.begin();
-    // for(; it != value.end(); it++) {
-    // 	std::cout << *it << ", ";
-    // }
     throw std::string("Error: setLocation: Invalid Element");
   }
 }
@@ -155,38 +149,41 @@ void ServerConfig::setDefault() {
 
 //----- utils ------------------------------------------------------------------
 void ServerConfig::printLocation(const t_location &location) {
-  std::cout << "    autoindex: " << location.autoindex << std::endl;
-  std::cout << "    root: " << location.root << std::endl;
-  std::cout << "    index: ";
+  std::cout << "     autoindex:  " << location.autoindex << std::endl;
+  std::cout << "     root:  " << location.root << std::endl;
+  std::cout << "     index:  ";
   ft::printVector(location.index);
-  std::cout << "    http_method: " << location.http_method << GRY
-            << "\n    GET = 1, POST = 2, DELETE = 4" << DFT << std::endl;
-  std::cout << "    cgi: " << location.cgi << std::endl;
+  std::cout << "     http_method:  " << location.http_method << GRY
+            << " (GET = 1, POST = 2, DELETE = 4)" << DFT << std::endl;
+  std::cout << "     cgi:  " << location.cgi << std::endl;
 }
 
-void ServerConfig::printConfig(void) {
-  // int i = 1;
+void ServerConfig::printConfig(std::vector<ServerConfig> config) {
+  int i = 1;
+  std::vector<ServerConfig>::const_iterator it1 = config.begin();
 
-  // for (; it1 != config.end(); it1++) {
-  std::cout << "------------ server config ------------\n";
-  std::cout << "listen: " << this->getListen() << std::endl;
-  std::cout << "server_name: ";
-  ft::printVector(this->getServerName());
-  std::cout << "error_page: ";
-  ft::printVector(this->getErrorPage());
-  std::cout << "client_max_head_size: " << this->getClientMaxHeadSize()
-            << std::endl;
-  std::cout << "client_max_body_size: " << this->getClientMaxBodySize()
-            << std::endl;
-  std::cout << "root: " << this->getRoot() << std::endl;
-  std::cout << "location: " << std::endl;
-  std::map<std::string, t_location>::const_iterator it =
-      this->locations.begin();
-  for (; it != this->locations.end(); it++) {
-    printLocation(it->second);
+  for (; it1 != config.end(); it1++) {
+    std::cout << "------------ server config: " << i << " ------------\n";
+    std::cout << "- listen:  " << it1->getListen() << std::endl;
+    std::cout << "- server_name:  ";
+    ft::printVector(it1->getServerName());
+    std::cout << "- error_page:  ";
+    ft::printVector(it1->getErrorPage());
+    std::cout << "- client_max_head_size:  " << it1->getClientMaxHeadSize()
+              << std::endl;
+    std::cout << "- client_max_body_size:  " << it1->getClientMaxBodySize()
+              << std::endl;
+    std::cout << "- root:  " << it1->getRoot() << std::endl;
+    std::cout << "- location:  " << std::endl;
+
+    std::map<std::string, t_location>::const_iterator it2 =
+        it1->locations.begin();
+    for (; it2 != it1->locations.end(); ++it2) {
+      std::cout << "   - path: " << it2->first << std::endl;
+      printLocation(it2->second);
+    }
+    std::cout << "\n";
+    i++;
   }
-  std::cout << "\n";
-  // i++;
-  // }
-  // std::cout << "----------------------------------\n";
+  std::cout << "------------------------------------------\n";
 }
