@@ -11,7 +11,7 @@
 #include "../include/include.hpp"
 
 class Request {
-private:
+ private:
   std::string raw_head;
   std::string method;
   std::string url;
@@ -23,7 +23,7 @@ private:
   int chunk_size;
   std::string hex_str;
 
-public:
+ public:
   // ---- constructor -------------------------
   Request(t_step &);
 
@@ -40,6 +40,7 @@ public:
   // ---- setter ------------------------------
   void setRawHead(std::string);
   void setFlag(t_step);
+  void setEntity(const char *buf, size_t read_len);
 
   // ---- parser ------------------------------
   void parserHead();

@@ -33,6 +33,12 @@ size_t Request::getContentLength() const {
 //---- setter -----------------------------------------------------------------
 void Request::setRawHead(std::string line) { this->raw_head += line; }
 void Request::setFlag(t_step flag) { this->flag = flag; }
+void Request::setEntity(const char *buf, size_t read_len) {
+  this->entity.clear();
+  for (size_t i = 0; i < read_len; ++i) {
+    this->entity.push_back(buf[i]);
+  }
+}
 
 //---- parser -----------------------------------------------------------------
 void Request::parserHead() {
