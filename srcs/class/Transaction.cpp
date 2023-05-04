@@ -36,12 +36,13 @@ int Transaction::executeResource() {
   // std::cout << GRY << "Debug: Transaction: executeResource\n" << DFT;
   // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
   this->checkResource();
-  // STEP 2 . URL이 "/"로 끝났을 때 => 디렉토리
+  // STEP 2 . 처리할 수 있는 method인지 확인
+  this->checkAllowedMethod();
+  // STEP 3 . URL이 "/"로 끝났을 때 => 디렉토리
+  // TODO GET method일 때만 디렉토리 처리하는 거 맞음?
   if (this->request.getUrl().back() == '/') {
     return this->checkDirectory();
   }
-  // STEP 3 . 처리할 수 있는 method인지 확인
-  this->checkAllowedMethod();
   // STEP 4 . 각 상황에 따른 fd값 반환
   return this->checkFile();
 }
@@ -77,6 +78,11 @@ void Transaction::checkResource() {
 
 int Transaction::checkDirectory() {
   // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
+  // TODO
+  if (this->request.getMethod() != "GET") {
+    throw ErrorPage500Exception();
+  }
+
   std::vector<std::string>::const_iterator it = this->location.index.begin();
 
   // index.html
@@ -161,7 +167,6 @@ int Transaction::checkDirectory() {
 int Transaction::checkFile() {
   if ((this->location.cgi_exec != "") &&
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
-    std::cout << "CGI FILE\n";
     if ((this->request.getMethod() == "GET") &&
         (access(this->resource.c_str(), F_OK) == -1)) {
       throw ErrorPage404Exception();
@@ -169,11 +174,12 @@ int Transaction::checkFile() {
     this->setFlag(FILE_READ);
     return this->executeCGI();
   } else if (this->request.getMethod() == "POST") {
-    std::cout << "POST FILE\n";
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
     this->setFlag(FILE_WRITE);
   } else {
-    std::cout << "GET FILE\n";
+    if (access(this->resource.c_str(), F_OK) == -1) {
+      throw ErrorPage404Exception();
+    }
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
     this->setFlag(FILE_READ);
   }
