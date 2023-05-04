@@ -134,9 +134,17 @@ int Transaction::checkFile() {
     throw ErrorPage404Exception();
   }
 
+  // if (this->request.getMethod() == "DELETE") {
+  //   this->setFlag(FILE_READ);
+
+  //   return -1;
+  // }
+
   // 1. cgi 처리 해야하는 상황인데, 아직 처리 안된 상태
   if ((this->location.cgi_exec != "") &&
+      (this->request.getMethod() != "DELETE") &&
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
+    std::cout << RED << "call executeCGI\n" << DFT;
     this->setFlag(FILE_READ);
     return this->executeCGI();
   } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
@@ -317,10 +325,8 @@ void Transaction::httpGet(int data_size, int fd) {
     this->response.setStatus("200");
     this->response.setHeader("Content-Type", "text/html");
     buf[read_len] = '\0';
-    // DEBUG
-    // std::cout << buf << std::endl;
     this->setFlag(FILE_DONE);
-    close(fd);
+    ft::safeClose(fd);
   } else {  // 2. cgi 조회만 하는 부분
     char buf[MAX_BODY_SIZE + 1];
     size_t read_len =
@@ -329,7 +335,7 @@ void Transaction::httpGet(int data_size, int fd) {
     // std::cout << "Debug data_size: " << data_size << std::endl;
     this->response.setEntity(buf, read_len);
     if (static_cast<int>(read_len) >= data_size) {
-      std::fclose(this->file_ptr);
+      ft::safeFclose(this->file_ptr);
       this->setFlag(FILE_DONE);
       this->response.setStatus("200");
     }
@@ -354,10 +360,8 @@ void Transaction::httpPost(int fd) {
     char buf[BUFFER_SIZE];
     int read_len;
     read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
-    // this->response.setEntity(buf, read_len);
     buf[read_len] = '\0';
     this->request.setEntity(buf, read_len);
-
     this->setFlag(FILE_CGI);
     close(fd);
   } else if (this->flag == FILE_WRITE) {  // upload file

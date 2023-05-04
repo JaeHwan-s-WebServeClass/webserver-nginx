@@ -47,10 +47,7 @@ void Server::loadErrorPage() {
       buf[read_len] = '\0';
     }
     this->error_page[key] = buf;
-    setChangeList(this->change_list, fp->_file, EVFILT_READ, EV_DELETE, 0, 0,
-                  NULL);
-    this->change_list.clear();
-    std::fclose(fp);
+    ft::safeFclose(fp);
   }
   this->change_list.clear();
   // DEBUG
@@ -132,7 +129,7 @@ void Server::run() {
                          reinterpret_cast<Transaction *&>(curr_event->udata));
             reinterpret_cast<Transaction *>(curr_event->udata)
                 ->setFlag(RESPONSE_DONE);
-            std::fclose(const_cast<FILE *>(
+            ft::safeFclose(const_cast<FILE *>(
                 (reinterpret_cast<Transaction *>(curr_event->udata))
                     ->getFilePtr()));
           } else {  // 클라이언트일 때
@@ -158,23 +155,28 @@ void Server::run() {
 }
 
 void Server::runErrorServer(struct kevent *&curr_event) {
-  std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   // std::cout << GRY << "Debug: Server: runErrorServer\n" << DFT;
+  // DEBUG
+  std::cout << RED << "error: " << strerror(curr_event->data) << std::endl
+            << DFT;
+  std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
     if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
       throw std::string("Error: Server: run: server socket error");
     }
   }
   if (it == this->server_socket.end()) {
-    throw std::string("Error: Server: run: client socket error");
-    this->disconnectClient(curr_event->ident, this->clients);
+    if (curr_event->udata) {
+      throw std::string("Error: Server: run: file error");
+    } else {
+      this->disconnectClient(curr_event->ident, this->clients);
+      throw std::string("Error: Server: run: client socket error");
+    }
   }
 }
 
 void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
   // std::cout << GRY << "Debug: Server: runReadEventServer\n" << DFT;
-  std::cout << YLW << "it->getServerSocket : " << it->getServerSocket() << DFT
-            << std::endl;
   int client_socket = it->safeAccept();
   std::cout << GRN << "accept new client: " << client_socket << DFT
             << std::endl;
@@ -202,17 +204,12 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
   if (read_len == -1) {
     this->disconnectClient(curr_event->ident, this->clients);
   }
-  // 파일은 한번만 호출되야 한다
-  // checkAllowMethod() : method의 유효성 검사
   // executeResource() : file open & return file fd
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
     if (file_fd == -1) {
       return;
     }
-    // std::cout << "file_fd : " << file_fd << std::endl;
-    // executeResource 내부에서 호출
-    // this->clients[curr_event->ident]->checkAllowedMethod();
     fcntl(file_fd, F_SETFL, O_NONBLOCK);
     if (this->clients[curr_event->ident]->getFlag() == FILE_READ) {
       setChangeList(this->change_list, file_fd, EVFILT_READ,
@@ -223,8 +220,6 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
                     EV_ADD | EV_ENABLE | EV_EOF, 0, 0,
                     this->clients[curr_event->ident]);
     }
-    // setChangeList(this->change_list, file_fd, EV_EOF, EV_ADD | EV_ENABLE,
-    //               0, 0, this->clients[curr_event->ident]);
   }
 }
 
@@ -241,25 +236,25 @@ void Server::runReadEventFile(struct kevent *&curr_event) {
     curr_transaction->executeMethod(static_cast<int>(curr_event->data),
                                     curr_event->ident);
     if (curr_transaction->getFlag() == FILE_CGI) {
-      // std::cout << curr_transaction->getFlag();
+      setChangeList(this->change_list, curr_event->ident, EVFILT_READ,
+                    EV_DELETE, 0, 0, NULL);
       int file_fd = curr_transaction->checkFile();
+      if (file_fd == -1) {
+        return;
+      }
       fcntl(file_fd, F_SETFL, O_NONBLOCK);
       setChangeList(this->change_list, file_fd, EVFILT_WRITE,
                     EV_ADD | EV_ENABLE | EV_EOF, 0, 0, curr_transaction);
-      // setChangeList(this->change_list, curr_event->ident, EVFILT_READ,
-      // EV_DELETE,
-      //             0, 0, NULL);
     }
   }
-  if (curr_transaction->getFlag() == FILE_DONE) {
-    // std::cout << GRY << "Debug: Server: runReadEventFile\n" << DFT;
+  if (curr_transaction->getFlag() == RESPONSE_DONE) {
     setChangeList(this->change_list, curr_event->ident, EVFILT_READ, EV_DELETE,
                   0, 0, NULL);
   }
 }
 
 void Server::runWriteEventFile(struct kevent *&curr_event) {
-  std::cout << GRY << "Debug: Server: runWriteEventFile\n" << DFT;
+  // std::cout << GRY << "Debug: Server: runWriteEventFile\n" << DFT;
   Transaction *curr_transaction =
       reinterpret_cast<Transaction *>(curr_event->udata);
 
@@ -267,17 +262,16 @@ void Server::runWriteEventFile(struct kevent *&curr_event) {
     curr_transaction->executeMethod(static_cast<int>(curr_event->data),
                                     curr_event->ident);
   }
-  // 이게 있으면 왜 에러 뜨지??
-  // if (curr_transaction->getFlag() == RESPONSE_DONE) {
-  //   setChangeList(this->change_list, curr_event->ident, EVFILT_WRITE,
-  //   EV_DELETE,
-  //               0, 0, NULL);
-  // }
+
+  if (curr_transaction->getFlag() == RESPONSE_DONE) {
+    setChangeList(this->change_list, curr_event->ident, EVFILT_WRITE, EV_DELETE,
+                  0, 0, NULL);
+  }
 }
 
 void Server::runWriteEventClient(struct kevent *&curr_event) {
-  std::map<int, Transaction *>::iterator it = clients.find(curr_event->ident);
   // std::cout << GRY << "Debug: Server: runWriteEventClient\n" << DFT;
+  std::map<int, Transaction *>::iterator it = clients.find(curr_event->ident);
   if (it != clients.end()) {
     // 응답시간이 너무 길어질 때의 처리도 필요하다.
     if (it->second->getFlag() == RESPONSE_DONE) {
@@ -304,6 +298,10 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
   struct kevent temp_event;
 
   EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
+  if (flags == EV_DELETE) {
+    kevent(this->kq, &temp_event, 1, this->event_list, 0, NULL);
+    return;
+  }
   change_list.push_back(temp_event);
 }
 
