@@ -62,8 +62,7 @@ void Transaction::checkResource() {
     request_location = this->request.getUrl().substr(0, pos);
     request_filename = this->request.getUrl().substr(pos);
   }
-  // STEP 2 . request_location과 conf_location을 비교해서 실제 local의 resource
-  // 구하기
+  // STEP 2 . request_loc과 conf_loc을 비교해서 실제 local의 resource 구하기
   std::map<std::string, ServerConfig::t_location>::const_iterator it;
   if ((it = this->server_config.getLocation().find(request_location)) !=
       this->server_config.getLocation().end()) {
@@ -127,57 +126,23 @@ int Transaction::checkDirectory() {
   return -1;
 }
 
-// int Transaction::checkFile() {
-//   // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
-
-//   if (this->request.getMethod() == "POST") {  // 파일 새로 생성 or pipe fd
-//   반환
-//     if (this->flag == FILE_CGI) {
-//       this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
-//       this->setFlag(FILE_WRITE);
-//     } else if ((this->location.cgi_exec != "") &&
-//                ft::findSuffix(this->resource, ".py")) {
-//       this->setFlag(FILE_READ);
-//       return this->executeCGI();
-//     } else {
-//       this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
-//       this->setFlag(FILE_WRITE);
-//     }
-//   } else if ((this->request.getMethod() == "GET") &&
-//              (this->location.cgi_exec != "") &&
-//              ft::findSuffix(
-//                  this->resource,
-//                  ".py")) {  // 파일 일 경우 (이미 존재하는 파일을 조회하는
-//                  경우)
-//     if (access(this->resource.c_str(), F_OK) == -1) {
-//       throw ErrorPage404Exception();
-//     }
-//     this->setFlag(FILE_READ);
-//     return this->executeCGI();
-//   } else {
-//     if (access(this->resource.c_str(), F_OK) == -1) {
-//       throw ErrorPage404Exception();
-//     }
-//     this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
-//     this->setFlag(FILE_READ);
-//   }
-//   return this->file_ptr->_file;
-// }
-
 int Transaction::checkFile() {
+  // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
+  // 단순 에러처리하는 부분
   if ((this->request.getMethod() != "POST") &&
       (access(this->resource.c_str(), F_OK) == -1)) {
     throw ErrorPage404Exception();
   }
 
+  // 1. cgi 처리 해야하는 상황인데, 아직 처리 안된 상태
   if ((this->location.cgi_exec != "") &&
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
     this->setFlag(FILE_READ);
     return this->executeCGI();
-  } else if (this->request.getMethod() == "POST") {
+  } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
     this->setFlag(FILE_WRITE);
-  } else {
+  } else {  // 3. 평범한 get, delete
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
     this->setFlag(FILE_READ);
   }
@@ -343,6 +308,7 @@ int Transaction::executeMethod(int data_size, int fd) {
 //---- HTTP methods ------------------------------------------------------------
 void Transaction::httpGet(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpGet\n" << DFT;
+  // 1. cgi 처리하는 부분
   if (ft::findSuffix(this->resource, ".py")) {
     char buf[BUFFER_SIZE];
     int read_len;
@@ -355,12 +321,12 @@ void Transaction::httpGet(int data_size, int fd) {
     // std::cout << buf << std::endl;
     this->setFlag(FILE_DONE);
     close(fd);
-  } else {
+  } else {  // 2. cgi 조회만 하는 부분
     char buf[MAX_BODY_SIZE + 1];
     size_t read_len =
         ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
 
-    std::cout << "data_size: " << data_size << std::endl;
+    // std::cout << "Debug data_size: " << data_size << std::endl;
     this->response.setEntity(buf, read_len);
     if (static_cast<int>(read_len) >= data_size) {
       std::fclose(this->file_ptr);
@@ -390,8 +356,6 @@ void Transaction::httpPost(int fd) {
     read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
     // this->response.setEntity(buf, read_len);
     buf[read_len] = '\0';
-    // DEBUG
-    // this->setFlag(FILE_DONE);
     this->request.setEntity(buf, read_len);
 
     this->setFlag(FILE_CGI);
