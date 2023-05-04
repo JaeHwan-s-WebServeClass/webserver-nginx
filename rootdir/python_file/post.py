@@ -1,10 +1,8 @@
+import time
 import sys
 import cgi
-import time
 
 argument1 = sys.argv[1]
-# print("The argument1 is:", argument1)
-
 
 # 쿼리 스트링을 & 기준으로 쪼개서 리스트로 저장
 query_list = argument1.split("&")
@@ -15,10 +13,13 @@ for query in query_list:
     key, value = query.split("=")
     query_dict[key] = value
 
-# 결과 출력
-# print(query_dict)
+def generate_python_code(text):
+    code = """
+import time
 
-html = """
+current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+html=""" + '\"\"\"\n' + """
 <!DOCTYPE html>
 <html>
 <head>
@@ -26,27 +27,12 @@ html = """
 </head>
 <body>
 <b>server time : {}</b><br>
-<b>{}</b><br>
+<b>text: """ + text + """</b><br>
 </body>
 </html>
-""".format(str(time.time()), query_dict["text"])
+\"\"\".format(current_time)
 
 print(html)
-
-# print("<!DOCTYPE html>")
-# print("<html>")
-# print('<head>')
-# print('<title>Python CGI Page</title>')
-# print('</head>')
-# print("<body>")
-# print("")
-# print("<b>server time : " + str(time.time()) + "</b><br>")
-# print("<form method='POST' action='post.py'>")
-# print("  Name: <input type='text' name='name'>")
-# print("  Email: <input type='text' name='email'>")
-# print("  <input type='submit'>")
-# print("</form>")
-# print("")
-# print("")
-# print("</body>")
-# print("</html>") 
+"""
+    return code
+print(generate_python_code(query_dict["text"]))
