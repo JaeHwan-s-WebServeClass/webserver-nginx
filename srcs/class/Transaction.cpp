@@ -165,21 +165,19 @@ int Transaction::checkDirectory() {
 // }
 
 int Transaction::checkFile() {
+  if ((this->request.getMethod() != "POST") &&
+      (access(this->resource.c_str(), F_OK) == -1)) {
+    throw ErrorPage404Exception();
+  }
+
   if ((this->location.cgi_exec != "") &&
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
-    if ((this->request.getMethod() == "GET") &&
-        (access(this->resource.c_str(), F_OK) == -1)) {
-      throw ErrorPage404Exception();
-    }
     this->setFlag(FILE_READ);
     return this->executeCGI();
   } else if (this->request.getMethod() == "POST") {
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
     this->setFlag(FILE_WRITE);
   } else {
-    if (access(this->resource.c_str(), F_OK) == -1) {
-      throw ErrorPage404Exception();
-    }
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
     this->setFlag(FILE_READ);
   }
