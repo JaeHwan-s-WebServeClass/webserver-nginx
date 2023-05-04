@@ -51,7 +51,6 @@ class Request {
   void addChunkedEntity(char *, size_t);
 
   // ---- utils -------------------------------
-  void clearSetRawMsg();
   void toString() const;
 };
 

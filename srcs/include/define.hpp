@@ -18,6 +18,8 @@
 #define CHUNK_SIZE 0
 #define CHUNK_ENTITY 1
 
+#define BACK_LOG 5
+
 typedef enum step {
   START,           // Transaction 생성자
   REQUEST_HEAD,    // T.cpp executeReadHead line 155

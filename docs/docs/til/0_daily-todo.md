@@ -608,3 +608,27 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 <br>
 
 ***
+
+## [29일차] 2023.05.04 (목)
+
+### 진행 계획
+
+1. 바뀐 코드 로직 점검 및 정리
+2. python 파일을 만드는 python 코드를 작성
+3. 이벤트 발생 시 에러 발생 픽스
+
+
+### 결과
+
+[13:00 ~ 14:35] 바뀐 로직 점검 & python 파일 만드는 python 코드 완성
+
+[14:35 ~ 16:35] 이벤트 발생 시 에러 발생 픽스 <br>
+* fd 를 close 하고 EV_DELETE 를 해서 문제 발생. <br>
+-> kevent 로 EV_DELETE 후 close(fd) 하도록 수정
+
+[16:50 ~ 18:30] 전체 파일 정리 (TODO & FIXME 정리)
+
+
+<br>
+
+***

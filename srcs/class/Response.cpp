@@ -90,7 +90,6 @@ void Response::setResponseMsg() {
 
   char *pos = this->response_msg;
 
-  // FIXME c_str 리턴값이 const 인데 copy 로 할당하려고 하는 코드 수정 필요
   std::memcpy(pos, response_head.c_str(), response_head.size());
   pos += response_head.size();
   std::memcpy(pos, "\r\n", 2);
@@ -98,7 +97,6 @@ void Response::setResponseMsg() {
   std::memcpy(pos, &(this->entity[0]), this->entity.size());
   pos += this->entity.size();
   std::memcpy(pos, "\r\n\r\n", 4);
-  // if (this->flag == FILE_DONE)
   this->flag = RESPONSE_DONE;
 
   // DEBUG

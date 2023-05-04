@@ -39,7 +39,6 @@ int Transaction::executeResource() {
   // STEP 2 . 처리할 수 있는 method인지 확인
   this->checkAllowedMethod();
   // STEP 3 . URL이 "/"로 끝났을 때 => 디렉토리
-  // TODO GET method일 때만 디렉토리 처리하는 거 맞음?
   if (this->request.getUrl().back() == '/') {
     return this->checkDirectory();
   }
@@ -77,19 +76,17 @@ void Transaction::checkResource() {
 
 int Transaction::checkDirectory() {
   // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
-  // TODO
   if (this->request.getMethod() != "GET") {
     throw ErrorPage500Exception();
   }
 
   std::vector<std::string>::const_iterator it = this->location.index.begin();
 
-  // index.html
+  // index 파일을 찾아서 있으면 보여줌
   for (; it != this->location.index.end(); ++it) {
     std::string tmp = this->resource + *it;
     if (access(tmp.c_str(), F_OK) != -1) {
       this->resource = tmp;
-      // 찾았을 경우
       if ((this->location.cgi_exec != "") &&
           ft::findSuffix(this->resource, ".py")) {
         this->setFlag(FILE_READ);
@@ -101,6 +98,7 @@ int Transaction::checkDirectory() {
       }
     }
   }
+  // index 파일을 못찾았으면 autoindex 처리
   if (this->location.autoindex) {
     DIR *dir;
     struct dirent *ent;
@@ -118,27 +116,20 @@ int Transaction::checkDirectory() {
       this->response.setResponseMsg();
       return -1;
     } else {                          //  디렉토리가 없는 경우
-      throw ErrorPage404Exception();  // 403 Forbidden
+      throw ErrorPage404Exception();  // FIXME 403 Forbidden
     }
   } else {
-    throw ErrorPage404Exception();  // 403 Forbidden
+    throw ErrorPage404Exception();  // FIXME 403 Forbidden
   }
   return -1;
 }
 
 int Transaction::checkFile() {
   // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
-  // 단순 에러처리하는 부분
   if ((this->request.getMethod() != "POST") &&
       (access(this->resource.c_str(), F_OK) == -1)) {
     throw ErrorPage404Exception();
   }
-
-  // if (this->request.getMethod() == "DELETE") {
-  //   this->setFlag(FILE_READ);
-
-  //   return -1;
-  // }
 
   // 1. cgi 처리 해야하는 상황인데, 아직 처리 안된 상태
   if ((this->location.cgi_exec != "") &&
@@ -174,7 +165,6 @@ void Transaction::checkAllowedMethod() {
 int Transaction::executeRead(void) {
   // std::cout << GRY << "Debug: Transaction: executeRead\n" << DFT;
 
-  // BUFFER_SIZE + 1을 할 것인가에 대한 논의
   char buf[BUFFER_SIZE + 1];
   int read_len = ft::safeRecv(this->socket_fd, buf, BUFFER_SIZE);
   int head_rest_len = 0;
@@ -182,7 +172,6 @@ int Transaction::executeRead(void) {
   if (read_len == -1) {
     return -1;
   }
-  // head 파싱과 entity 파싱
   if (this->flag == START) {
     head_rest_len = this->executeReadHead(buf, read_len);
   }
@@ -191,17 +180,12 @@ int Transaction::executeRead(void) {
       this->executeReadEntity(buf, read_len, head_rest_len);
     }
   }
-
-  // FIXME 아래 주석이 힌트. entity 완료되면 REQUEST_DONE 으로 설정해뒀음.
-  // if (this->flag == REQUEST_ENTITY) { // 임시
-  //   this->setFlag(REQUEST_DONE);
-  // }
   if ((this->request.getMethod() == "POST" && this->flag == REQUEST_ENTITY) ||
       (this->request.getMethod() != "POST" && this->flag == REQUEST_HEAD)) {
     this->setFlag(REQUEST_DONE);
   }
 
-  // DEBUG MSG : REQUEST
+  // FIXME 연산자 오버로딩으로 처리하기
   if (this->flag == REQUEST_DONE) {
     this->request.toString();
   }
@@ -210,9 +194,6 @@ int Transaction::executeRead(void) {
 
 int Transaction::executeReadHead(char *buf, int read_len) {
   // std::cout << GRY << "Debug: Transaction: executeReadHead\n" << DFT;
-  // 들어오는 데이터가 텍스트가 아닐수도있어 필요가 없?
-  // 헤드는 무조건 텍스트로 들어오지 않을까요?
-  // 터미널에서 보내는게 아니어서 상관없을거같아요..
   buf[read_len] = '\0';
   std::istringstream read_stream;
   read_stream.str(buf);
@@ -237,6 +218,9 @@ int Transaction::executeReadHead(char *buf, int read_len) {
     } else if (this->flag == START) {
       this->request.setRawHead(line + "\n");
       if (read_stream.eof()) {
+        // FIXME error_handling
+        // 이런 상황들에 대해서는 default로 error를 던지고 default error page를
+        // 보여주자 아니면 외부 사이트로 리다이렉트 시켜버리기? => 공룡게임..?
         throw std::string(
             "Error: Transaction: executeReadHead: Over MAX HEADER "
             "SIZE");
@@ -244,6 +228,7 @@ int Transaction::executeReadHead(char *buf, int read_len) {
     }
   }
   if (this->request.getRawHead().length() > MAX_HEAD_SIZE) {
+    // FIXME error_handling
     throw std::string(
         "Error: Transaction: executeReadHead: Request Head Over "
         "MAX HEAD "
@@ -274,12 +259,13 @@ void Transaction::executeReadEntity(char *buf, int read_len,
     } else {
       this->request.addChunkedEntity(buf, read_len);
     }
+  } else {
+    // FIXME error_handling
+    throw std::string(
+        "Error: Transaction: executeReadEntity: Invalid Request Header");
   }
-  // else {
-  //   throw std::string(
-  //       "Error: Transaction: executeReadEntity: Invalid Request Header");
-  // }
   if (this->request.getEntitySize() > MAX_BODY_SIZE) {
+    // FIXME error_handling
     throw std::string(
         "Error: Transaction: executeReadEntity: Request Entity "
         "Over MAX BODY "
@@ -316,7 +302,7 @@ int Transaction::executeMethod(int data_size, int fd) {
 //---- HTTP methods ------------------------------------------------------------
 void Transaction::httpGet(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpGet\n" << DFT;
-  // 1. cgi 처리하는 부분
+  // 1. cgi get
   if (ft::findSuffix(this->resource, ".py")) {
     char buf[BUFFER_SIZE];
     int read_len;
@@ -325,14 +311,15 @@ void Transaction::httpGet(int data_size, int fd) {
     this->response.setStatus("200");
     this->response.setHeader("Content-Type", "text/html");
     buf[read_len] = '\0';
+    // FIXME 한번에 read 못할 경우도 있음
+    // 다 읽었는지 확인해서 플래그 켜야 함
     this->setFlag(FILE_DONE);
     ft::safeClose(fd);
-  } else {  // 2. cgi 조회만 하는 부분
+  } else {  // 2. 그냥 get
     char buf[MAX_BODY_SIZE + 1];
     size_t read_len =
         ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
 
-    // std::cout << "Debug data_size: " << data_size << std::endl;
     this->response.setEntity(buf, read_len);
     if (static_cast<int>(read_len) >= data_size) {
       ft::safeFclose(this->file_ptr);
@@ -342,6 +329,9 @@ void Transaction::httpGet(int data_size, int fd) {
   }
 }
 
+// FIXME 빈파일을 지우려할 때, 이벤트가 발생 안하므로 무한루프에 걸림
+// stat으로 파일 사이즈를 체크
+// GET을 이벤트 기반으로 동작시키지 않을수도....
 void Transaction::httpDelete() {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
   if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
@@ -362,8 +352,9 @@ void Transaction::httpPost(int fd) {
     read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
     buf[read_len] = '\0';
     this->request.setEntity(buf, read_len);
+    // FIXME 한번에 다 read 못한 경우 플래그 켜지는 조건 필요함
     this->setFlag(FILE_CGI);
-    close(fd);
+    ft::safeClose(fd);
   } else if (this->flag == FILE_WRITE) {  // upload file
     ft::safeFwrite(&this->request.getEntity()[0], sizeof(char),
                    this->request.getEntitySize(), this->file_ptr);
@@ -382,29 +373,32 @@ int Transaction::executeCGI(void) {
   int status;
   std::string cgi_path;
 
-  ft::safePipe(fd);  // pipe 는 반이중(Half-duplex) 통신
+  ft::safePipe(fd);
   if (this->request.getMethod() == "POST") {
     cgi_path = ("." + this->server_config.getRoot() + this->location.root +
                 this->location.cgi_path);
   } else if (this->request.getMethod() == "GET") {
     cgi_path = this->resource;
   }
-  char const *const args[] = {
-      (this->location.cgi_exec).c_str(), cgi_path.c_str(),
-      ft::vecToCharArr(this->request.getEntity()), NULL};
+  const char *tmp = ft::vecToCharArr(this->request.getEntity());
+  std::cout << RED << "tmp: " << tmp << DFT << std::endl;
+  char const *const args[] = {(this->location.cgi_exec).c_str(),
+                              cgi_path.c_str(), tmp, NULL};
+  delete[] tmp;
   pid_t cgi_pid = ft::safeFork();
-  if (cgi_pid == 0) {  // 자식은 쓰고 -> read closed
-    close(fd[0]);
-    dup2(fd[1], 1);
+  if (cgi_pid == 0) {
+    ft::safeClose(fd[0]);
+    // TODO safe func
+    dup2(fd[1], STDOUT_FILENO);
+    ft::safeClose(fd[1]);
     if (execve((this->location.cgi_exec).c_str(), (char **)args, NULL) == -1) {
       exit(1);
     }
-  } else {  // 부모는 읽고 -> write closed
-    close(fd[1]);
+  } else {
+    ft::safeClose(fd[1]);
     // FIXME: nonblocking waitpid
     waitpid(cgi_pid, &status, 0);
     if (!WIFEXITED(status) && WEXITSTATUS(status)) {
-      // std::cout << RED << "child error" << std::endl << DFT;
       throw ErrorPage500Exception();
     }
   }

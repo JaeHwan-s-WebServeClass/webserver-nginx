@@ -68,7 +68,7 @@ void Request::addContentLengthEntity(char *buf, int read_len) {
   } else if (this->getEntitySize() > this->getContentLength()) {
     throw std::string("Error: Transaction: Request Entity Over Content-Length");
   }
-  // 아래 코드대신, kevent 에서 timeout 처리하기
+  // FIXME 아래 코드대신, kevent 에서 timeout 처리하기
   // else if (this->request.getEntitySize < getContentLength())
 }
 
@@ -105,8 +105,7 @@ void Request::addChunkedEntity(char *buf, size_t read_len) {
 }
 
 //---- utils --------------------------------------------
-void Request::clearSetRawMsg() { this->raw_head.clear(); }
-
+// FIXME << 연산자 오버로딩으로 바꾼다?
 void Request::toString() const {
   std::cout << GRY << "-------------------- start-line --------------------"
             << DFT << std::endl;
