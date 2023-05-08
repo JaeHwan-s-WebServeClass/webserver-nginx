@@ -2,7 +2,7 @@
 
 #include <dirent.h>
 
-//---- constructor -------------------------------------------------------------
+//---- OCCF -------------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
     : socket_fd(socket_fd),
       flag(START),
@@ -11,6 +11,23 @@ Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
       server_config(server_config) {
   // std::cout << GRY << "Debug: Transaction: constructor\n" << DFT;
 }
+Transaction::Transaction(const Transaction &ref)
+    : response(this->flag),
+      request(this->flag),
+      server_config(ref.server_config) {
+  *this = ref;
+}
+Transaction &Transaction::operator=(const Transaction &ref) {
+  this->socket_fd = ref.socket_fd;
+  this->flag = ref.flag;
+  this->response = ref.response;
+  this->request = ref.request;
+  this->location = ref.location;
+  this->resource = ref.resource;
+  this->file_ptr = ref.file_ptr;
+  return *this;
+}
+Transaction::~Transaction() {}
 
 //---- getter ------------------------------------------------------------------
 Response &Transaction::getResponse() { return this->response; }

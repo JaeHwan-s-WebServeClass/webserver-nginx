@@ -34,11 +34,14 @@ class Transaction {
   Transaction();
 
  public:
-  // ---- constructor -------------------------
+  // ---- occf --------------------------------
   /// @brief Transaction 생성자
   /// @param socket_fd
   /// @param server_config
   Transaction(int, const ServerConfig &);
+  Transaction(const Transaction &ref);
+  Transaction &operator=(const Transaction &ref);
+  ~Transaction();
 
   // ---- getter ------------------------------
   Response &getResponse();

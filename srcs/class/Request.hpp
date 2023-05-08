@@ -24,9 +24,14 @@ class Request {
   std::string hex_str;
   std::vector<char> entity_cgi;
 
+  Request();
+
  public:
-  // ---- constructor -------------------------
+  // ---- occf --------------------------------
   Request(t_step &);
+  Request(const Request &ref);
+  Request &operator=(const Request &ref);
+  ~Request();
 
   // ---- getter ------------------------------
   const std::string &getRawHead() const;

@@ -34,8 +34,11 @@ class ServerConfig {
   std::map<std::string, t_location> locations;
 
  public:
-  // ---- constructor -------------------------
+  // ---- occf --------------------------------
   ServerConfig();
+  ServerConfig(const ServerConfig &ref);
+  ServerConfig &operator=(const ServerConfig &ref);
+  ~ServerConfig();
 
   // ---- getter ------------------------------
   const int &getListen() const;

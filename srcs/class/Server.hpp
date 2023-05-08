@@ -31,10 +31,15 @@ class Server {
   // error_status, 시작줄 + 헤더 + 엔티
   std::map<std::string, std::string> error_page;
 
+  Server();
+
  public:
-  // ---- constructor -------------------------
+  // ---- occf --------------------------------
   /// @param server_socket
   Server(std::vector<ServerConfig> &);
+  Server(const Server &ref);
+  Server &operator=(const Server &ref);
+  ~Server();
 
   // ---- error page --------------------------
   void loadErrorPage();

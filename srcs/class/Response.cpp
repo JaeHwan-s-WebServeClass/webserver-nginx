@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-//---- constructor ------------------------------------------------------------
+//---- OCCF -------------------------------------------------------------------
 Response::Response(t_step &flag)
     : flag(flag),
       response_msg(0),
@@ -8,9 +8,18 @@ Response::Response(t_step &flag)
       status_code(""),
       status_msg("") {
   this->entity.reserve(512);
-  // std::cout << GRY << "Debug: Response::contructor\n" << DFT;
 }
-
+Response::Response(const Response &ref) : flag(ref.flag) { *this = ref; }
+Response &Response::operator=(const Response &ref) {
+  this->response_msg = ref.response_msg;
+  this->http_version = ref.http_version;
+  this->status_code = ref.status_code;
+  this->status_msg = ref.status_msg;
+  this->header = ref.header;
+  this->entity = ref.entity;
+  this->response_msg = ref.response_msg;
+  return *this;
+}
 Response::~Response() { delete[] this->response_msg; }
 
 //---- getter -----------------------------------------------------------------

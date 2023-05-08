@@ -23,9 +23,13 @@ class Response {
   std::vector<char> entity;
   size_t response_msg_size;
 
+  Response();
+
  public:
-  // ---- constructor -------------------------
+  // ---- occf --------------------------------
   Response(t_step &);
+  Response(const Response &ref);
+  Response &operator=(const Response &ref);
   ~Response();
 
   // ---- getter ------------------------------

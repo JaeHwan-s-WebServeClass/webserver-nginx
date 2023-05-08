@@ -2,12 +2,26 @@
 
 #include <cstring>
 
-//---- constructor ------------------------------------------------------------
+//---- OCCF -------------------------------------------------------------------
 Request::Request(t_step &flag)
     : raw_head(""), flag(flag), chunk_size(0), hex_str("") {
-  // std::cout << GRY << "Debug: Request::contructor\n" << DFT;
   entity.reserve(256);
 }
+Request::Request(const Request &ref) : flag(ref.flag) { *this = ref; }
+Request &Request::operator=(const Request &ref) {
+  this->raw_head = ref.raw_head;
+  this->method = ref.method;
+  this->url = ref.url;
+  this->http_version = ref.http_version;
+  this->header = ref.header;
+  this->entity = ref.entity;
+  this->flag = ref.flag;
+  this->chunk_size = ref.chunk_size;
+  this->hex_str = ref.hex_str;
+  this->entity_cgi = ref.entity_cgi;
+  return *this;
+}
+Request::~Request() {}
 
 //---- getter -----------------------------------------------------------------
 const std::string &Request::getRawHead() const { return this->raw_head; }

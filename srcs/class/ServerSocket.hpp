@@ -18,16 +18,21 @@ class ServerSocket {
   struct sockaddr_in server_addr;
   int port;
 
+  ServerSocket();
+
  public:
-  // ---- constructor -------------------------
+  // ---- occf --------------------------------
   /// @brief ServerSocket constructor
   /// @param  address_family protocol AF_INET
   /// @param port 8080
   ServerSocket(sa_family_t, int);
+  ServerSocket(const ServerSocket &ref);
+  ServerSocket &operator=(const ServerSocket &ref);
+  ~ServerSocket();
 
   // ---- getter ------------------------------
-  const int& getServerSocket(void) const;
-  const int& getPort() const;
+  const int &getServerSocket(void) const;
+  const int &getPort() const;
 
   // ---- setter ------------------------------
   /// @brief  fd 를 NonBlock 방식으로 설정하는 함수

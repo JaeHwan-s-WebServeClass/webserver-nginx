@@ -1,7 +1,20 @@
 #include "ServerConfig.hpp"
 
-//---- constructor -------------------------------------------------------------
+//---- OCCF -------------------------------------------------------------------
 ServerConfig::ServerConfig() { this->setDefault(); }
+ServerConfig::ServerConfig(const ServerConfig &ref) { *this = ref; }
+ServerConfig &ServerConfig::operator=(const ServerConfig &ref) {
+  this->listen = ref.listen;
+  this->server_name = ref.server_name;
+  this->error_page = ref.error_page;
+  this->client_max_body_size = ref.client_max_body_size;
+  this->client_max_head_size = ref.client_max_head_size;
+  this->root = ref.root;
+  this->http_method = ref.http_method;
+  this->locations = ref.locations;
+  return *this;
+}
+ServerConfig::~ServerConfig() {}
 
 //---- getter ------------------------------------------------------------------
 const int &ServerConfig::getListen() const { return this->listen; }

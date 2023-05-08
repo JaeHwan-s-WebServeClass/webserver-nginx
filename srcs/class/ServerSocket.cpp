@@ -1,8 +1,7 @@
 #include "ServerSocket.hpp"
 
-//---- constructor -------------------------------------------------------------
+//---- OCCF -------------------------------------------------------------------
 ServerSocket::ServerSocket(sa_family_t address_family, int port) {
-  // std::cout << GRY << "Debug: ServerSocket::ServerSocket\n" << DFT;
   std::memset(&(this->server_addr), 0, sizeof(server_addr));
   this->server_addr.sin_family = address_family;
   this->port = port;
@@ -17,6 +16,14 @@ ServerSocket::ServerSocket(sa_family_t address_family, int port) {
   std::cout << "Construct ServerSocket: Port number: "
             << this->server_addr.sin_port << std::endl;
 }
+ServerSocket::ServerSocket(const ServerSocket &ref) { *this = ref; }
+ServerSocket &ServerSocket::operator=(const ServerSocket &ref) {
+  this->server_socket = ref.server_socket;
+  this->server_addr = ref.server_addr;
+  this->port = ref.port;
+  return *this;
+}
+ServerSocket::~ServerSocket() {}
 
 //---- getter -------------------------------------------------------------
 const int &ServerSocket::getPort() const { return this->port; }

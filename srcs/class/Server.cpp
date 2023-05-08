@@ -1,9 +1,8 @@
 #include "Server.hpp"
 
-//----- constructor ------------------------------------------------------------
+//---- OCCF -------------------------------------------------------------------
 Server::Server(std::vector<ServerConfig> &server_config)
     : server_config(server_config) {
-  // std::cout << GRY << "Debug: Server: constructor\n" << DFT;
   std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
   // TODO 같은 포트 여러개 들어올 때 예외처리
   // server_name 으로 처리해야할 듯
@@ -16,6 +15,21 @@ Server::Server(std::vector<ServerConfig> &server_config)
     throw Transaction::ErrorPageDefaultException();
   }
 }
+Server::Server(const Server &ref) : server_config(ref.server_config) {
+  *this = ref;
+}
+Server &Server::operator=(const Server &ref) {
+  this->clients = ref.clients;
+  this->kq = ref.kq;
+  for (int i = 0; i < MAX_EVENT_SIZE; i++) {
+    this->event_list[i] = ref.event_list[i];
+  }
+  this->change_list = ref.change_list;
+  this->server_socket = ref.server_socket;
+  this->error_page = ref.error_page;
+  return *this;
+}
+Server::~Server() {}
 
 //---- error page -------------------------------------------------------------
 void Server::loadErrorPage() {
