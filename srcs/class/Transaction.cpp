@@ -132,6 +132,9 @@ int Transaction::checkFile() {
     throw ErrorPage404Exception();
   }
 
+  if (this->request.getMethod() == "DELETE") {
+    return -2;
+  }
   // 1. cgi 처리 해야하는 상황인데, 아직 처리 안된 상태
   if ((this->location.cgi_exec != "") &&
       (this->request.getMethod() != "DELETE") &&

@@ -182,6 +182,9 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
     if (file_fd == -1) {
       return;
+    } else if (file_fd == -2) {
+      this->clients[curr_event->ident]->executeMethod(0, 0);
+      return;
     }
     fcntl(file_fd, F_SETFL, O_NONBLOCK);
     if (this->clients[curr_event->ident]->getFlag() == FILE_READ) {
