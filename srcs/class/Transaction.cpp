@@ -205,7 +205,7 @@ int Transaction::executeRead(void) {
     this->setFlag(REQUEST_DONE);
   }
 
-  // FIXME 연산자 오버로딩으로 처리하기
+  // DEBUG
   if (this->flag == REQUEST_DONE) {
     std::cout << this->request << std::endl;
   }

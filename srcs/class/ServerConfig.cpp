@@ -150,17 +150,17 @@ void ServerConfig::setLocationDefault(const std::string key) {
 
 void ServerConfig::setDefault() {
   this->listen = 80;
-  this->server_name.push_back("localhost");
-  this->error_page.push_back("403");
-  this->error_page.push_back("/403.html");
-  this->error_page.push_back("404");
-  this->error_page.push_back("/404.html");
-  this->error_page.push_back("418");
-  this->error_page.push_back("/418.html");
-  this->error_page.push_back("500");
-  this->error_page.push_back("/500.html");
-  this->error_page.push_back("501");
-  this->error_page.push_back("/501.html");
+  // this->server_name.push_back("localhost");
+  // this->error_page.push_back("403");
+  // this->error_page.push_back("/403.html");
+  // this->error_page.push_back("404");
+  // this->error_page.push_back("/404.html");
+  // this->error_page.push_back("418");
+  // this->error_page.push_back("/418.html");
+  // this->error_page.push_back("500");
+  // this->error_page.push_back("/500.html");
+  // this->error_page.push_back("501");
+  // this->error_page.push_back("/501.html");
   this->client_max_body_size = 1024;
   this->client_max_head_size = 1024;
   this->http_method = (0b111);
@@ -197,6 +197,7 @@ std::ostream &operator<<(std::ostream &out,
     out << "\n";
     i++;
   }
+  out << "------------------------------------------";
   return out;
 }
 

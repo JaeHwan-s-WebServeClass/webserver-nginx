@@ -91,7 +91,7 @@ void Server::run() {
   struct kevent *curr_event;
   while (1) {
     new_events = this->safeKevent(MAX_EVENT_SIZE, NULL);
-    std::cout << "new_events: " << new_events << std::endl;
+    // std::cout << "new_events: " << new_events << std::endl;
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
