@@ -45,7 +45,7 @@ std::vector<ServerConfig> parseConfig(const char *config_file) {
     throw std::string("Error: parseConf: Invalid Config File");
   }
 
-  ServerConfig tmp_conf;
+  ServerConfig *tmp_conf;
 
   while (std::getline(file_stream, line)) {
     line = ft::trim(line);
@@ -53,21 +53,24 @@ std::vector<ServerConfig> parseConfig(const char *config_file) {
       continue;
     } else if (line == "server {") {
       server_fl = true;
+      tmp_conf = new ServerConfig();
+      tmp_conf->setDefault();
     } else if (isLocation(line, &location_key)) {
-      tmp_conf.setLocationDefault(location_key);
+      tmp_conf->setLocationDefault(location_key);
       location_fl = true;
     } else if (server_fl == true && location_fl == true && line == "}") {
       location_fl = false;
     } else if (server_fl == true && location_fl == false && line == "}") {
       server_fl = false;
-      config_data.push_back(tmp_conf);
-      tmp_conf.setDefault();
+      config_data.push_back(*tmp_conf);
+      delete tmp_conf;
+      // tmp_conf->setDefault();
     } else {
       if (line.back() != ';') {
         throw std::string("Error: parseConf: Missing Semicolon");
       }
       line = ft::trim(line, ';');
-      goParsing(tmp_conf, line, location_key, server_fl, location_fl);
+      goParsing(*tmp_conf, line, location_key, server_fl, location_fl);
     }
   }
   file_stream.close();

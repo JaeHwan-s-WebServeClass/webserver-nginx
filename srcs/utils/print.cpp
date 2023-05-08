@@ -13,9 +13,9 @@ std::string ft::printHelper(std::string msg) {
 
 std::string ft::printHelper(std::vector<std::string> msg) {
   std::string new_msg;
-  std::vector<std::string>::const_iterator it;
+  std::vector<std::string>::const_iterator it = msg.begin();
 
-  for (it = msg.begin(); it != msg.end(); ++it) {
+  for (; it != msg.end(); ++it) {
     new_msg += *it + " ";
   }
   new_msg += "\n";

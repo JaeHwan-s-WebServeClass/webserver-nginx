@@ -307,7 +307,7 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
     this->disconnectClient(this->event_list->ident, this->clients);
 
   if (new_events == -1) {
-    ft::errorHandler("Error: Server: safeKevent");
+    ft::printError("Error: Server: safeKevent");
     throw Transaction::ErrorPageDefaultException();
   } else if (new_events == 0) {
     std::cout << "new_event is 0\n";
