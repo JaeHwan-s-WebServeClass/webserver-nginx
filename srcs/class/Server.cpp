@@ -75,7 +75,6 @@ void Server::run() {
 
   int new_events;
   struct kevent *curr_event;
-  struct timespec timeout = {5, 0};
   while (1) {
     new_events = this->safeKevent(MAX_EVENT_SIZE, NULL);
     std::cout << "new_events: " << new_events << std::endl;

@@ -117,10 +117,10 @@ int Transaction::checkDirectory() {
       this->response.setResponseMsg();
       return -1;
     } else {                          //  디렉토리가 없는 경우
-      throw ErrorPage403Exception(); // FIXME 403 Forbidden
+      throw ErrorPage403Exception();  // FIXME 403 Forbidden
     }
   } else {
-    throw ErrorPage403Exception(); // FIXME 403 Forbidden
+    throw ErrorPage403Exception();  // FIXME 403 Forbidden
   }
   return -1;
 }
@@ -384,7 +384,7 @@ int Transaction::executeCGI(void) {
   const char *tmp = ft::vecToCharArr(this->request.getEntity());
   char const *const args[] = {(this->location.cgi_exec).c_str(),
                               cgi_path.c_str(), tmp, NULL};
-  delete[] tmp;
+
   pid_t cgi_pid = ft::safeFork();
   if (cgi_pid == 0) {
     ft::safeClose(fd[0]);
@@ -402,10 +402,15 @@ int Transaction::executeCGI(void) {
       throw ErrorPage500Exception();
     }
   }
+  delete[] tmp;
   return fd[0];
 }
 
 //---- error class -------------------------------------------------------------
+const char *Transaction::ErrorPage403Exception::what() const throw() {
+  return "403";
+}
+
 const char *Transaction::ErrorPage404Exception::what() const throw() {
   return "404";
 }
