@@ -24,6 +24,7 @@ void goParsing(ServerConfig &tmp_conf, std::string &line,
   value = ft::split(vec.back(), ' ');
 
   if (server_fl == true && location_fl == true) {
+    // clear?
     tmp_conf.setLocation(location_key, key, value);
   } else if (server_fl == true && location_fl == false) {
     tmp_conf.setDirective(key, value);

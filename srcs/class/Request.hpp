@@ -53,9 +53,8 @@ class Request {
   /// @param buf
   /// @param read_len
   void addChunkedEntity(char *, size_t);
-
-  // ---- utils -------------------------------
-  void toString() const;
 };
+
+std::ostream &operator<<(std::ostream &out, const Request &r);
 
 #endif

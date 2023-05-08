@@ -137,57 +137,63 @@ void ServerConfig::setLocationDefault(const std::string key) {
 
 void ServerConfig::setDefault() {
   this->listen = 80;
-  this->server_name.push_back("localhost");
-  this->error_page.push_back("404");
-  this->error_page.push_back("/404.html");
-  this->error_page.push_back("500");
-  this->error_page.push_back("/500.html");
-  this->error_page.push_back("501");
-  this->error_page.push_back("/501.html");
+  // this->server_name.push_back("localhost");
+  // this->error_page.push_back("403");
+  // this->error_page.push_back("/403.html");
+  // this->error_page.push_back("404");
+  // this->error_page.push_back("/404.html");
+  // this->error_page.push_back("418");
+  // this->error_page.push_back("/418.html");
+  // this->error_page.push_back("500");
+  // this->error_page.push_back("/500.html");
+  // this->error_page.push_back("501");
+  // this->error_page.push_back("/501.html");
   this->client_max_body_size = 1024;
   this->client_max_head_size = 1024;
   this->http_method = (0b111);
   root = "/rootdir";
 }
 
-//----- utils ------------------------------------------------------------------
-void ServerConfig::printLocation(const t_location &location) {
-  std::cout << "     autoindex:  " << location.autoindex << std::endl;
-  std::cout << "     root:  " << location.root << std::endl;
-  std::cout << "     index:  ";
-  ft::printVector(location.index);
-  std::cout << "     http_method:  " << location.http_method << GRY
-            << " (GET = 1, POST = 2, DELETE = 4)" << DFT << std::endl;
-  std::cout << "     cgi_exec:  " << location.cgi_exec << std::endl;
-  std::cout << "     cgi_path:  " << location.cgi_path << std::endl;
-}
-
-void ServerConfig::printConfig(std::vector<ServerConfig> config) {
+//------------------------------------------------------------------------------
+std::ostream &operator<<(std::ostream &out,
+                         const std::vector<ServerConfig> &c) {
   int i = 1;
-  std::vector<ServerConfig>::const_iterator it1 = config.begin();
+  std::vector<ServerConfig>::const_iterator it1 = c.begin();
 
-  for (; it1 != config.end(); it1++) {
-    std::cout << "------------ server config: " << i << " ------------\n";
-    std::cout << "- listen:  " << it1->getListen() << std::endl;
-    std::cout << "- server_name:  ";
+  for (; it1 != c.end(); it1++) {
+    out << "------------ server config: " << i << " ------------\n";
+    out << "- listen:  " << it1->getListen() << "\n";
+    out << "- server_name:  ";
     ft::printVector(it1->getServerName());
-    std::cout << "- error_page:  ";
+    out << "- error_page:  ";
     ft::printVector(it1->getErrorPage());
-    std::cout << "- client_max_head_size:  " << it1->getClientMaxHeadSize()
-              << std::endl;
-    std::cout << "- client_max_body_size:  " << it1->getClientMaxBodySize()
-              << std::endl;
-    std::cout << "- root:  " << it1->getRoot() << std::endl;
-    std::cout << "- location:  " << std::endl;
+    out << "- client_max_head_size:  " << it1->getClientMaxHeadSize() << "\n";
+    out << "- client_max_body_size:  " << it1->getClientMaxBodySize() << "\n";
+    out << "- root:  " << it1->getRoot() << "\n";
+    out << "- location:  "
+        << "\n";
 
-    std::map<std::string, t_location>::const_iterator it2 =
-        it1->locations.begin();
-    for (; it2 != it1->locations.end(); ++it2) {
-      std::cout << "   - path: " << it2->first << std::endl;
-      printLocation(it2->second);
+    std::map<std::string, ServerConfig::t_location> locations =
+        it1->getLocation();
+    std::map<std::string, ServerConfig::t_location>::const_iterator it2 =
+        locations.begin();
+    for (; it2 != locations.end(); ++it2) {
+      out << "   - path: " << it2->first << "\n";
+      out << it2->second;
     }
-    std::cout << "\n";
+    out << "\n";
     i++;
   }
-  std::cout << "------------------------------------------\n";
+  return out;
+}
+
+std::ostream &operator<<(std::ostream &out, const ServerConfig::t_location &l) {
+  out << "     autoindex:  " << l.autoindex << "\n";
+  out << "     root:  " << l.root << "\n";
+  out << "     index:  " << ft::printHelper(l.index);
+  out << "     http_method:  " << l.http_method << GRY
+      << " (GET = 1, POST = 2, DELETE = 4)" << DFT << "\n";
+  out << "     cgi_exec:  " << l.cgi_exec << "\n";
+  out << "     cgi_path:  " << l.cgi_path << "\n";
+  return out;
 }

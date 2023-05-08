@@ -117,10 +117,10 @@ int Transaction::checkDirectory() {
       this->response.setResponseMsg();
       return -1;
     } else {                          //  디렉토리가 없는 경우
-      throw ErrorPage403Exception(); // FIXME 403 Forbidden
+      throw ErrorPage403Exception();  // FIXME 403 Forbidden
     }
   } else {
-    throw ErrorPage403Exception(); // FIXME 403 Forbidden
+    throw ErrorPage403Exception();  // FIXME 403 Forbidden
   }
   return -1;
 }
@@ -190,7 +190,7 @@ int Transaction::executeRead(void) {
 
   // FIXME 연산자 오버로딩으로 처리하기
   if (this->flag == REQUEST_DONE) {
-    this->request.toString();
+    std::cout << this->request << std::endl;
   }
   return 0;
 }
@@ -223,15 +223,14 @@ int Transaction::executeReadHead(char *buf, int read_len) {
       if (read_stream.eof()) {
         // 이런 상황들에 대해서는 default로 error를 던지고 default error page를
         // 보여주자 아니면 외부 사이트로 리다이렉트 시켜버리기? => 공룡게임..?
-        ft::errorHandler(
+        ft::printError(
             "Error: Transaction: executeReadHead: over max header size");
         throw Transaction::ErrorPageDefaultException();
       }
     }
   }
   if (this->request.getRawHead().length() > MAX_HEAD_SIZE) {
-    ft::errorHandler(
-        "Error: Transaction: executeReadHead: over max header size");
+    ft::printError("Error: Transaction: executeReadHead: over max header size");
     throw Transaction::ErrorPageDefaultException();
   }
   return (read_len - this->request.getRawHead().length());
@@ -260,13 +259,12 @@ void Transaction::executeReadEntity(char *buf, int read_len,
       this->request.addChunkedEntity(buf, read_len);
     }
   } else {
-    ft::errorHandler(
+    ft::printError(
         "Error: Transaction: executeReadEntity: invalid request header");
     throw Transaction::ErrorPageDefaultException();
   }
   if (this->request.getEntitySize() > MAX_BODY_SIZE) {
-    ft::errorHandler(
-        "Error: Transaction: executeReadEntity: over max body size");
+    ft::printError("Error: Transaction: executeReadEntity: over max body size");
     throw Transaction::ErrorPageDefaultException();
   }
 }
@@ -406,6 +404,9 @@ int Transaction::executeCGI(void) {
 }
 
 //---- error class -------------------------------------------------------------
+const char *Transaction::ErrorPage403Exception::what() const throw() {
+  return "403";
+}
 const char *Transaction::ErrorPage404Exception::what() const throw() {
   return "404";
 }

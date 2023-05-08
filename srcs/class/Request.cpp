@@ -109,26 +109,28 @@ void Request::addChunkedEntity(char *buf, size_t read_len) {
   }
 }
 
-//---- utils --------------------------------------------
-// FIXME << 연산자 오버로딩으로 바꾼다?
-void Request::toString() const {
-  std::cout << GRY << "-------------------- start-line --------------------"
-            << DFT << std::endl;
-  std::cout << BLU << "method: " << DFT << this->method << std::endl;
-  std::cout << BLU << "url: " << DFT << this->url << std::endl;
-  std::cout << BLU << "version: " << DFT << this->http_version << std::endl;
-  std::cout << GRY << "---------------------- header ----------------------"
-            << DFT << std::endl;
+//-----------------------------------------------------------------------------
+std::ostream &operator<<(std::ostream &out, const Request &r) {
+  out << ft::printHelper(
+      "-------------------- start-line --------------------");
+  out << BLU << "method: " << DFT << r.getMethod() << "\n";
+  out << BLU << "url: " << DFT << r.getUrl() << "\n";
+  out << BLU << "version: " << DFT << r.getHttpVersion() << "\n";
+  out << ft::printHelper(
+      "---------------------- header ----------------------");
+  const std::map<std::string, std::string> &header = r.getHeader();
   for (std::map<std::string, std::string>::const_iterator it = header.begin();
        it != header.end(); ++it) {
-    std::cout << BLU << it->first << ": " << DFT << it->second << std::endl;
+    out << BLU << it->first << ": " << DFT << it->second << "\n";
   }
-  std::cout << GRY << "--------------------- entity -----------------------"
-            << DFT << std::endl;
+  out << ft::printHelper(
+      "--------------------- entity -----------------------");
+  const std::vector<char> &entity = r.getEntity();
   for (unsigned long i = 0; i < entity.size(); i++) {
-    std::cout << YLW << entity[i];
+    out << YLW << entity[i];
   }
-  std::cout << DFT << std::endl;
-  std::cout << GRY << "----------------------------------------------------"
-            << DFT << std::endl;
+  out << DFT << "\n";
+  out << ft::printHelper(
+      "----------------------------------------------------");
+  return out;
 }

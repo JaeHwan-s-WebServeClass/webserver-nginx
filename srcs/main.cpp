@@ -11,6 +11,7 @@ int main(int argc, char **argv) {
       throw std::string("usage: ./webserv [config file]");
     }
     // DEBUG
+    std::cout << config << std::endl;
     // config.begin()->printConfig(config);
     Server server(config);
     server.loadErrorPage();

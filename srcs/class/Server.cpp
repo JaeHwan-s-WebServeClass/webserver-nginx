@@ -12,7 +12,7 @@ Server::Server(std::vector<ServerConfig> &server_config)
     this->server_socket.push_back(tmp_socket);
   }
   if ((this->kq = kqueue()) == -1) {
-    ft::errorHandler("Error: Server: constructor: kqueue()");
+    ft::printError("Error: Server: constructor: kqueue()");
     throw Transaction::ErrorPageDefaultException();
   }
 }
@@ -138,17 +138,17 @@ void Server::runErrorServer(struct kevent *&curr_event) {
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
     if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
-      ft::errorHandler("Error: Server: runErrorServer: server socket error");
+      ft::printError("Error: Server: runErrorServer: server socket error");
       throw Transaction::ErrorPageDefaultException();
     }
   }
   if (it == this->server_socket.end()) {
     if (curr_event->udata) {
-      ft::errorHandler("Error: Server: runErrorServer: file error");
+      ft::printError("Error: Server: runErrorServer: file error");
       throw Transaction::ErrorPageDefaultException();
     } else {
       this->disconnectClient(curr_event->ident, this->clients);
-      ft::errorHandler("Error: Server: runErrorServer: client socket error");
+      ft::printError("Error: Server: runErrorServer: client socket error");
       throw Transaction::ErrorPageDefaultException();
     }
   }
@@ -300,7 +300,7 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
   if ((new_events =
            kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
                   this->event_list, nevents, timeout)) == -1) {
-    ft::errorHandler("Error: Server: safeKevent");
+    ft::printError("Error: Server: safeKevent");
     throw Transaction::ErrorPageDefaultException();
   }
   return new_events;

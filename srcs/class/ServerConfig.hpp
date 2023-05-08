@@ -58,8 +58,7 @@ class ServerConfig {
   void setDirective(std::string key, std::vector<std::string> value);
   void setLocation(const std::string, const std::string,
                    const std::vector<std::string> &);
-
-  // ---- utils --------------------------------
-  void printLocation(const t_location &);
-  void printConfig(std::vector<ServerConfig>);
 };
+
+std::ostream &operator<<(std::ostream &out, const std::vector<ServerConfig> &c);
+std::ostream &operator<<(std::ostream &out, const ServerConfig::t_location &l);
