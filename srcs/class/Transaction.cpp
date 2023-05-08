@@ -393,7 +393,6 @@ void Transaction::httpPost(int data_size, int fd) {
 int Transaction::executeCGI(void) {
   // std::cout << GRY << "Debug: Transaction: executeCGI\n" << DFT;
   int fd[2];
-  int status;
   std::string cgi_path;
 
   ft::safePipe(fd);
