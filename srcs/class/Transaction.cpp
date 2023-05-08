@@ -117,10 +117,10 @@ int Transaction::checkDirectory() {
       this->response.setResponseMsg();
       return -1;
     } else {                          //  디렉토리가 없는 경우
-      throw ErrorPage404Exception();  // FIXME 403 Forbidden
+      throw ErrorPage403Exception(); // FIXME 403 Forbidden
     }
   } else {
-    throw ErrorPage404Exception();  // FIXME 403 Forbidden
+    throw ErrorPage403Exception(); // FIXME 403 Forbidden
   }
   return -1;
 }

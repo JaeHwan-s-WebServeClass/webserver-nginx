@@ -79,6 +79,9 @@ class Transaction {
   int executeCGI(void);
 
   // --- error class --------------------------
+  class ErrorPage403Exception : public std::exception {
+    virtual const char *what(void) const throw();
+  };
   class ErrorPage404Exception : public std::exception {
     virtual const char *what(void) const throw();
   };
