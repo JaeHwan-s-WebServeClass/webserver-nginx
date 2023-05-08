@@ -22,6 +22,7 @@ Server::Server(std::vector<ServerConfig> &server_config)
 void Server::loadErrorPage() {
   ServerConfig temp_conf = this->server_config[0];
   std::vector<std::string> conf_error_page = temp_conf.getErrorPage();
+  struct timespec timeout = { 5, 0};
 
   std::vector<std::string>::const_iterator it = conf_error_page.begin();
 
@@ -34,7 +35,7 @@ void Server::loadErrorPage() {
     fcntl(fp->_file, F_SETFL, O_NONBLOCK);
     this->setChangeList(this->change_list, fp->_file, EVFILT_READ,
                         EV_ADD | EV_ENABLE, 0, 0, fp);
-    this->safeKevent(1, NULL);
+    this->safeKevent(1, &timeout);
     this->change_list.clear();
 
     char buf[BUFFER_SIZE];
@@ -75,8 +76,9 @@ void Server::run() {
 
   int new_events;
   struct kevent *curr_event;
+  struct timespec timeout = { 5, 0};
   while (1) {
-    new_events = this->safeKevent(MAX_EVENT_SIZE, NULL);
+    new_events = this->safeKevent(MAX_EVENT_SIZE, &timeout);
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
