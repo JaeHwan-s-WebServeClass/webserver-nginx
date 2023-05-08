@@ -2,6 +2,7 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <cctype>
 #include <cstdlib>
@@ -63,6 +64,7 @@ ssize_t safeWrite(int, char *, int);
 /// @return read/write size
 size_t safeFread(char *, int, int, FILE *);
 size_t safeFwrite(const char *, int, int, FILE *);
+size_t safeOpen(std::string, int, mode_t);
 
 std::FILE *safeFopen(const char *, const char *);
 int safeFclose(FILE *);

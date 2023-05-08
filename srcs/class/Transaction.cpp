@@ -1,8 +1,5 @@
 #include "Transaction.hpp"
 
-#include <dirent.h>
-#include <sys/wait.h>
-
 //---- OCCF -------------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
     : socket_fd(socket_fd),
@@ -102,7 +99,6 @@ int Transaction::checkDirectory() {
   }
 
   std::vector<std::string>::const_iterator it = this->location.index.begin();
-
   // index 파일을 찾아서 있으면 보여줌
   for (; it != this->location.index.end(); ++it) {
     std::string tmp = this->resource + *it;
@@ -113,9 +109,9 @@ int Transaction::checkDirectory() {
         this->setFlag(FILE_READ);
         return this->executeCGI();
       } else {
-        this->file_ptr = ft::safeFopen(this->resource.c_str(), "r");
+        this->fd = ft::safeOpen(this->resource, O_RDONLY, 0644);
         this->setFlag(FILE_READ);
-        return this->file_ptr->_file;
+        return this->fd;
       }
     }
   }
@@ -146,7 +142,7 @@ int Transaction::checkDirectory() {
 }
 
 int Transaction::checkFile() {
-  // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
+  std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
   if ((this->request.getMethod() != "POST") &&
       (access(this->resource.c_str(), F_OK) == -1)) {
     throw ErrorPage404Exception();
@@ -162,13 +158,13 @@ int Transaction::checkFile() {
     this->setFlag(FILE_READ);
     return this->executeCGI();
   } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
-    this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
+    this->fd = ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     this->setFlag(FILE_WRITE);
   } else {  // 3. 평범한 get, delete
-    this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
+    this->fd = ft::safeOpen(this->resource, O_RDWR, 0644);
     this->setFlag(FILE_READ);
   }
-  return (this->file_ptr->_file);
+  return (this->fd);
 }
 
 void Transaction::checkAllowedMethod() {
@@ -342,12 +338,11 @@ void Transaction::httpGet(int data_size, int fd) {
     }
   } else {  // 2. 그냥 get
     char buf[MAX_BODY_SIZE + 1];
-    size_t read_len =
-        ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
-
+    size_t read_len = ft::safeRead(this->fd, buf, MAX_BODY_SIZE);
+    buf[read_len] = '\0';
     this->response.setEntity(buf, read_len);
-    if (static_cast<int>(read_len) == data_size) {
-      ft::safeFclose(this->file_ptr);
+    if (static_cast<int>(read_len) >= data_size) {
+      ft::safeClose(this->fd);
       this->setFlag(FILE_DONE);
       this->response.setStatus("200");
     }
@@ -384,9 +379,9 @@ void Transaction::httpPost(int data_size, int fd) {
       ft::safeClose(fd);
     }
   } else if (this->flag == FILE_WRITE) {  // upload file
-    ft::safeFwrite(&this->request.getEntity()[0], sizeof(char),
-                   this->request.getEntitySize(), this->file_ptr);
-    ft::safeFclose(this->file_ptr);
+    ft::safeWrite(this->fd, const_cast<char *>(&this->request.getEntity()[0]),
+                  this->request.getEntitySize());
+    ft::safeClose(fd);
     this->setFlag(FILE_DONE);
     this->response.setStatus("201");
     this->response.setHeader("Content-Type", "text/plain");

@@ -77,6 +77,17 @@ size_t ft::safeFwrite(const char *buf, int size, int count, FILE *file_ptr) {
 }
 
 //----- open/close -------------------------------------------------------------
+size_t ft::safeOpen(std::string resource, int flag, mode_t mode) {
+  // std::cout << GRY << "Debug: safeOpen\n" << DFT;
+  int fd;
+
+  if ((fd = open(resource.c_str(), flag, mode)) == -1) {
+    std::cerr << RED << "Error: Transaction: file close() error\n" << DFT;
+  }
+  return fd;
+};
+
+
 int ft::safeClose(int fd) {
   // std::cout << GRY << "Debug: safeClose\n" << DFT;
   if (close(fd) == -1) {

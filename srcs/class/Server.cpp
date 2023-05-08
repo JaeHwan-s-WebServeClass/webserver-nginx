@@ -44,22 +44,21 @@ void Server::loadErrorPage() {
     it++;
     std::string filename = *it;
     std::string rootdir = temp_conf.getRoot();
-    FILE *fp = ft::safeFopen(('.' + rootdir + filename).c_str(), "r");
-    fcntl(fp->_file, F_SETFL, O_NONBLOCK);
-    this->setChangeList(this->change_list, fp->_file, EVFILT_READ,
-                        EV_ADD | EV_ENABLE, 0, 0, fp);
+    int fd = ft::safeOpen('.' + rootdir + filename, O_RDONLY, 0644);
+    fcntl(fd, F_SETFL, O_NONBLOCK);
+    this->setChangeList(this->change_list, fd, EVFILT_READ,
+                        EV_ADD | EV_ENABLE, 0, 0, NULL);
     this->safeKevent(1, &timeout);
     this->change_list.clear();
 
     char buf[BUFFER_SIZE];
     if (this->event_list[0].filter == EVFILT_READ) {
       size_t read_len =
-          ft::safeFread(buf, sizeof(char), BUFFER_SIZE,
-                        reinterpret_cast<FILE *>(this->event_list[0].udata));
+          ft::safeRead(fd, buf, BUFFER_SIZE);
       buf[read_len] = '\0';
     }
     this->error_page[key] = buf;
-    ft::safeFclose(fp);
+    ft::safeClose(fd);
   }
   this->change_list.clear();
   // DEBUG
@@ -91,7 +90,6 @@ void Server::run() {
   struct kevent *curr_event;
   while (1) {
     new_events = this->safeKevent(MAX_EVENT_SIZE, NULL);
-    // std::cout << "new_events: " << new_events << std::endl;
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
@@ -219,7 +217,7 @@ void Server::runReadEventFile(struct kevent *&curr_event) {
   // TODO file_fd를 vector로 관리할지는 추후 논의 필요.
   // 여러개의 client가 동시에 혹은 진행중인 사이클 내에서 같은 file에 접근할
   // 경우 어떤 문제가 생길까..?
-  // fopen 쓰지 말고 싹 다 open으로 변경...? 아마 파일마스터 승혜가.... 우와...
+
   Transaction *curr_transaction =
       reinterpret_cast<Transaction *>(curr_event->udata);
 
