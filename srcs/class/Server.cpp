@@ -21,7 +21,7 @@ Server::Server(std::vector<ServerConfig> &server_config)
 void Server::loadErrorPage() {
   ServerConfig temp_conf = this->server_config[0];
   std::vector<std::string> conf_error_page = temp_conf.getErrorPage();
-  struct timespec timeout = { 5, 0};
+  struct timespec timeout = {5, 0};
 
   std::vector<std::string>::const_iterator it = conf_error_page.begin();
 
@@ -75,9 +75,9 @@ void Server::run() {
 
   int new_events;
   struct kevent *curr_event;
-  struct timespec timeout = { 5, 0};
   while (1) {
-    new_events = this->safeKevent(MAX_EVENT_SIZE, &timeout);
+    new_events = this->safeKevent(MAX_EVENT_SIZE, NULL);
+    std::cout << "new_events: " << new_events << std::endl;
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
@@ -295,13 +295,22 @@ void Server::disconnectClient(int client_fd,
 //----- safe_method ------------------------------------------------------------
 int Server::safeKevent(int nevents, const timespec *timeout) {
   // std::cout << GRY << "Debug: Server: safeKevent\n" << DFT;
-  int new_events;
+  // int new_events =
+  //     kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
+  //            this->event_list, nevents, timeout);
 
-  if ((new_events =
-           kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
-                  this->event_list, nevents, timeout)) == -1) {
-    ft::printError("Error: Server: safeKevent");
+  int new_events = 0;
+
+  if (!(new_events =
+            kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
+                   this->event_list, nevents, timeout)))
+    this->disconnectClient(this->event_list->ident, this->clients);
+
+  if (new_events == -1) {
+    ft::errorHandler("Error: Server: safeKevent");
     throw Transaction::ErrorPageDefaultException();
+  } else if (new_events == 0) {
+    std::cout << "new_event is 0\n";
   }
   return new_events;
 }

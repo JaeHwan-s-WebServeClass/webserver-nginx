@@ -382,7 +382,7 @@ int Transaction::executeCGI(void) {
   const char *tmp = ft::vecToCharArr(this->request.getEntity());
   char const *const args[] = {(this->location.cgi_exec).c_str(),
                               cgi_path.c_str(), tmp, NULL};
-  delete[] tmp;
+
   pid_t cgi_pid = ft::safeFork();
   if (cgi_pid == 0) {
     ft::safeClose(fd[0]);
@@ -400,6 +400,7 @@ int Transaction::executeCGI(void) {
       throw ErrorPage500Exception();
     }
   }
+  delete[] tmp;
   return fd[0];
 }
 
