@@ -6,8 +6,7 @@ Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
       flag(START),
       response(this->flag),
       request(this->flag),
-      server_config(server_config),
-      cgi_pid(0) {
+      server_config(server_config) {
   // std::cout << GRY << "Debug: Transaction: constructor\n" << DFT;
 }
 Transaction::Transaction(const Transaction &ref)
@@ -306,14 +305,6 @@ int Transaction::executeMethod(int data_size, int fd) {
     }
   }
   if (this->flag == FILE_DONE) {
-    if (this->cgi_pid) {
-      int status, wait_pid;
-      wait_pid = waitpid(this->cgi_pid, &status, WNOHANG);
-      if (wait_pid != this->cgi_pid ||
-          (WIFEXITED(status) && WEXITSTATUS(status))) {
-        throw ErrorPage500Exception();
-      }
-    }
     this->response.setResponseMsg();
   }
   return 0;
