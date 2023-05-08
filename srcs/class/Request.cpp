@@ -30,13 +30,18 @@ size_t Request::getContentLength() const {
   return content_length;
 }
 
+const std::vector<char> &Request::getEntityCgi() const {
+  return this->entity_cgi;
+}
+
 //---- setter -----------------------------------------------------------------
 void Request::setRawHead(std::string line) { this->raw_head += line; }
 void Request::setFlag(t_step flag) { this->flag = flag; }
-void Request::setEntity(const char *buf, size_t read_len) {
-  this->entity.clear();
+void Request::setEntity(std::vector<char> buf) { this->entity = buf; }
+void Request::setEntityClear() { this->entity.clear(); }
+void Request::setEntityCgi(const char *buf, size_t read_len) {
   for (size_t i = 0; i < read_len; ++i) {
-    this->entity.push_back(buf[i]);
+    this->entity_cgi.push_back(buf[i]);
   }
 }
 

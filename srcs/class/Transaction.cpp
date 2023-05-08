@@ -132,11 +132,13 @@ int Transaction::checkFile() {
     throw ErrorPage404Exception();
   }
 
+  if (this->request.getMethod() == "DELETE") {
+    return -2;
+  }
   // 1. cgi 처리 해야하는 상황인데, 아직 처리 안된 상태
   if ((this->location.cgi_exec != "") &&
       (this->request.getMethod() != "DELETE") &&
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
-    std::cout << RED << "call executeCGI\n" << DFT;
     this->setFlag(FILE_READ);
     return this->executeCGI();
   } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
@@ -284,7 +286,7 @@ int Transaction::executeMethod(int data_size, int fd) {
     if (this->request.getMethod() == "GET") {
       this->httpGet(data_size, fd);
     } else if (this->request.getMethod() == "POST") {
-      this->httpPost(fd);
+      this->httpPost(data_size, fd);
     } else if (this->request.getMethod() == "DELETE") {
       this->httpDelete();
     }
@@ -300,24 +302,24 @@ void Transaction::httpGet(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpGet\n" << DFT;
   // 1. cgi get
   if (ft::findSuffix(this->resource, ".py")) {
-    char buf[BUFFER_SIZE];
+    char buf[BUFFER_SIZE + 1];
     int read_len;
     read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
     this->response.setEntity(buf, read_len);
-    this->response.setStatus("200");
-    this->response.setHeader("Content-Type", "text/html");
     buf[read_len] = '\0';
-    // FIXME 한번에 read 못할 경우도 있음
-    // 다 읽었는지 확인해서 플래그 켜야 함
-    this->setFlag(FILE_DONE);
-    ft::safeClose(fd);
+    if (read_len == data_size) {
+      this->setFlag(FILE_DONE);
+      this->response.setStatus("200");
+      this->response.setHeader("Content-Type", "text/html");
+      ft::safeClose(fd);
+    }
   } else {  // 2. 그냥 get
     char buf[MAX_BODY_SIZE + 1];
     size_t read_len =
         ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
 
     this->response.setEntity(buf, read_len);
-    if (static_cast<int>(read_len) >= data_size) {
+    if (static_cast<int>(read_len) == data_size) {
       ft::safeFclose(this->file_ptr);
       this->setFlag(FILE_DONE);
       this->response.setStatus("200");
@@ -340,17 +342,20 @@ void Transaction::httpDelete() {
   }
 }
 
-void Transaction::httpPost(int fd) {
+void Transaction::httpPost(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
   if (this->flag == FILE_READ) {  // cgi pipe read
-    char buf[BUFFER_SIZE];
+    char buf[BUFFER_SIZE + 1];
     int read_len;
     read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
     buf[read_len] = '\0';
-    this->request.setEntity(buf, read_len);
-    // FIXME 한번에 다 read 못한 경우 플래그 켜지는 조건 필요함
-    this->setFlag(FILE_CGI);
-    ft::safeClose(fd);
+    this->request.setEntityCgi(buf, read_len);
+    if (read_len == data_size) {
+      this->request.setEntityClear();
+      this->request.setEntity(this->request.getEntityCgi());
+      this->setFlag(FILE_CGI);
+      ft::safeClose(fd);
+    }
   } else if (this->flag == FILE_WRITE) {  // upload file
     ft::safeFwrite(&this->request.getEntity()[0], sizeof(char),
                    this->request.getEntitySize(), this->file_ptr);
@@ -377,7 +382,6 @@ int Transaction::executeCGI(void) {
     cgi_path = this->resource;
   }
   const char *tmp = ft::vecToCharArr(this->request.getEntity());
-  // std::cout << RED << "tmp: " << tmp << DFT << std::endl;
   char const *const args[] = {(this->location.cgi_exec).c_str(),
                               cgi_path.c_str(), tmp, NULL};
   delete[] tmp;
