@@ -1,6 +1,5 @@
 #include "../include/include.hpp"
 
-void errorHandler(std::string msg) {
-  std::cout << msg << std::endl;
-  exit(1);
+void ft::errorHandler(std::string msg) {
+  std::cout << RED << msg << DFT << std::endl;
 }

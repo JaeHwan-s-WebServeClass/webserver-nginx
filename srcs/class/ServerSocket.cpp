@@ -26,9 +26,8 @@ const int &ServerSocket::getServerSocket() const { return this->server_socket; }
 void ServerSocket::setNonBlock(int socket_fd) {
   // std::cout << GRY << "Debug: ServerSocket::setNonBlock\n" << DFT;
   if (fcntl(socket_fd, F_SETFL, O_NONBLOCK) == -1) {
-    // FIXME error_handling
-    throw std::string("Error: ServerSocket: setNonBlock: fcntl error\n" +
-                      std::string(strerror(errno)));
+    ft::errorHandler("Error: ServerSocket: setNonBlock: fcntl()");
+    throw Transaction::ErrorPageDefaultException();
   }
 }
 
@@ -36,9 +35,8 @@ void ServerSocket::setNonBlock(int socket_fd) {
 void ServerSocket::safeSocket(int domain, int type, int protocol) {
   // std::cout << GRY << "Debug: ServerSocket::safeSocket\n" << DFT;
   if ((this->server_socket = socket(domain, type, protocol)) == -1) {
-    // FIXME error_handling
-    throw std::string("Error: ServerSocket: safeSocket: socket() error\n" +
-                      std::string(strerror(errno)));
+    ft::errorHandler("Error: ServerSocket: safeSocket");
+    throw Transaction::ErrorPageDefaultException();
   }
 }
 
@@ -48,19 +46,17 @@ void ServerSocket::safeBind(void) {
            reinterpret_cast<struct sockaddr *>(&this->server_addr),
            sizeof(this->server_addr)) == -1) {
     // DEBUG
-    std::cout << "socket fd : " << this->port << std::endl;
-    // FIXME error_handling
-    throw std::string("Error: ServerSocket: safeBind: bind() error\n" +
-                      std::string(strerror(errno)));
+    // std::cout << "socket fd : " << this->port << std::endl;
+    ft::errorHandler("Error: ServerSocket: safeBind");
+    throw Transaction::ErrorPageDefaultException();
   }
 }
 
 void ServerSocket::safeListen(int backlog) {
   // std::cout << GRY << "Debug: ServerSocket::safeListen\n" << DFT;
   if (listen(this->server_socket, backlog) == -1) {
-    // FIXME error_handling
-    throw std::string("Error: ServerSocket: safeListen: listen() error\n" +
-                      std::string(strerror(errno)));
+    ft::errorHandler("Error: ServerSocket: safeListen");
+    throw Transaction::ErrorPageDefaultException();
   }
 }
 
@@ -69,9 +65,8 @@ int ServerSocket::safeAccept(void) const {
   int client_socket;
 
   if ((client_socket = accept(this->server_socket, NULL, NULL)) == -1) {
-    // FIXME error_handling
-    throw std::string("Error: ServerSocket: sageAccept: accept() error\n" +
-                      std::string(strerror(errno)));
+    ft::errorHandler("Error: ServerSocket: safeAccept");
+    throw Transaction::ErrorPageDefaultException();
   }
   return client_socket;
 }

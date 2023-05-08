@@ -218,22 +218,19 @@ int Transaction::executeReadHead(char *buf, int read_len) {
       break;
     } else if (this->flag == START) {
       this->request.setRawHead(line + "\n");
-      if (read_stream.eof()) {
-        // FIXME error_handling
+      if (read_stream.eof() != true) {
         // 이런 상황들에 대해서는 default로 error를 던지고 default error page를
         // 보여주자 아니면 외부 사이트로 리다이렉트 시켜버리기? => 공룡게임..?
-        throw std::string(
-            "Error: Transaction: executeReadHead: Over MAX HEADER "
-            "SIZE");
+        ft::errorHandler(
+            "Error: Transaction: executeReadHead: over max header size");
+        throw Transaction::ErrorPageDefaultException();
       }
     }
   }
   if (this->request.getRawHead().length() > MAX_HEAD_SIZE) {
-    // FIXME error_handling
-    throw std::string(
-        "Error: Transaction: executeReadHead: Request Head Over "
-        "MAX HEAD "
-        "SIZE");
+    ft::errorHandler(
+        "Error: Transaction: executeReadHead: over max header size");
+    throw Transaction::ErrorPageDefaultException();
   }
   return (read_len - this->request.getRawHead().length());
 }
@@ -261,16 +258,14 @@ void Transaction::executeReadEntity(char *buf, int read_len,
       this->request.addChunkedEntity(buf, read_len);
     }
   } else {
-    // FIXME error_handling
-    throw std::string(
-        "Error: Transaction: executeReadEntity: Invalid Request Header");
+    ft::errorHandler(
+        "Error: Transaction: executeReadEntity: invalid request header");
+    throw Transaction::ErrorPageDefaultException();
   }
   if (this->request.getEntitySize() > MAX_BODY_SIZE) {
-    // FIXME error_handling
-    throw std::string(
-        "Error: Transaction: executeReadEntity: Request Entity "
-        "Over MAX BODY "
-        "SIZE");
+    ft::errorHandler(
+        "Error: Transaction: executeReadEntity: over max body size");
+    throw Transaction::ErrorPageDefaultException();
   }
 }
 
@@ -382,7 +377,7 @@ int Transaction::executeCGI(void) {
     cgi_path = this->resource;
   }
   const char *tmp = ft::vecToCharArr(this->request.getEntity());
-  std::cout << RED << "tmp: " << tmp << DFT << std::endl;
+  // std::cout << RED << "tmp: " << tmp << DFT << std::endl;
   char const *const args[] = {(this->location.cgi_exec).c_str(),
                               cgi_path.c_str(), tmp, NULL};
   delete[] tmp;
@@ -417,5 +412,5 @@ const char *Transaction::ErrorPage501Exception::what() const throw() {
   return "501";
 }
 const char *Transaction::ErrorPageDefaultException::what() const throw() {
-  return "default";
+  return "418";
 }

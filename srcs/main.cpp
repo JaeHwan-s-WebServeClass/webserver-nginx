@@ -10,18 +10,13 @@ int main(int argc, char **argv) {
     } else {
       throw std::string("usage: ./webserv [config file]");
     }
-
     // DEBUG
-    config.begin()->printConfig(config);
-
+    // config.begin()->printConfig(config);
     Server server(config);
     server.loadErrorPage();
     server.run();
-
-  } catch (std::string msg) {
-    std::cout << RED << msg << DFT << std::endl;
   } catch (std::exception e) {
-    std::cout << RED << "main: " << e.what() << DFT << std::endl;
+    // std::cout << RED << "main: " << e.what() << DFT << std::endl;
   }
   return (0);
 }
