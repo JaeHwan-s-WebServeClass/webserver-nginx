@@ -32,7 +32,7 @@ void goParsing(ServerConfig &tmp_conf, std::string &line,
   }
 }
 
-std::vector<ServerConfig> parseConfig(char *config_file) {
+std::vector<ServerConfig> parseConfig(const char *config_file) {
   std::vector<ServerConfig> config_data;
   std::ifstream file_stream(config_file);
   std::string line;

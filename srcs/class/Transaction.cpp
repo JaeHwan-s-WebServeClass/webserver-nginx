@@ -55,9 +55,11 @@ void Transaction::checkResource() {
   if (pos == std::string::npos) {
     throw ErrorPage404Exception();
   } else if (pos == 0) {  // localhost:8080/index.html 일 때.
+    std::cout << "pos == 0\n";
     request_location = this->request.getUrl().substr(0, pos + 1);
     request_filename = this->request.getUrl().substr(pos + 1);
   } else {  // localhost:8080/example/index.html 일 때.
+    std::cout << "pos != 0\n";
     request_location = this->request.getUrl().substr(0, pos);
     request_filename = this->request.getUrl().substr(pos);
   }
@@ -68,13 +70,18 @@ void Transaction::checkResource() {
     this->location = it->second;
     std::string loc_root = this->location.root;
     this->resource +=
-        '.' + server_config.getRoot() + loc_root + request_filename;
+        "." + server_config.getRoot() + loc_root + request_filename;
   } else {
     throw ErrorPage500Exception();
   }
+  // std::cout << BLU << "request_location : " << request_location << std::endl
+  //           << "request_filename : " << request_filename << std::endl
+  //           << "loc.root : " << this->location.root << DFT << std::endl;
 }
 
 int Transaction::checkDirectory() {
+  std::cout << YLW << this->resource << DFT << std::endl;
+  std::cout << YLW << this->location.index[0] << DFT << std::endl;
   // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
   if (this->request.getMethod() != "GET") {
     throw ErrorPage500Exception();
