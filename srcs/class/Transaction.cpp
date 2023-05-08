@@ -304,9 +304,9 @@ void Transaction::httpGet(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpGet\n" << DFT;
   // 1. cgi get
   if (ft::findSuffix(this->resource, ".py")) {
-    char buf[11];
+    char buf[BUFFER_SIZE + 1];
     int read_len;
-    read_len = ft::safeRead(fd, buf, 10);
+    read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
     this->response.setEntity(buf, read_len);
     buf[read_len] = '\0';
     if (read_len == data_size) {
@@ -347,9 +347,9 @@ void Transaction::httpDelete() {
 void Transaction::httpPost(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
   if (this->flag == FILE_READ) {  // cgi pipe read
-    char buf[11];
+    char buf[BUFFER_SIZE + 1];
     int read_len;
-    read_len = ft::safeRead(fd, buf, 10);
+    read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
     buf[read_len] = '\0';
     this->request.setEntityCgi(buf, read_len);
     if (read_len == data_size) {
