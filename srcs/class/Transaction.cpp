@@ -54,34 +54,28 @@ void Transaction::checkResource() {
   std::size_t pos = this->request.getUrl().find_last_of("/");
   if (pos == std::string::npos) {
     throw ErrorPage404Exception();
-  } else if (pos == 0) {  // localhost:8080/index.html 일 때.
-    std::cout << "pos == 0\n";
-    request_location = this->request.getUrl().substr(0, pos + 1);
-    request_filename = this->request.getUrl().substr(pos + 1);
-  } else {  // localhost:8080/example/index.html 일 때.
-    std::cout << "pos != 0\n";
-    request_location = this->request.getUrl().substr(0, pos);
-    request_filename = this->request.getUrl().substr(pos);
+  } else if (pos == 0) {
+    pos += 1;
   }
+  request_location = this->request.getUrl().substr(0, pos);
+  request_filename = this->request.getUrl().substr(pos);
   // STEP 2 . request_loc과 conf_loc을 비교해서 실제 local의 resource 구하기
   std::map<std::string, ServerConfig::t_location>::const_iterator it;
   if ((it = this->server_config.getLocation().find(request_location)) !=
       this->server_config.getLocation().end()) {
     this->location = it->second;
     std::string loc_root = this->location.root;
+    if ((loc_root.back() != '/') && (request_filename[0] != '/')) {
+      loc_root += "/";
+    }
     this->resource +=
         "." + server_config.getRoot() + loc_root + request_filename;
   } else {
     throw ErrorPage500Exception();
   }
-  // std::cout << BLU << "request_location : " << request_location << std::endl
-  //           << "request_filename : " << request_filename << std::endl
-  //           << "loc.root : " << this->location.root << DFT << std::endl;
 }
 
 int Transaction::checkDirectory() {
-  std::cout << YLW << this->resource << DFT << std::endl;
-  std::cout << YLW << this->location.index[0] << DFT << std::endl;
   // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
   if (this->request.getMethod() != "GET") {
     throw ErrorPage500Exception();
