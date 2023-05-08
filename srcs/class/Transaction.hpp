@@ -31,6 +31,8 @@ class Transaction {
   std::string resource;
   std::FILE *file_ptr;
 
+  int cgi_pid;
+
   Transaction();
 
  public:
