@@ -220,7 +220,7 @@ int Transaction::executeReadHead(char *buf, int read_len) {
       break;
     } else if (this->flag == START) {
       this->request.setRawHead(line + "\n");
-      if (read_stream.eof() != true) {
+      if (read_stream.eof()) {
         // 이런 상황들에 대해서는 default로 error를 던지고 default error page를
         // 보여주자 아니면 외부 사이트로 리다이렉트 시켜버리기? => 공룡게임..?
         ft::errorHandler(
