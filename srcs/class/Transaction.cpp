@@ -5,12 +5,17 @@
 
 //---- OCCF -------------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
-    : socket_fd(socket_fd), flag(START), response(this->flag),
-      request(this->flag), server_config(server_config), cgi_pid(0) {
+    : socket_fd(socket_fd),
+      flag(START),
+      response(this->flag),
+      request(this->flag),
+      server_config(server_config),
+      cgi_pid(0) {
   // std::cout << GRY << "Debug: Transaction: constructor\n" << DFT;
 }
 Transaction::Transaction(const Transaction &ref)
-    : response(this->flag), request(this->flag),
+    : response(this->flag),
+      request(this->flag),
       server_config(ref.server_config) {
   *this = ref;
 }
@@ -22,6 +27,7 @@ Transaction &Transaction::operator=(const Transaction &ref) {
   this->location = ref.location;
   this->resource = ref.resource;
   this->file_ptr = ref.file_ptr;
+  this->cgi_pid = ref.cgi_pid;
   return *this;
 }
 Transaction::~Transaction() {}
@@ -130,11 +136,11 @@ int Transaction::checkDirectory() {
       this->response.setHeader("Content-Type", "text/html");
       this->response.setResponseMsg();
       return -1;
-    } else {                         //  디렉토리가 없는 경우
-      throw ErrorPage403Exception(); // FIXME 403 Forbidden
+    } else {  //  디렉토리가 없는 경우
+      throw ErrorPage403Exception();
     }
   } else {
-    throw ErrorPage403Exception(); // FIXME 403 Forbidden
+    throw ErrorPage403Exception();
   }
   return -1;
 }
@@ -155,10 +161,10 @@ int Transaction::checkFile() {
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
     this->setFlag(FILE_READ);
     return this->executeCGI();
-  } else if (this->request.getMethod() == "POST") { // 2. 평범한 post
+  } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "w");
     this->setFlag(FILE_WRITE);
-  } else { // 3. 평범한 get, delete
+  } else {  // 3. 평범한 get, delete
     this->file_ptr = ft::safeFopen(this->resource.c_str(), "r+");
     this->setFlag(FILE_READ);
   }
@@ -334,7 +340,7 @@ void Transaction::httpGet(int data_size, int fd) {
       this->response.setHeader("Content-Type", "text/html");
       ft::safeClose(fd);
     }
-  } else { // 2. 그냥 get
+  } else {  // 2. 그냥 get
     char buf[MAX_BODY_SIZE + 1];
     size_t read_len =
         ft::safeFread(buf, sizeof(char), F_STREAM_SIZE, this->file_ptr);
@@ -353,19 +359,19 @@ void Transaction::httpGet(int data_size, int fd) {
 // GET을 이벤트 기반으로 동작시키지 않을수도....
 void Transaction::httpDelete() {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
-  if (std::remove(this->resource.c_str()) == 0) { // 파일 삭제 성공
+  if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
     this->setFlag(FILE_DONE);
     this->response.setStatus("200");
     this->response.setHeader("Content-Type", "text/plain");
     this->response.setEntity("200 OK", 6);
-  } else { // 파일 삭제 실패
+  } else {  // 파일 삭제 실패
     throw ErrorPage500Exception();
   }
 }
 
 void Transaction::httpPost(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
-  if (this->flag == FILE_READ) { // cgi pipe read
+  if (this->flag == FILE_READ) {  // cgi pipe read
     char buf[BUFFER_SIZE + 1];
     int read_len;
     read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
@@ -377,7 +383,7 @@ void Transaction::httpPost(int data_size, int fd) {
       this->setFlag(FILE_CGI);
       ft::safeClose(fd);
     }
-  } else if (this->flag == FILE_WRITE) { // upload file
+  } else if (this->flag == FILE_WRITE) {  // upload file
     ft::safeFwrite(&this->request.getEntity()[0], sizeof(char),
                    this->request.getEntitySize(), this->file_ptr);
     ft::safeFclose(this->file_ptr);
