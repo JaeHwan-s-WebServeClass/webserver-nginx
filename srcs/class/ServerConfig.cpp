@@ -12,6 +12,7 @@ ServerConfig &ServerConfig::operator=(const ServerConfig &ref) {
   this->root = ref.root;
   this->http_method = ref.http_method;
   this->locations = ref.locations;
+  this->redirect = ref.redirect;
   return *this;
 }
 ServerConfig::~ServerConfig() {}
@@ -35,6 +36,7 @@ const std::map<std::string, ServerConfig::t_location> &
 ServerConfig::getLocation() const {
   return this->locations;
 }
+const std::string &ServerConfig::getRedirect() const { return this->redirect; }
 
 //---- setter ------------------------------------------------------------------
 void ServerConfig::setListen(int value) { listen = value; }
@@ -51,6 +53,10 @@ void ServerConfig::setClientMaxHeadSize(int value) {
   client_max_head_size = value;
 }
 void ServerConfig::setRoot(const std::string &value) { root = value; }
+
+void ServerConfig::setRedirect(const std::string &value) {
+  this->redirect = value;
+}
 
 void ServerConfig::setDirective(std::string key,
                                 std::vector<std::string> value) {
@@ -90,6 +96,8 @@ void ServerConfig::setDirective(std::string key,
         this->http_method &= (0b011);
       }
     }
+  } else if (key == "redirect") {
+    this->redirect = value[0];
   } else {
     throw std::string("Error: setDirective: Invalid Element");
   }
@@ -165,6 +173,7 @@ void ServerConfig::setDefault() {
   this->client_max_head_size = 1024;
   this->http_method = (0b111);
   root = "/rootdir";
+  this->redirect = "http://google.com";
 }
 
 //------------------------------------------------------------------------------
@@ -183,9 +192,9 @@ std::ostream &operator<<(std::ostream &out,
     out << "- client_max_head_size:  " << it1->getClientMaxHeadSize() << "\n";
     out << "- client_max_body_size:  " << it1->getClientMaxBodySize() << "\n";
     out << "- root:  " << it1->getRoot() << "\n";
+    out << "- redirect:  " << it1->getRedirect() << "\n";
     out << "- location:  "
         << "\n";
-
     std::map<std::string, ServerConfig::t_location> locations =
         it1->getLocation();
     std::map<std::string, ServerConfig::t_location>::const_iterator it2 =

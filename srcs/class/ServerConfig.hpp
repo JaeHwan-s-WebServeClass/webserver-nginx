@@ -32,6 +32,7 @@ class ServerConfig {
   std::string root;
   int http_method;
   std::map<std::string, t_location> locations;
+  std::string redirect;
 
  public:
   // ---- occf --------------------------------
@@ -48,6 +49,7 @@ class ServerConfig {
   int getClientMaxHeadSize() const;
   const std::string &getRoot() const;
   const std::map<std::string, t_location> &getLocation() const;
+  const std::string &getRedirect() const;
 
   // ---- setter -------------------------------
   void setListen(int);
@@ -56,6 +58,7 @@ class ServerConfig {
   void setClientMaxBodySize(int);
   void setClientMaxHeadSize(int);
   void setRoot(const std::string &);
+  void setRedirect(const std::string &);
   void setDefault();
   void setLocationDefault(const std::string);
   void setDirective(std::string key, std::vector<std::string> value);
