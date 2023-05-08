@@ -311,8 +311,8 @@ int Transaction::executeMethod(int data_size, int fd) {
           (WIFEXITED(status) && WEXITSTATUS(status))) {
         throw ErrorPage500Exception();
       }
-      this->response.setResponseMsg();
     }
+    this->response.setResponseMsg();
   }
   return 0;
 }
