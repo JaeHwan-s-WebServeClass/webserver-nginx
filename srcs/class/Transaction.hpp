@@ -73,7 +73,7 @@ class Transaction {
   // ---- http methods ------------------------
   void httpGet(int, int);
   void httpDelete(void);
-  void httpPost(int);
+  void httpPost(int, int);
 
   // ---- cgi ---------------------------------
   int executeCGI(void);

@@ -22,6 +22,7 @@ class Request {
 
   int chunk_size;
   std::string hex_str;
+  std::vector<char> entity_cgi;
 
  public:
   // ---- constructor -------------------------
@@ -36,11 +37,14 @@ class Request {
   const std::vector<char> &getEntity() const;
   size_t getEntitySize() const;
   size_t getContentLength() const;
+  const std::vector<char> &getEntityCgi() const;
 
   // ---- setter ------------------------------
   void setRawHead(std::string);
   void setFlag(t_step);
-  void setEntity(const char *buf, size_t read_len);
+  void setEntity(std::vector<char>);
+  void setEntityClear();
+  void setEntityCgi(const char *buf, size_t read_len);
 
   // ---- parser ------------------------------
   void parserHead();
