@@ -670,3 +670,8 @@ c. access 를 이용해서 b 에서 만든 위치가 접근 가능한지 확인�
 
 <img src="https://user-images.githubusercontent.com/85930183/235587194-b95b80c3-83ce-4785-bd3a-a913394ed8ae.jpeg" width="90%">
 
+---
+
+## 13. [2023.05.03(수)] post 재논의
+
+ get cgi 구현 및 post 재논의 

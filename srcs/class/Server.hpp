@@ -31,10 +31,15 @@ class Server {
   // error_status, 시작줄 + 헤더 + 엔티
   std::map<std::string, std::string> error_page;
 
+  Server();
+
  public:
-  // ---- constructor -------------------------
+  // ---- occf --------------------------------
   /// @param server_socket
   Server(std::vector<ServerConfig> &);
+  Server(const Server &ref);
+  Server &operator=(const Server &ref);
+  ~Server();
 
   // ---- error page --------------------------
   void loadErrorPage();
@@ -43,9 +48,10 @@ class Server {
   // ---- main loop ---------------------------
   void run(void);
   void runErrorServer(struct kevent *&);
-  void runReadEventServer(int, std::vector<ServerSocket>::const_iterator);
+  void runReadEventServer(std::vector<ServerSocket>::const_iterator);
   void runReadEventClient(struct kevent *&);
   void runReadEventFile(struct kevent *&);
+  void runWriteEventFile(struct kevent *&curr_event);
   void runWriteEventClient(struct kevent *&);
 
   // ---- utils -------------------------------

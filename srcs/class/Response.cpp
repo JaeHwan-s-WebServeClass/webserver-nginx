@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-//---- constructor ------------------------------------------------------------
+//---- OCCF -------------------------------------------------------------------
 Response::Response(t_step &flag)
     : flag(flag),
       response_msg(0),
@@ -8,9 +8,18 @@ Response::Response(t_step &flag)
       status_code(""),
       status_msg("") {
   this->entity.reserve(512);
-  // std::cout << GRY << "Debug: Response::contructor\n" << DFT;
 }
-
+Response::Response(const Response &ref) : flag(ref.flag) { *this = ref; }
+Response &Response::operator=(const Response &ref) {
+  this->response_msg = ref.response_msg;
+  this->http_version = ref.http_version;
+  this->status_code = ref.status_code;
+  this->status_msg = ref.status_msg;
+  this->header = ref.header;
+  this->entity = ref.entity;
+  this->response_msg = ref.response_msg;
+  return *this;
+}
 Response::~Response() { delete[] this->response_msg; }
 
 //---- getter -----------------------------------------------------------------
@@ -48,9 +57,15 @@ void Response::setStatus(std::string status_code) {
   } else if (status_code == "301") {
     this->status_code = "301";
     this->status_msg = "Moved Permanently";
+  } else if (status_code == "403") {
+    this->status_code = "403";
+    this->status_msg = "Forbidden";
   } else if (status_code == "404") {
     this->status_code = "404";
     this->status_msg = "Not Found :(";
+  } else if (status_code == "409") {
+    this->status_code = "409";
+    this->status_msg = "Conflict";
   } else if (status_code == "500") {
     this->status_code = "500";
     this->status_msg = "Internal Server Error :l";
@@ -90,7 +105,6 @@ void Response::setResponseMsg() {
 
   char *pos = this->response_msg;
 
-  // FIXME c_str 리턴값이 const 인데 copy 로 할당하려고 하는 코드 수정 필요
   std::memcpy(pos, response_head.c_str(), response_head.size());
   pos += response_head.size();
   std::memcpy(pos, "\r\n", 2);
@@ -98,17 +112,12 @@ void Response::setResponseMsg() {
   std::memcpy(pos, &(this->entity[0]), this->entity.size());
   pos += this->entity.size();
   std::memcpy(pos, "\r\n\r\n", 4);
-  // if (this->flag == FILE_DONE)
   this->flag = RESPONSE_DONE;
 
   // DEBUG
   std::cout << "response msg: " << response_msg << std::endl;
 }
 
-// HTTP/1.1 404 Not Found\r\n
-// Content-Type: text/html\r\n
-// Content-Length:
-// Connection:
 void Response::setErrorMsg(std::string status_code,
                            const std::string &error_msg) {
   this->setStatus(status_code);

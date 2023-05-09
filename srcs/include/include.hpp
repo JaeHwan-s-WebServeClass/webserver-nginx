@@ -2,6 +2,7 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <cctype>
 #include <cstdlib>
@@ -22,7 +23,10 @@ namespace ft {
 void parser(std::string);
 
 // ---- utils ---------------------------------------------
-void errorHandler(std::string);
+void printError(std::string);
+std::string printHelper(std::string msg);
+std::string printHelper(std::vector<std::string> msg);
+void printVector(const std::vector<std::string> &);
 
 int hexToInt(const std::string &);
 std::string intToStr(int);
@@ -34,7 +38,7 @@ std::vector<std::string> split(std::string, std::string);
 std::string trim(std::string);
 std::string trim(std::string, char);
 
-void printVector(const std::vector<std::string> &);
+bool findSuffix(std::string filename, std::string suffix);
 
 // ---- safe-functions ------------------------------------
 /// @brief
@@ -60,11 +64,12 @@ ssize_t safeWrite(int, char *, int);
 /// @return read/write size
 size_t safeFread(char *, int, int, FILE *);
 size_t safeFwrite(const char *, int, int, FILE *);
+size_t safeOpen(std::string, int, mode_t);
 
 std::FILE *safeFopen(const char *, const char *);
 int safeFclose(FILE *);
 int safeClose(int);
-    
+
 void safePipe(int *);
 pid_t safeFork(void);
 }  // namespace ft

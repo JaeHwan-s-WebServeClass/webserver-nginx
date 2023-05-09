@@ -11,7 +11,7 @@
 #include "../include/include.hpp"
 
 class Request {
-private:
+ private:
   std::string raw_head;
   std::string method;
   std::string url;
@@ -22,10 +22,16 @@ private:
 
   int chunk_size;
   std::string hex_str;
+  std::vector<char> entity_cgi;
 
-public:
-  // ---- constructor -------------------------
+  Request();
+
+ public:
+  // ---- occf --------------------------------
   Request(t_step &);
+  Request(const Request &ref);
+  Request &operator=(const Request &ref);
+  ~Request();
 
   // ---- getter ------------------------------
   const std::string &getRawHead() const;
@@ -36,10 +42,14 @@ public:
   const std::vector<char> &getEntity() const;
   size_t getEntitySize() const;
   size_t getContentLength() const;
+  const std::vector<char> &getEntityCgi() const;
 
   // ---- setter ------------------------------
   void setRawHead(std::string);
   void setFlag(t_step);
+  void setEntity(std::vector<char>);
+  void setEntityClear();
+  void setEntityCgi(const char *buf, size_t read_len);
 
   // ---- parser ------------------------------
   void parserHead();
@@ -48,10 +58,8 @@ public:
   /// @param buf
   /// @param read_len
   void addChunkedEntity(char *, size_t);
-
-  // ---- utils -------------------------------
-  void clearSetRawMsg();
-  void toString() const;
 };
+
+std::ostream &operator<<(std::ostream &out, const Request &r);
 
 #endif

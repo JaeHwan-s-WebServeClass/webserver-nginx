@@ -18,12 +18,18 @@
 #define CHUNK_SIZE 0
 #define CHUNK_ENTITY 1
 
+#define BACK_LOG 5
+
+#define DIRECTORY -1
+#define NONE_FD -2
+
 typedef enum step {
   START,           // Transaction 생성자
   REQUEST_HEAD,    // T.cpp executeReadHead line 155
   REQUEST_ENTITY,  // Request.cpp line 75(length), 96(chunked)
   REQUEST_DONE,    // T.cpp executeRead line 131
   FILE_READ,       // T.cpp checkResource line 76
+  FILE_CGI,
   FILE_WRITE,
   FILE_DONE,      // T.cpp httpGet line 290
   RESPONSE_DONE,  // Response.cpp setResponseMsg line 82
@@ -34,4 +40,5 @@ typedef enum method {
   GET = 1,
   POST = 1 << 1,
   DELETE = 1 << 2,
+  PUT = 1 << 3
 } t_method;

@@ -77,9 +77,20 @@ size_t ft::safeFwrite(const char *buf, int size, int count, FILE *file_ptr) {
 }
 
 //----- open/close -------------------------------------------------------------
+size_t ft::safeOpen(std::string resource, int flag, mode_t mode) {
+  // std::cout << GRY << "Debug: safeOpen\n" << DFT;
+  int fd;
+
+  if ((fd = open(resource.c_str(), flag, mode)) == -1) {
+    std::cerr << RED << "Error: Transaction: file close() error\n" << DFT;
+  }
+  return fd;
+};
+
+
 int ft::safeClose(int fd) {
   // std::cout << GRY << "Debug: safeClose\n" << DFT;
-  if (close(fd) != 0) {
+  if (close(fd) == -1) {
     std::cerr << RED << "Error: Transaction: file close() error\n" << DFT;
   }
   return 0;
@@ -94,6 +105,7 @@ std::FILE *ft::safeFopen(const char *filename, const char *mode) {
   if ((fp = std::fopen(filename, mode)) == NULL) {
     std::cerr << RED << "Error: Transaction: file fopen() error\n" << DFT;
   }
+  // TODO open으로 바꾸면 노쓸모
   // 1024 로 설정된 fp 의 stream 을 F_STREAM_SIZE 크기로 설정한다.
   std::setvbuf(fp, 0, _IONBF, F_STREAM_SIZE);
   return fp;

@@ -2,12 +2,26 @@
 
 #include <cstring>
 
-//---- constructor ------------------------------------------------------------
+//---- OCCF -------------------------------------------------------------------
 Request::Request(t_step &flag)
     : raw_head(""), flag(flag), chunk_size(0), hex_str("") {
-  // std::cout << GRY << "Debug: Request::contructor\n" << DFT;
   entity.reserve(256);
 }
+Request::Request(const Request &ref) : flag(ref.flag) { *this = ref; }
+Request &Request::operator=(const Request &ref) {
+  this->raw_head = ref.raw_head;
+  this->method = ref.method;
+  this->url = ref.url;
+  this->http_version = ref.http_version;
+  this->header = ref.header;
+  this->entity = ref.entity;
+  this->flag = ref.flag;
+  this->chunk_size = ref.chunk_size;
+  this->hex_str = ref.hex_str;
+  this->entity_cgi = ref.entity_cgi;
+  return *this;
+}
+Request::~Request() {}
 
 //---- getter -----------------------------------------------------------------
 const std::string &Request::getRawHead() const { return this->raw_head; }
@@ -30,12 +44,20 @@ size_t Request::getContentLength() const {
   return content_length;
 }
 
+const std::vector<char> &Request::getEntityCgi() const {
+  return this->entity_cgi;
+}
+
 //---- setter -----------------------------------------------------------------
 void Request::setRawHead(std::string line) { this->raw_head += line; }
-void Request::setFlag(t_step flag) {
-  // this->head_done = type;
-  this->flag = flag;
-}  // status? type?
+void Request::setFlag(t_step flag) { this->flag = flag; }
+void Request::setEntity(std::vector<char> buf) { this->entity = buf; }
+void Request::setEntityClear() { this->entity.clear(); }
+void Request::setEntityCgi(const char *buf, size_t read_len) {
+  for (size_t i = 0; i < read_len; ++i) {
+    this->entity_cgi.push_back(buf[i]);
+  }
+}
 
 //---- parser -----------------------------------------------------------------
 void Request::parserHead() {
@@ -43,14 +65,12 @@ void Request::parserHead() {
   std::vector<std::string> tmp_head;
   std::vector<std::string> tmp_start_line;
 
-  // 개행기준으로 split후 space 기준으로 start line split
   tmp_head = ft::split(this->raw_head, '\n');
   tmp_start_line = ft::split(tmp_head[0], ' ');
   this->method = tmp_start_line[0];
   this->url = tmp_start_line[1];
   this->http_version = tmp_start_line[2];
 
-  // header를 처리
   for (std::vector<std::string>::iterator it = tmp_head.begin() + 1;
        it != tmp_head.end(); ++it) {
     int pos = it->find(':');
@@ -63,12 +83,11 @@ void Request::addContentLengthEntity(char *buf, int read_len) {
     this->entity.push_back(buf[i]);
   }
   if (this->getEntitySize() == this->getContentLength()) {
-    // this->setEntityDone(true);
     this->setFlag(REQUEST_ENTITY);
   } else if (this->getEntitySize() > this->getContentLength()) {
     throw std::string("Error: Transaction: Request Entity Over Content-Length");
   }
-  // 아래 코드대신, kevent 에서 timeout 처리하기
+  // FIXME 아래 코드대신, kevent 에서 timeout 처리하기
   // else if (this->request.getEntitySize < getContentLength())
 }
 
@@ -84,7 +103,6 @@ void Request::addChunkedEntity(char *buf, size_t read_len) {
         chunk_size = ft::hexToInt(hex_str);
         std::cout << "chunk_size: " << chunk_size << "\n";
         if (chunk_size == 0) {
-          // this->setEntityDone(true);
           this->setFlag(REQUEST_ENTITY);
           return;
         } else if (chunk_size < 0) {
@@ -105,27 +123,28 @@ void Request::addChunkedEntity(char *buf, size_t read_len) {
   }
 }
 
-//---- utils --------------------------------------------
-void Request::clearSetRawMsg() { this->raw_head.clear(); }
-
-void Request::toString() const {
-  std::cout << GRY << "-------------------- start-line --------------------"
-            << DFT << std::endl;
-  std::cout << BLU << "method: " << DFT << this->method << std::endl;
-  std::cout << BLU << "url: " << DFT << this->url << std::endl;
-  std::cout << BLU << "version: " << DFT << this->http_version << std::endl;
-  std::cout << GRY << "---------------------- header ----------------------"
-            << DFT << std::endl;
+//-----------------------------------------------------------------------------
+std::ostream &operator<<(std::ostream &out, const Request &r) {
+  out << ft::printHelper(
+      "-------------------- start-line --------------------");
+  out << BLU << "method: " << DFT << r.getMethod() << "\n";
+  out << BLU << "url: " << DFT << r.getUrl() << "\n";
+  out << BLU << "version: " << DFT << r.getHttpVersion() << "\n";
+  out << ft::printHelper(
+      "---------------------- header ----------------------");
+  const std::map<std::string, std::string> &header = r.getHeader();
   for (std::map<std::string, std::string>::const_iterator it = header.begin();
        it != header.end(); ++it) {
-    std::cout << BLU << it->first << ": " << DFT << it->second << std::endl;
+    out << BLU << it->first << ": " << DFT << it->second << "\n";
   }
-  std::cout << GRY << "--------------------- entity -----------------------"
-            << DFT << std::endl;
+  out << ft::printHelper(
+      "--------------------- entity -----------------------");
+  const std::vector<char> &entity = r.getEntity();
   for (unsigned long i = 0; i < entity.size(); i++) {
-    std::cout << YLW << entity[i];
+    out << YLW << entity[i];
   }
-  std::cout << DFT << std::endl;
-  std::cout << GRY << "----------------------------------------------------"
-            << DFT << std::endl;
+  out << DFT << "\n";
+  out << ft::printHelper(
+      "----------------------------------------------------");
+  return out;
 }

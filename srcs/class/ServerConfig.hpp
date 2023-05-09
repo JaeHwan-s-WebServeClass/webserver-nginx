@@ -19,7 +19,8 @@ class ServerConfig {
     std::vector<std::string> index;
     bool autoindex;
     int http_method;
-    std::string cgi;
+    std::string cgi_exec;
+    std::string cgi_path;
   } t_location;
 
  private:
@@ -31,10 +32,14 @@ class ServerConfig {
   std::string root;
   int http_method;
   std::map<std::string, t_location> locations;
+  std::string redirect;
 
  public:
-  // ---- constructor -------------------------
+  // ---- occf --------------------------------
   ServerConfig();
+  ServerConfig(const ServerConfig &ref);
+  ServerConfig &operator=(const ServerConfig &ref);
+  ~ServerConfig();
 
   // ---- getter ------------------------------
   const int &getListen() const;
@@ -44,6 +49,7 @@ class ServerConfig {
   int getClientMaxHeadSize() const;
   const std::string &getRoot() const;
   const std::map<std::string, t_location> &getLocation() const;
+  const std::string &getRedirect() const;
 
   // ---- setter -------------------------------
   void setListen(int);
@@ -52,13 +58,13 @@ class ServerConfig {
   void setClientMaxBodySize(int);
   void setClientMaxHeadSize(int);
   void setRoot(const std::string &);
+  void setRedirect(const std::string &);
   void setDefault();
   void setLocationDefault(const std::string);
   void setDirective(std::string key, std::vector<std::string> value);
   void setLocation(const std::string, const std::string,
                    const std::vector<std::string> &);
-
-  // ---- utils --------------------------------
-  void printLocation(const t_location &location);
-  void printConfig(void);
 };
+
+std::ostream &operator<<(std::ostream &out, const std::vector<ServerConfig> &c);
+std::ostream &operator<<(std::ostream &out, const ServerConfig::t_location &l);

@@ -29,6 +29,6 @@
 #include "./include.hpp"
 
 // ---- config parser ----------------------------
-std::vector<ServerConfig> parseConfig(char *config_file);
+std::vector<ServerConfig> parseConfig(const char *config_file);
 void goParsing(ServerConfig &tmp_conf, std::string &line,
                std::string &location_key, bool server_fl, bool location_fl);

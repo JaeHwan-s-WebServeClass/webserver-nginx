@@ -21,11 +21,11 @@ CLASS_NAME 	=	Server.cpp \
 
 UTILS_DIR 	:=	./srcs/utils/
 UTILS_NAME 	=	split.cpp \
-				errorhandler.cpp \
+				print.cpp \
 				convert.cpp \
 				trim.cpp \
-				printVector.cpp \
-				safe.cpp
+				safe.cpp \
+				findSuffix.cpp
 
 SRC 		=	$(SRC_MAIN) \
 				$(addprefix $(PARSER_DIR),$(PARSER_NAME)) \

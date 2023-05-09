@@ -37,6 +37,5 @@ const char* ft::vecToCharArr(const std::vector<char>& vec) {
     charArr[i] = vec[i];
   }
   charArr[size] = '\0';
-
   return charArr;
 }
