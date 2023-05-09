@@ -33,7 +33,7 @@ Server::~Server() {}
 
 //---- error page -------------------------------------------------------------
 void Server::loadErrorPage() {
-  ServerConfig temp_conf = this->server_config[0];
+  ServerConfig temp_conf = this->server_config[1];
   std::vector<std::string> conf_error_page = temp_conf.getErrorPage();
   struct timespec timeout = {5, 0};
 
