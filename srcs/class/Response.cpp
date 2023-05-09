@@ -57,9 +57,15 @@ void Response::setStatus(std::string status_code) {
   } else if (status_code == "301") {
     this->status_code = "301";
     this->status_msg = "Moved Permanently";
+  } else if (status_code == "403") {
+    this->status_code = "403";
+    this->status_msg = "Forbidden";
   } else if (status_code == "404") {
     this->status_code = "404";
     this->status_msg = "Not Found :(";
+  } else if (status_code == "409") {
+    this->status_code = "409";
+    this->status_msg = "Conflict";
   } else if (status_code == "500") {
     this->status_code = "500";
     this->status_msg = "Internal Server Error :l";

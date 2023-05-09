@@ -130,36 +130,53 @@ int Transaction::checkDirectory() {
       this->response.setStatus("200");
       this->response.setHeader("Content-Type", "text/html");
       this->response.setResponseMsg();
-      return -1;
+      return DIRECTORY;
     } else {  //  디렉토리가 없는 경우
       throw ErrorPage403Exception();
     }
   } else {
     throw ErrorPage403Exception();
   }
-  return -1;
+  return DIRECTORY;
 }
 
+// if (access(this->resource.c_str(), F_OK) == 0) {
+//     // 파일이 존재하는 경우, 덮어쓸 것인지 묻는 응답을 보냄
+//     this->response.setStatus("409");
+//     this->response.setHeader("Content-Type", "text/plain");
+//     this->response.setHeader("Allow", "GET, POST, DELETE");
+//     this->response.setEntity("409 Conflict: The resource already exists",
+//     45); ft::safeClose(fd); this->setFlag(FILE_DONE); return;
+//   }
+
 int Transaction::checkFile() {
-  std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
-  if ((this->request.getMethod() != "POST") &&
+  // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
+  if ((this->request.getMethod() != "POST" &&
+       this->request.getMethod() != "PUT") &&
       (access(this->resource.c_str(), F_OK) == -1)) {
     throw ErrorPage404Exception();
   }
-
   if (this->request.getMethod() == "DELETE") {
-    return -2;
+    return NONE_FD;
   }
   // 1. cgi 처리 해야하는 상황인데, 아직 처리 안된 상태
-  if ((this->location.cgi_exec != "") &&
-      (this->request.getMethod() != "DELETE") &&
+  if ((this->location.cgi_exec != "") && (this->request.getMethod() != "PUT") &&
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
     this->setFlag(FILE_READ);
     return this->executeCGI();
   } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
     this->fd = ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     this->setFlag(FILE_WRITE);
-  } else {  // 3. 평범한 get, delete
+  } else if (this->request.getMethod() == "PUT") {
+    if (access(this->resource.c_str(), F_OK) == 0) {
+      std::cout << "status: " << this->response.getStatusCode() << std::endl;
+      return NONE_FD;
+    } else {
+      this->fd =
+          ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+      this->setFlag(FILE_WRITE);
+    }
+  } else {  // 3. 평범한 get
     this->fd = ft::safeOpen(this->resource, O_RDWR, 0644);
     this->setFlag(FILE_READ);
   }
@@ -168,12 +185,14 @@ int Transaction::checkFile() {
 
 void Transaction::checkAllowedMethod() {
   // std::cout << GRY << "Debug: Transaction: checkAllowedMethod\n" << DFT;
-  if (((this->request.getMethod() == "GET") &&
-       (this->location.http_method & GET)) ||
-      ((this->request.getMethod() == "POST") &&
-       (this->location.http_method & POST)) ||
-      ((this->request.getMethod() == "DELETE") &&
-       (this->location.http_method & DELETE))) {
+  if ((this->request.getMethod() == "GET" &&
+       this->location.http_method & GET) ||
+      (this->request.getMethod() == "POST" &&
+       this->location.http_method & POST) ||
+      (this->request.getMethod() == "DELETE" &&
+       this->location.http_method & DELETE) ||
+      (this->request.getMethod() == "PUT" &&
+       this->location.http_method & PUT)) {
     return;
   }
   throw ErrorPage501Exception();
@@ -193,13 +212,18 @@ int Transaction::executeRead(void) {
   if (this->flag == START) {
     head_rest_len = this->executeReadHead(buf, read_len);
   }
-  if (this->flag == REQUEST_HEAD && (this->request.getMethod() == "POST")) {
+  if (this->flag == REQUEST_HEAD && (this->request.getMethod() == "POST" ||
+                                     this->request.getMethod() == "PUT")) {
     if (this->flag < REQUEST_ENTITY) {
       this->executeReadEntity(buf, read_len, head_rest_len);
     }
   }
-  if ((this->request.getMethod() == "POST" && this->flag == REQUEST_ENTITY) ||
-      (this->request.getMethod() != "POST" && this->flag == REQUEST_HEAD)) {
+  if (((this->request.getMethod() == "POST" ||
+        this->request.getMethod() == "PUT") &&
+       this->flag == REQUEST_ENTITY) ||
+      ((this->request.getMethod() != "POST" &&
+        this->request.getMethod() != "PUT") &&
+       this->flag == REQUEST_HEAD)) {
     this->setFlag(REQUEST_DONE);
   }
 
@@ -302,6 +326,8 @@ int Transaction::executeMethod(int data_size, int fd) {
       this->httpPost(data_size, fd);
     } else if (this->request.getMethod() == "DELETE") {
       this->httpDelete();
+    } else if (this->request.getMethod() == "PUT") {
+      this->httpPut(data_size, fd);
     }
   }
   if (this->flag == FILE_DONE) {
@@ -310,8 +336,7 @@ int Transaction::executeMethod(int data_size, int fd) {
   return 0;
 }
 
-//---- HTTP methods
-//------------------------------------------------------------
+//---- HTTP methods -----------------------------------------------------------
 void Transaction::httpGet(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpGet\n" << DFT;
   // 1. cgi get
@@ -380,15 +405,60 @@ void Transaction::httpPost(int data_size, int fd) {
   }
 }
 
-//---- cgi
-//---------------------------------------------------------------------
+void Transaction::httpPut(int data_size, int fd) {
+  // std::cout << GRY << "Debug: Transaction: httpPut\n" << DFT;
+  // 파일이 존재하는지 확인
+  std::cout << this->response.getStatusCode() << std::endl;
+  if (fd == 0 && data_size == 0) {
+    this->response.setStatus("409");
+    this->response.setHeader("Content-Type", "text/plain");
+    this->response.setHeader("Allow", "GET, POST, DELETE");
+    this->response.setEntity("409 Conflict: The resource already exists", 45);
+    this->response.setResponseMsg();
+    return;
+  }
+
+  // 파일이 존재하지 않는 경우, 새로운 파일을 생성하고 데이터를 씀
+  // int new_fd = open(this->resource.c_str(), O_CREAT | O_WRONLY | O_TRUNC,
+  //                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  // if (new_fd == -1) {
+  //   throw ErrorPage500Exception();
+  // }
+
+  // char buf[MAX_BODY_SIZE + 1];
+  // size_t total_written = 0;
+  // while (total_written < static_cast<size_t>(data_size)) {
+  //   size_t remaining = data_size - total_written;
+  //   size_t write_len = remaining < MAX_BODY_SIZE ? remaining : MAX_BODY_SIZE;
+  //   int read_len = ft::safeRead(fd, buf, write_len);
+  //   if (read_len == -1) {
+  //     throw ErrorPage500Exception();
+  //   }
+  ft::safeWrite(fd, const_cast<char *>(&this->request.getEntity()[0]),
+                this->request.getEntitySize());
+  // if (written == -1) {
+  //   throw ErrorPage500Exception();
+  // }
+  // total_written += written;
+  // }
+
+  ft::safeClose(fd);
+  // ft::safeClose(fd);
+  this->setFlag(FILE_DONE);
+  this->response.setStatus("201");
+  this->response.setHeader("Content-Type", "text/plain");
+  this->response.setEntity("201 Created", 12);
+}
+
+//---- cgi ---------------------------------------------------------------------
 int Transaction::executeCGI(void) {
   // std::cout << GRY << "Debug: Transaction: executeCGI\n" << DFT;
   int fd[2];
   std::string cgi_path;
 
   ft::safePipe(fd);
-  if (this->request.getMethod() == "POST") {
+  if (this->request.getMethod() == "POST" ||
+      this->request.getMethod() == "PUT") {
     cgi_path = ("." + this->server_config.getRoot() + this->location.root +
                 this->location.cgi_path);
   } else if (this->request.getMethod() == "GET") {

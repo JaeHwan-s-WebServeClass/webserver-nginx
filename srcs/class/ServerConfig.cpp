@@ -83,17 +83,21 @@ void ServerConfig::setDirective(std::string key,
         this->http_method |= POST;
       } else if (*it == "DELETE") {
         this->http_method |= DELETE;
+      } else if (*it == "PUT") {
+        this->http_method |= PUT;
       }
     }
   } else if (key == "deny") {
     std::vector<std::string>::const_iterator it = value.begin();
     for (; it != value.end(); it++) {
       if (*it == "GET") {
-        this->http_method &= (0b110);
+        this->http_method &= (0b1110);
       } else if (*it == "POST") {
-        this->http_method &= (0b101);
+        this->http_method &= (0b1101);
       } else if (*it == "DELETE") {
-        this->http_method &= (0b011);
+        this->http_method &= (0b1011);
+      } else if (*it == "PUT") {
+        this->http_method &= (0b0111);
       }
     }
   } else if (key == "redirect") {
@@ -129,17 +133,21 @@ void ServerConfig::setLocation(const std::string map_key, const std::string key,
         this->locations[map_key].http_method |= POST;
       } else if (*it == "DELETE") {
         this->locations[map_key].http_method |= DELETE;
+      } else if (*it == "PUT") {
+        this->locations[map_key].http_method |= PUT;
       }
     }
   } else if (key == "deny") {
     std::vector<std::string>::const_iterator it = value.begin();
     for (; it != value.end(); it++) {
       if (*it == "GET") {
-        this->locations[map_key].http_method &= (0b110);
+        this->locations[map_key].http_method &= (0b1110);
       } else if (*it == "POST") {
-        this->locations[map_key].http_method &= (0b101);
+        this->locations[map_key].http_method &= (0b1101);
       } else if (*it == "DELETE") {
-        this->locations[map_key].http_method &= (0b011);
+        this->locations[map_key].http_method &= (0b1011);
+      } else if (*it == "PUT") {
+        this->locations[map_key].http_method &= (0b0111);
       }
     }
   } else {
@@ -171,7 +179,7 @@ void ServerConfig::setDefault() {
   // this->error_page.push_back("/501.html");
   this->client_max_body_size = 1024;
   this->client_max_head_size = 1024;
-  this->http_method = (0b111);
+  this->http_method = (0b1111);
   root = "/rootdir";
   this->redirect = "http://google.com";
 }
@@ -215,7 +223,7 @@ std::ostream &operator<<(std::ostream &out, const ServerConfig::t_location &l) {
   out << "     root:  " << l.root << "\n";
   out << "     index:  " << ft::printHelper(l.index);
   out << "     http_method:  " << l.http_method << GRY
-      << " (GET = 1, POST = 2, DELETE = 4)" << DFT << "\n";
+      << " (GET = 1, POST = 2, DELETE = 4, PUT = 8)" << DFT << "\n";
   out << "     cgi_exec:  " << l.cgi_exec << "\n";
   out << "     cgi_path:  " << l.cgi_path << "\n";
   return out;

@@ -201,9 +201,10 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
   }
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
-    if (file_fd == -1) {
+    if (file_fd == DIRECTORY) {  // directory
       return;
-    } else if (file_fd == -2) {
+    } else if (file_fd == NONE_FD) {  // delete, put
+      std::cout << "fild_fd: " << file_fd << std::endl;
       this->clients[curr_event->ident]->executeMethod(0, 0);
       return;
     }

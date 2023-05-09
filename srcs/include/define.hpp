@@ -20,6 +20,9 @@
 
 #define BACK_LOG 5
 
+#define DIRECTORY -1
+#define NONE_FD -2
+
 typedef enum step {
   START,           // Transaction 생성자
   REQUEST_HEAD,    // T.cpp executeReadHead line 155
@@ -37,4 +40,5 @@ typedef enum method {
   GET = 1,
   POST = 1 << 1,
   DELETE = 1 << 2,
+  PUT = 1 << 3
 } t_method;

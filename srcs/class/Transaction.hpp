@@ -1,11 +1,11 @@
 #ifndef TRANSACTION_HPP
 #define TRANSACTION_HPP
 
+#include <dirent.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <dirent.h>
-#include <fcntl.h>
 
 #include <algorithm>
 #include <cstdio>
@@ -23,7 +23,7 @@ class Transaction {
  private:
   int socket_fd;  // client 랑 연결된 socket fd
   int fd;
-  
+
   t_step flag;
 
   Response response;
@@ -83,6 +83,7 @@ class Transaction {
   void httpGet(int, int);
   void httpDelete(void);
   void httpPost(int, int);
+  void httpPut(int, int);
 
   // ---- cgi ---------------------------------
   int executeCGI(void);
