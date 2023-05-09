@@ -374,9 +374,6 @@ void Transaction::httpGet(int data_size, int fd) {
   }
 }
 
-// FIXME 빈파일을 지우려할 때, 이벤트가 발생 안하므로 무한루프에 걸림
-// stat으로 파일 사이즈를 체크
-// GET을 이벤트 기반으로 동작시키지 않을수도....
 void Transaction::httpDelete() {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
   if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
@@ -470,8 +467,6 @@ int Transaction::executeCGI(void) {
 
 //---- redirection ------------------------------------------------------------
 void Transaction::executeRedirect() {
-  // <head><script> window.location.href =
-  //     'moonscode.com/login' < / script > </ head>
   std::string entity = "<html><head><script>window.location.href = \'" +
                        this->server_config.getRedirect() + "\'</script></html>";
   this->response.setStatus("301");

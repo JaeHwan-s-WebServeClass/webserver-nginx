@@ -4,8 +4,6 @@
 Server::Server(std::vector<ServerConfig> &server_config)
     : server_config(server_config) {
   std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
-  // TODO 같은 포트 여러개 들어올 때 예외처리
-  // server_name 으로 처리해야할 듯
   for (; it != this->server_config.end(); it++) {
     ServerSocket tmp_socket(AF_INET, (*it).getListen());
     this->server_socket.push_back(tmp_socket);
@@ -175,7 +173,6 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
                       EV_ADD | EV_ENABLE, 0, 0, NULL);
   this->setChangeList(this->change_list, client_socket, EVFILT_WRITE,
                       EV_ADD | EV_ENABLE, 0, 0, NULL);
-  // TODO 같은 port 인 경우 처리해야 함 (server_name)
   std::vector<ServerConfig>::const_iterator it2 = this->server_config.begin();
   for (; it2 != this->server_config.end(); it2++) {
     if (it2->getListen() == it->getPort()) {
@@ -317,14 +314,6 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
   int new_events =
       kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
              this->event_list, nevents, timeout);
-
-  // int new_events = 0;
-
-  // if (!(new_events =
-  //           kevent(this->kq, &(this->change_list[0]),
-  //           this->change_list.size(),
-  //                  this->event_list, nevents, timeout)))
-  //   this->disconnectClient(this->event_list->ident, this->clients);
 
   if (new_events == -1) {
     ft::printError("Error: Server: safeKevent");
