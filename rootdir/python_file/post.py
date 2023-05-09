@@ -23,6 +23,7 @@ html=""" + '\"\"\"\n' + """
 <!DOCTYPE html>
 <html>
 <head>
+<link rel="icon" href="/favicon.png">
 <title>Python CGI Page</title>
 </head>
 <body>
