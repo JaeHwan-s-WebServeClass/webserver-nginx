@@ -48,20 +48,6 @@ void Transaction::setFlag(t_step flag) { this->flag = flag; }
 // 4. 파일 오픈 후 fd 반환
 // - 파일을 이벤트 등록 전
 
-int Transaction::executeResource() {
-  // std::cout << GRY << "Debug: Transaction: executeResource\n" << DFT;
-  // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
-  this->checkResource();
-  // STEP 2 . 처리할 수 있는 method인지 확인
-  this->checkAllowedMethod();
-  // STEP 3 . URL이 "/"로 끝났을 때 => 디렉토리
-  if (this->request.getUrl().back() == '/') {
-    return this->checkDirectory();
-  }
-  // STEP 4 . 각 상황에 따른 fd값 반환
-  return this->checkFile();
-}
-
 void Transaction::checkResource() {
   // std::cout << GRY << "Debug: Transaction: checkResource\n" << DFT;
   std::string request_location;
@@ -189,6 +175,22 @@ void Transaction::checkAllowedMethod() {
   throw ErrorPage501Exception();
 }
 
+void Transaction::checkServerName() {
+  // std::cout << GRY << "Debug: Transaction: checkServerName\n" << DFT;
+  std::string request_host =
+      ft::split(this->request.getHeader().find("Host")->second, ':')[0];
+  if (request_host != "localhost") {
+    std::vector<std::string>::const_iterator it =
+        this->server_config.getServerName().begin();
+    for (; it != this->server_config.getServerName().end(); it++) {
+      if (request_host == *it) {
+        return;
+      }
+    }
+    throw ErrorPage404Exception();
+  }
+}
+
 //---- executor ----------------------------------------------------------------
 int Transaction::executeRead(void) {
   // std::cout << GRY << "Debug: Transaction: executeRead\n" << DFT;
@@ -202,6 +204,7 @@ int Transaction::executeRead(void) {
   }
   if (this->flag == START) {
     head_rest_len = this->executeReadHead(buf, read_len);
+    this->checkServerName();
   }
   if (this->flag == REQUEST_HEAD && (this->request.getMethod() == "POST" ||
                                      this->request.getMethod() == "PUT")) {
@@ -297,6 +300,20 @@ void Transaction::executeReadEntity(char *buf, int read_len,
     ft::printError("Error: Transaction: executeReadEntity: over max body size");
     throw Transaction::ErrorPageDefaultException();
   }
+}
+
+int Transaction::executeResource() {
+  // std::cout << GRY << "Debug: Transaction: executeResource\n" << DFT;
+  // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
+  this->checkResource();
+  // STEP 2 . 처리할 수 있는 method인지 확인
+  this->checkAllowedMethod();
+  // STEP 3 . URL이 "/"로 끝났을 때 => 디렉토리
+  if (this->request.getUrl().back() == '/') {
+    return this->checkDirectory();
+  }
+  // STEP 4 . 각 상황에 따른 fd값 반환
+  return this->checkFile();
 }
 
 int Transaction::executeWrite(void) {
