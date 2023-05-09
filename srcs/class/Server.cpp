@@ -46,15 +46,14 @@ void Server::loadErrorPage() {
     std::string rootdir = temp_conf.getRoot();
     int fd = ft::safeOpen('.' + rootdir + filename, O_RDONLY, 0644);
     fcntl(fd, F_SETFL, O_NONBLOCK);
-    this->setChangeList(this->change_list, fd, EVFILT_READ,
-                        EV_ADD | EV_ENABLE, 0, 0, NULL);
+    this->setChangeList(this->change_list, fd, EVFILT_READ, EV_ADD | EV_ENABLE,
+                        0, 0, NULL);
     this->safeKevent(1, &timeout);
     this->change_list.clear();
 
     char buf[BUFFER_SIZE];
     if (this->event_list[0].filter == EVFILT_READ) {
-      size_t read_len =
-          ft::safeRead(fd, buf, BUFFER_SIZE);
+      size_t read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
       buf[read_len] = '\0';
     }
     this->error_page[key] = buf;
@@ -183,6 +182,15 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
       this->clients[client_socket] = new Transaction(client_socket, *it2);
       break;
     }
+  }
+  if (it2 == this->server_config.begin()) {
+    Response response_for_redirect =
+        this->clients[client_socket]->getResponse();
+    std::string entity = "<a href = \"" + it2->getRedirect() + "\"> " +
+                         it2->getRedirect() + "</ a>";
+    response_for_redirect.setStatus("301");
+    response_for_redirect.setEntity(entity.c_str(), entity.size());
+    response_for_redirect.setResponseMsg();
   }
 }
 
