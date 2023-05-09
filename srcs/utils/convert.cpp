@@ -1,3 +1,4 @@
+#include "../class/Transaction.hpp"
 #include "../include/include.hpp"
 
 int ft::hexToInt(const std::string& hex_str) {
@@ -6,7 +7,8 @@ int ft::hexToInt(const std::string& hex_str) {
   for (std::string::const_iterator it = hex_str.begin(); it != hex_str.end();
        ++it) {
     if ((dec & 0xF0000000) != 0) {
-      throw std::string("Error: hexToInt: overflow");
+      ft::printError("Error: hexToInt: overflow");
+      throw Transaction::ErrorPageDefaultException();
     }
     char c = *it;
 
@@ -17,7 +19,8 @@ int ft::hexToInt(const std::string& hex_str) {
     } else if (c >= 'A' && c <= 'F') {
       dec = (dec << 4) + (c - 'A' + 10);
     } else {
-      throw std::string("Error: hexToInt: invalid character in hex string");
+      ft::printError("Error: hexToInt: invalid character in hex string");
+      throw Transaction::ErrorPageDefaultException();
     }
   }
   return dec;

@@ -306,6 +306,8 @@ void Server::disconnectClient(int client_fd,
   ft::safeClose(client_fd);
   clients.erase(client_fd);
   std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
+  // std::cout << "--- 4 -----------------------------------" << std::endl;
+  // system("leaks webserv | grep leaked");
 }
 
 //----- safe_method ------------------------------------------------------------

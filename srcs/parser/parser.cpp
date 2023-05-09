@@ -1,4 +1,5 @@
 #include "../class/ServerConfig.hpp"
+#include "../class/Transaction.hpp"
 #include "../include/include.hpp"
 
 int isLocation(std::string &line, std::string *location_key) {
@@ -29,7 +30,8 @@ void goParsing(ServerConfig &tmp_conf, std::string &line,
   } else if (server_fl == true && location_fl == false) {
     tmp_conf.setDirective(key, value);
   } else {
-    throw std::string("Error: goParsing: Invalid Config File");
+    ft::printError("Error: goParsing: Invalid Config File");
+    throw Transaction::ErrorPageDefaultException();
   }
 }
 
@@ -42,7 +44,8 @@ std::vector<ServerConfig> parseConfig(const char *config_file) {
   bool location_fl = false;
 
   if (!file_stream.is_open()) {
-    throw std::string("Error: parseConf: Invalid Config File");
+    ft::printError("Error: parseConf: Invalid Config File");
+    throw Transaction::ErrorPageDefaultException();
   }
 
   ServerConfig *tmp_conf;
@@ -67,7 +70,8 @@ std::vector<ServerConfig> parseConfig(const char *config_file) {
       // tmp_conf->setDefault();
     } else {
       if (line.back() != ';') {
-        throw std::string("Error: parseConf: Missing Semicolon");
+        ft::printError("Error: parseConf: Missing Semicolon");
+        throw Transaction::ErrorPageDefaultException();
       }
       line = ft::trim(line, ';');
       goParsing(*tmp_conf, line, location_key, server_fl, location_fl);
