@@ -376,7 +376,7 @@ void Transaction::httpPost(int data_size, int fd) {
     this->setFlag(FILE_DONE);
     this->response.setStatus("201");
     this->response.setHeader("Content-Type", "text/plain");
-    this->response.setEntity("201 Created", 12);
+    this->response.setEntity("201 Created", 11);
   }
 }
 
