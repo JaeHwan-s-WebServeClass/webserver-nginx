@@ -2,10 +2,7 @@
 
 //---- OCCF -------------------------------------------------------------------
 Response::Response(t_step &flag)
-    : flag(flag),
-      response_msg(0),
-      http_version("HTTP/1.1"),
-      status_code(""),
+    : flag(flag), response_msg(0), http_version("HTTP/1.1"), status_code(""),
       status_msg("") {
   this->entity.reserve(512);
 }
@@ -115,7 +112,7 @@ void Response::setResponseMsg() {
   this->flag = RESPONSE_DONE;
 
   // DEBUG
-  std::cout << "response msg: " << response_msg << std::endl;
+  // std::cout << "response msg: " << response_msg << std::endl;
 }
 
 void Response::setErrorMsg(std::string status_code,

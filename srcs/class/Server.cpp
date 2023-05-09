@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include <sys/event.h>
 
 //---- OCCF -------------------------------------------------------------------
 Server::Server(std::vector<ServerConfig> &server_config)
@@ -92,10 +93,12 @@ void Server::run() {
       curr_event = &(this->event_list[i]);
 
       if (curr_event->flags & EV_ERROR) {
-        this->runErrorServer(curr_event);
+        // this->runErrorServer(curr_event);
       } else if ((this->clients.find(curr_event->ident) !=
                   this->clients.end()) &&
-                 (curr_event->flags & EV_EOF)) {
+                 (curr_event->flags & (EV_EOF)) &&
+                 curr_event->filter == EVFILT_READ) {
+
         this->disconnectClient(curr_event->ident, this->clients);
       } else if (curr_event->filter == EVFILT_READ) {
         std::vector<ServerSocket>::const_iterator it =
@@ -111,7 +114,7 @@ void Server::run() {
           } else if (this->clients.find(curr_event->ident) !=
                      this->clients.end()) {
             this->runReadEventClient(curr_event);
-          } else {
+          } else if (curr_event->udata) {
             this->runReadEventFile(curr_event);
           }
         } catch (std::exception &e) {
@@ -120,10 +123,11 @@ void Server::run() {
                          reinterpret_cast<Transaction *&>(curr_event->udata));
             reinterpret_cast<Transaction *>(curr_event->udata)
                 ->setFlag(RESPONSE_DONE);
-            ft::safeFclose(const_cast<FILE *>(
-                (reinterpret_cast<Transaction *>(curr_event->udata))
-                    ->getFilePtr()));
-          } else {  // 클라이언트일 때
+            // ft::safeFclose(const_cast<FILE *>(
+            //     (reinterpret_cast<Transaction *>(curr_event->udata))
+            //         ->getFilePtr()));
+            
+          } else { // 클라이언트일 때
             setErrorPage(e.what(), this->clients[curr_event->ident]);
             this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
           }
@@ -193,9 +197,9 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
 
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
-    if (file_fd == DIRECTORY) {  // directory
+    if (file_fd == DIRECTORY) { // directory
       return;
-    } else if (file_fd == NONE_FD) {  // delete, put
+    } else if (file_fd == NONE_FD) { // delete, put
       std::cout << "fild_fd: " << file_fd << std::endl;
       this->clients[curr_event->ident]->executeMethod(0, 0);
       return;
@@ -218,10 +222,8 @@ void Server::runReadEventFile(struct kevent *&curr_event) {
   // TODO file_fd를 vector로 관리할지는 추후 논의 필요.
   // 여러개의 client가 동시에 혹은 진행중인 사이클 내에서 같은 file에 접근할
   // 경우 어떤 문제가 생길까..?
-
   Transaction *curr_transaction =
       reinterpret_cast<Transaction *>(curr_event->udata);
-
   if (curr_transaction->getFlag() == FILE_READ) {
     curr_transaction->executeMethod(static_cast<int>(curr_event->data),
                                     curr_event->ident);

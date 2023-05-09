@@ -2,16 +2,12 @@
 
 //---- OCCF -------------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
-    : socket_fd(socket_fd),
-      flag(START),
-      response(this->flag),
-      request(this->flag),
-      server_config(server_config) {
+    : socket_fd(socket_fd), flag(START), response(this->flag),
+      request(this->flag), server_config(server_config) {
   // std::cout << GRY << "Debug: Transaction: constructor\n" << DFT;
 }
 Transaction::Transaction(const Transaction &ref)
-    : response(this->flag),
-      request(this->flag),
+    : response(this->flag), request(this->flag),
       server_config(ref.server_config) {
   *this = ref;
 }
@@ -117,7 +113,7 @@ int Transaction::checkDirectory() {
       this->response.setHeader("Content-Type", "text/html");
       this->response.setResponseMsg();
       return DIRECTORY;
-    } else {  //  디렉토리가 없는 경우
+    } else { //  디렉토리가 없는 경우
       throw ErrorPage403Exception();
     }
   } else {
@@ -141,7 +137,7 @@ int Transaction::checkFile() {
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
     this->setFlag(FILE_READ);
     return this->executeCGI();
-  } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
+  } else if (this->request.getMethod() == "POST") { // 2. 평범한 post
     this->fd = ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     this->setFlag(FILE_WRITE);
   } else if (this->request.getMethod() == "PUT") {
@@ -153,7 +149,7 @@ int Transaction::checkFile() {
           ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
       this->setFlag(FILE_WRITE);
     }
-  } else {  // 3. 평범한 get
+  } else { // 3. 평범한 get
     this->fd = ft::safeOpen(this->resource, O_RDWR, 0644);
     this->setFlag(FILE_READ);
   }
@@ -223,7 +219,7 @@ int Transaction::executeRead(void) {
 
   // DEBUG
   if (this->flag == REQUEST_DONE) {
-    std::cout << this->request << std::endl;
+    // std::cout << this->request << std::endl;
   }
   return 0;
 }
@@ -360,7 +356,7 @@ void Transaction::httpGet(int data_size, int fd) {
       this->response.setHeader("Content-Type", "text/html");
       ft::safeClose(fd);
     }
-  } else {  // 2. 그냥 get
+  } else { // 2. 그냥 get
     char buf[MAX_BODY_SIZE + 1];
     size_t read_len = ft::safeRead(this->fd, buf, MAX_BODY_SIZE);
     buf[read_len] = '\0';
@@ -376,31 +372,38 @@ void Transaction::httpGet(int data_size, int fd) {
 
 void Transaction::httpDelete() {
   // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
-  if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
+  if (std::remove(this->resource.c_str()) == 0) { // 파일 삭제 성공
     this->setFlag(FILE_DONE);
     this->response.setStatus("200");
     this->response.setHeader("Content-Type", "text/plain");
     this->response.setEntity("200 OK", 6);
-  } else {  // 파일 삭제 실패
+  } else { // 파일 삭제 실패
     throw ErrorPage500Exception();
   }
 }
 
 void Transaction::httpPost(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
-  if (this->flag == FILE_READ) {  // cgi pipe read
-    char buf[BUFFER_SIZE + 1];
-    int read_len;
-    read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
-    buf[read_len] = '\0';
-    this->request.setEntityCgi(buf, read_len);
-    if (read_len == data_size) {
-      this->request.setEntityClear();
-      this->request.setEntity(this->request.getEntityCgi());
-      this->setFlag(FILE_CGI);
+  if (this->flag == FILE_READ) { // cgi pipe read
+    int wait_pid, status;
+    wait_pid = waitpid(this->cgi_pid, &status, WNOHANG);
+    if (wait_pid == this->cgi_pid || this->request.getEntityCgi().size()) {
+      char buf[BUFFER_SIZE];
+      int read_len;
+      read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
+      this->request.setEntityCgi(buf, read_len);
+      if (read_len == data_size) {
+        this->request.setEntityClear();
+        this->request.setEntity(this->request.getEntityCgi());
+        this->setFlag(FILE_CGI);
+        ft::safeClose(fd);
+      }
+    } else if (wait_pid && (wait_pid == -1 || WIFSIGNALED(status) ||
+                            (WIFEXITED(status) && WEXITSTATUS(status)))) {
       ft::safeClose(fd);
+      throw ErrorPage500Exception();
     }
-  } else if (this->flag == FILE_WRITE) {  // upload file
+  } else if (this->flag == FILE_WRITE) { // upload file
     ft::safeWrite(this->fd, const_cast<char *>(&this->request.getEntity()[0]),
                   this->request.getEntitySize());
     ft::safeClose(fd);
