@@ -302,6 +302,8 @@ void Server::disconnectClient(int client_fd,
   // std::cout << GRY << "Debug: Server: disconnectClient\n" << DFT;
   this->setChangeList(this->change_list, client_fd, EVFILT_READ, EV_DELETE, 0,
                       0, NULL);
+  this->setChangeList(this->change_list, client_fd, EVFILT_WRITE, EV_DELETE, 0,
+                      0, NULL);
   delete clients[client_fd];
   ft::safeClose(client_fd);
   clients.erase(client_fd);
