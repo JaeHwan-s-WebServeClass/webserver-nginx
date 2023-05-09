@@ -453,9 +453,10 @@ int Transaction::executeCGI(void) {
 
 //---- redirection ------------------------------------------------------------
 void Transaction::executeRedirect() {
-  std::string entity =
-      "<html><body><a href = \"" + this->server_config.getRedirect() + "\"> " +
-      this->server_config.getRedirect() + "</ a></body></html>";
+  // <head><script> window.location.href =
+  //     'moonscode.com/login' < / script > </ head>
+  std::string entity = "<html><head><script>window.location.href = \'" +
+                       this->server_config.getRedirect() + "\'</script></html>";
   this->response.setStatus("301");
   this->response.setHeader("Content-Type", "text/html");
   this->response.setEntity(entity.c_str(), entity.size());
