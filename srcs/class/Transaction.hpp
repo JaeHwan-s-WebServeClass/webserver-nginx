@@ -88,6 +88,9 @@ class Transaction {
   // ---- cgi ---------------------------------
   int executeCGI(void);
 
+  // ---- redirection ---------------------------------
+  void executeRedirect();
+
   // --- error class --------------------------
   class ErrorPage403Exception : public std::exception {
     virtual const char *what(void) const throw();

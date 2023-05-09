@@ -401,7 +401,7 @@ void Transaction::httpPost(int data_size, int fd) {
     this->setFlag(FILE_DONE);
     this->response.setStatus("201");
     this->response.setHeader("Content-Type", "text/plain");
-    this->response.setEntity("201 Created", 12);
+    this->response.setEntity("201 Created", 11);
   }
 }
 
@@ -482,6 +482,18 @@ int Transaction::executeCGI(void) {
   }
   delete[] tmp;
   return fd[0];
+}
+
+//---- redirection
+//-------------------------------------------------------------
+void Transaction::executeRedirect() {
+  std::string entity =
+      "<html><body><a href = \"" + this->server_config.getRedirect() + "\"> " +
+      this->server_config.getRedirect() + "</ a></body></html>";
+  this->response.setStatus("301");
+  this->response.setHeader("Content-Type", "text/html");
+  this->response.setEntity(entity.c_str(), entity.size());
+  this->response.setResponseMsg();
 }
 
 //---- error class
