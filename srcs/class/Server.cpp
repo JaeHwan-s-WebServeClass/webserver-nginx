@@ -35,7 +35,7 @@ Server::~Server() {}
 void Server::loadErrorPage() {
   ServerConfig temp_conf = this->server_config[0];
   std::vector<std::string> conf_error_page = temp_conf.getErrorPage();
-  struct timespec timeout = {5, 0};
+  // struct timespec timeout = {5, 0};
 
   std::vector<std::string>::const_iterator it = conf_error_page.begin();
 
@@ -48,7 +48,7 @@ void Server::loadErrorPage() {
     fcntl(fd, F_SETFL, O_NONBLOCK);
     this->setChangeList(this->change_list, fd, EVFILT_READ, EV_ADD | EV_ENABLE,
                         0, 0, NULL);
-    this->safeKevent(1, &timeout);
+    this->safeKevent(1, NULL);
     this->change_list.clear();
 
     char buf[BUFFER_SIZE];
@@ -313,16 +313,17 @@ void Server::disconnectClient(int client_fd,
 //----- safe_method ------------------------------------------------------------
 int Server::safeKevent(int nevents, const timespec *timeout) {
   // std::cout << GRY << "Debug: Server: safeKevent\n" << DFT;
-  // int new_events =
-  //     kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
-  //            this->event_list, nevents, timeout);
+  int new_events =
+      kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
+             this->event_list, nevents, timeout);
 
-  int new_events = 0;
+  // int new_events = 0;
 
-  if (!(new_events =
-            kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
-                   this->event_list, nevents, timeout)))
-    this->disconnectClient(this->event_list->ident, this->clients);
+  // if (!(new_events =
+  //           kevent(this->kq, &(this->change_list[0]),
+  //           this->change_list.size(),
+  //                  this->event_list, nevents, timeout)))
+  //   this->disconnectClient(this->event_list->ident, this->clients);
 
   if (new_events == -1) {
     ft::printError("Error: Server: safeKevent");
