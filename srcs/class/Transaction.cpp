@@ -452,12 +452,9 @@ int Transaction::executeCGI(void) {
   this->cgi_pid = ft::safeFork();
   if (this->cgi_pid == 0) {
     ft::safeClose(fd[0]);
-    // TODO safe func
-    dup2(fd[1], STDOUT_FILENO);
+    ft::safeDup2(fd[1], STDOUT_FILENO);
     ft::safeClose(fd[1]);
-    if (execve((this->location.cgi_exec).c_str(), (char **)args, NULL) == -1) {
-      exit(1);
-    }
+    ft::safeExecve((this->location.cgi_exec).c_str(), (char **)args, NULL);
   } else {
     ft::safeClose(fd[1]);
   }

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include <cctype>
 #include <cstdlib>
@@ -72,4 +72,6 @@ int safeClose(int);
 
 void safePipe(int *);
 pid_t safeFork(void);
+void safeDup2(int, int);
+void safeExecve(const char *, char *const *, char *const *);
 }  // namespace ft
