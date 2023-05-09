@@ -184,13 +184,7 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
     }
   }
   if (it2 == this->server_config.begin()) {
-    Response response_for_redirect =
-        this->clients[client_socket]->getResponse();
-    std::string entity = "<a href = \"" + it2->getRedirect() + "\"> " +
-                         it2->getRedirect() + "</ a>";
-    response_for_redirect.setStatus("301");
-    response_for_redirect.setEntity(entity.c_str(), entity.size());
-    response_for_redirect.setResponseMsg();
+    this->clients[client_socket]->executeRedirect();
   }
 }
 
@@ -199,6 +193,7 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
   if (this->clients[curr_event->ident]->executeRead() == -1) {
     this->disconnectClient(curr_event->ident, this->clients);
   }
+
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
     if (file_fd == -1) {

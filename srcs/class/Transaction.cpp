@@ -414,6 +414,18 @@ int Transaction::executeCGI(void) {
   return fd[0];
 }
 
+//---- redirection
+//-------------------------------------------------------------
+void Transaction::executeRedirect() {
+  std::string entity =
+      "<html><body><a href = \"" + this->server_config.getRedirect() + "\"> " +
+      this->server_config.getRedirect() + "</ a></body></html>";
+  this->response.setStatus("301");
+  this->response.setHeader("Content-Type", "text/html");
+  this->response.setEntity(entity.c_str(), entity.size());
+  this->response.setResponseMsg();
+}
+
 //---- error class
 //-------------------------------------------------------------
 const char *Transaction::ErrorPage403Exception::what() const throw() {
