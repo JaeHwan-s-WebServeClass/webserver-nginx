@@ -352,6 +352,7 @@ void Transaction::httpGet(int data_size, int fd) {
       ft::safeClose(this->fd);
       this->setFlag(FILE_DONE);
       this->response.setStatus("200");
+      this->response.setHeader("Content-Type", "text/html");
     }
   }
 }
