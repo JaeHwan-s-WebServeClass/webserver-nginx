@@ -140,15 +140,6 @@ int Transaction::checkDirectory() {
   return DIRECTORY;
 }
 
-// if (access(this->resource.c_str(), F_OK) == 0) {
-//     // 파일이 존재하는 경우, 덮어쓸 것인지 묻는 응답을 보냄
-//     this->response.setStatus("409");
-//     this->response.setHeader("Content-Type", "text/plain");
-//     this->response.setHeader("Allow", "GET, POST, DELETE");
-//     this->response.setEntity("409 Conflict: The resource already exists",
-//     45); ft::safeClose(fd); this->setFlag(FILE_DONE); return;
-//   }
-
 int Transaction::checkFile() {
   // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
   if ((this->request.getMethod() != "POST" &&
@@ -407,8 +398,6 @@ void Transaction::httpPost(int data_size, int fd) {
 
 void Transaction::httpPut(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPut\n" << DFT;
-  // 파일이 존재하는지 확인
-  std::cout << this->response.getStatusCode() << std::endl;
   if (fd == 0 && data_size == 0) {
     this->response.setStatus("409");
     this->response.setHeader("Content-Type", "text/plain");
@@ -418,32 +407,9 @@ void Transaction::httpPut(int data_size, int fd) {
     return;
   }
 
-  // 파일이 존재하지 않는 경우, 새로운 파일을 생성하고 데이터를 씀
-  // int new_fd = open(this->resource.c_str(), O_CREAT | O_WRONLY | O_TRUNC,
-  //                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-  // if (new_fd == -1) {
-  //   throw ErrorPage500Exception();
-  // }
-
-  // char buf[MAX_BODY_SIZE + 1];
-  // size_t total_written = 0;
-  // while (total_written < static_cast<size_t>(data_size)) {
-  //   size_t remaining = data_size - total_written;
-  //   size_t write_len = remaining < MAX_BODY_SIZE ? remaining : MAX_BODY_SIZE;
-  //   int read_len = ft::safeRead(fd, buf, write_len);
-  //   if (read_len == -1) {
-  //     throw ErrorPage500Exception();
-  //   }
   ft::safeWrite(fd, const_cast<char *>(&this->request.getEntity()[0]),
                 this->request.getEntitySize());
-  // if (written == -1) {
-  //   throw ErrorPage500Exception();
-  // }
-  // total_written += written;
-  // }
-
   ft::safeClose(fd);
-  // ft::safeClose(fd);
   this->setFlag(FILE_DONE);
   this->response.setStatus("201");
   this->response.setHeader("Content-Type", "text/plain");
@@ -484,8 +450,7 @@ int Transaction::executeCGI(void) {
   return fd[0];
 }
 
-//---- redirection
-//-------------------------------------------------------------
+//---- redirection ------------------------------------------------------------
 void Transaction::executeRedirect() {
   std::string entity =
       "<html><body><a href = \"" + this->server_config.getRedirect() + "\"> " +
@@ -496,8 +461,7 @@ void Transaction::executeRedirect() {
   this->response.setResponseMsg();
 }
 
-//---- error class
-//-------------------------------------------------------------
+//---- error class ------------------------------------------------------------
 const char *Transaction::ErrorPage403Exception::what() const throw() {
   return "403";
 }
