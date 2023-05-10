@@ -2,11 +2,11 @@
 
 ***
 
-- [평가표 번역]<https://github.com/FareWellWebServer/webserv/wiki/%ED%8F%89%EA%B0%80%ED%91%9C-%EB%B2%88%EC%97%AD>
-- [42 wiki]<https://yeosong1.github.io/webserv_eval>
-- [webserv tutorial]<https://42seoul.gitbook.io/webserv/>
-- [팔만코딩경]<https://80000coding.oopy.io/2944b11b-6729-4cd8-b545-c5dcdcb0c386>
-- [siege test 관련]<https://trend21c.tistory.com/1438>
+- [평가표 번역](https://github.com/FareWellWebServer/webserv/wiki/%ED%8F%89%EA%B0%80%ED%91%9C-%EB%B2%88%EC%97%AD)
+- [42 wiki](https://yeosong1.github.io/webserv_eval)
+- [webserv tutorial](https://42seoul.gitbook.io/webserv/)
+- [팔만코딩경](https://80000coding.oopy.io/2944b11b-6729-4cd8-b545-c5dcdcb0c386)
+- [siege test 관련](https://trend21c.tistory.com/1438)
 
 ***
 
