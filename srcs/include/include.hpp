@@ -29,7 +29,8 @@ std::string printHelper(std::string msg);
 std::string printHelper(std::vector<std::string> msg);
 void printVector(const std::vector<std::string> &);
 
-bool isFileEmpty(int fd);
+bool isFileEmpty(const char *file_name);
+bool isFileDescriptorEmpty(int fd);
 bool isFileDescriptorValid(int fd);
 
 int hexToInt(const std::string &);
@@ -69,10 +70,10 @@ ssize_t safeWrite(int, char *, int);
 size_t safeFread(char *, int, int, FILE *);
 size_t safeFwrite(const char *, int, int, FILE *);
 size_t safeOpen(std::string, int, mode_t);
-
-std::FILE *safeFopen(const char *, const char *);
-int safeFclose(FILE *);
 int safeClose(int);
+
+// std::FILE *safeFopen(const char *, const char *);
+// int safeFclose(FILE *);
 
 void safePipe(int *);
 pid_t safeFork(void);

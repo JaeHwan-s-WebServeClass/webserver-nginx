@@ -1,5 +1,7 @@
 #include "include/webserv.hpp"
 
+int g_server_status = HEALTHY;
+
 int main(int argc, char **argv) {
   try {
     std::vector<ServerConfig> config;

@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "../include/define.hpp"
+#include "../include/include.hpp"
 #include "Response.hpp"
 #include "ServerConfig.hpp"
 #include "ServerSocket.hpp"
@@ -68,12 +69,14 @@ class Server {
 
   /// @brief
   /// @param client_fd
-  /// @param clients
   /// @return
-  void disconnectClient(int, std::map<int, Transaction *> &);
+  void disconnectClient(int);
 
   // ---- safe_method -------------------------
   int safeKevent(int nevents, const timespec *timeout);
+  class ServerUnhealthyException : public std::exception {
+    virtual const char *what(void) const throw();
+  };
 };
 
 #endif

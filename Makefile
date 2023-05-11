@@ -22,6 +22,7 @@ CLASS_NAME 	=	Server.cpp \
 UTILS_DIR 	:=	./srcs/utils/
 UTILS_NAME 	=	split.cpp \
 				print.cpp \
+				file.cpp \
 				convert.cpp \
 				trim.cpp \
 				safe.cpp \

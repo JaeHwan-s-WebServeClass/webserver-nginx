@@ -1,5 +1,6 @@
 #include "Server.hpp"
-#include <sys/event.h>
+
+extern int g_server_status;
 
 //---- OCCF -------------------------------------------------------------------
 Server::Server(std::vector<ServerConfig> &server_config)
@@ -92,23 +93,25 @@ void Server::run() {
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
 
-      if (curr_event->flags & EV_ERROR) {
-        // this->runErrorServer(curr_event);
-      } else if ((this->clients.find(curr_event->ident) !=
-                  this->clients.end()) &&
-                 (curr_event->flags & (EV_EOF)) &&
-                 curr_event->filter == EVFILT_READ) {
-
-        this->disconnectClient(curr_event->ident, this->clients);
-      } else if (curr_event->filter == EVFILT_READ) {
-        std::vector<ServerSocket>::const_iterator it =
-            this->server_socket.begin();
-        for (; it != this->server_socket.end(); it++) {
-          if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
-            break;
-          }
+      try {
+        if (g_server_status == UNHEALTHY) {
+          throw ServerUnhealthyException();
         }
-        try {
+        if (curr_event->flags & EV_ERROR) {
+          this->runErrorServer(curr_event);
+        } else if ((this->clients.find(curr_event->ident) !=
+                    this->clients.end()) &&
+                   (curr_event->flags & (EV_EOF)) &&
+                   curr_event->filter == EVFILT_READ) {
+          this->disconnectClient(curr_event->ident);
+        } else if (curr_event->filter == EVFILT_READ) {
+          std::vector<ServerSocket>::const_iterator it =
+              this->server_socket.begin();
+          for (; it != this->server_socket.end(); it++) {
+            if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
+              break;
+            }
+          }
           if (it != this->server_socket.end()) {
             this->runReadEventServer(it);
           } else if (this->clients.find(curr_event->ident) !=
@@ -117,26 +120,31 @@ void Server::run() {
           } else if (curr_event->udata) {
             this->runReadEventFile(curr_event);
           }
-        } catch (std::exception &e) {
-          if (curr_event->udata) {  // 파일일 때
-            setErrorPage(e.what(),
-                         reinterpret_cast<Transaction *&>(curr_event->udata));
-            reinterpret_cast<Transaction *>(curr_event->udata)
-                ->setFlag(RESPONSE_DONE);
-            // ft::safeFclose(const_cast<FILE *>(
-            //     (reinterpret_cast<Transaction *>(curr_event->udata))
-            //         ->getFilePtr()));
-            
-          } else { // 클라이언트일 때
-            setErrorPage(e.what(), this->clients[curr_event->ident]);
-            this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
+        } else if (curr_event->filter == EVFILT_WRITE) {
+          if (curr_event->udata) {
+            this->runWriteEventFile(curr_event);
+          } else {
+            this->runWriteEventClient(curr_event);
           }
         }
-      } else if (curr_event->filter == EVFILT_WRITE) {
-        if (curr_event->udata) {
-          this->runWriteEventFile(curr_event);
-        } else {
-          this->runWriteEventClient(curr_event);
+      } catch (ServerUnhealthyException &e) {
+        std::map<int, Transaction *>::iterator it = this->clients.begin();
+        for (; it != this->clients.end(); it++) {
+          this->disconnectClient(it->first);
+        }
+        this->clients.clear();
+      } catch (std::exception &e) {
+        if (curr_event->udata) {  // 파일일 때
+          setErrorPage(e.what(),
+                       reinterpret_cast<Transaction *&>(curr_event->udata));
+          reinterpret_cast<Transaction *>(curr_event->udata)
+              ->setFlag(RESPONSE_DONE);
+          ft::safeClose(curr_event->ident);
+          this->setChangeList(this->change_list, curr_event->ident,
+                              curr_event->filter, EV_DELETE, 0, 0, NULL);
+        } else {  // 클라이언트일 때
+          setErrorPage(e.what(), this->clients[curr_event->ident]);
+          this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
         }
       }
     }
@@ -160,7 +168,7 @@ void Server::runErrorServer(struct kevent *&curr_event) {
       ft::printError("Error: Server: runErrorServer: file error");
       throw Transaction::ErrorPageDefaultException();
     } else {
-      this->disconnectClient(curr_event->ident, this->clients);
+      this->disconnectClient(curr_event->ident);
       ft::printError("Error: Server: runErrorServer: client socket error");
       throw Transaction::ErrorPageDefaultException();
     }
@@ -192,15 +200,14 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
 void Server::runReadEventClient(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runReadEventClient\n" << DFT;
   if (this->clients[curr_event->ident]->executeRead() == -1) {
-    this->disconnectClient(curr_event->ident, this->clients);
+    this->disconnectClient(curr_event->ident);
   }
 
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
-    if (file_fd == DIRECTORY) { // directory
+    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) {  // directory
       return;
-    } else if (file_fd == NONE_FD) { // delete, put
-      std::cout << "fild_fd: " << file_fd << std::endl;
+    } else if (file_fd == NONE_FD) {  // delete, put
       this->clients[curr_event->ident]->executeMethod(0, 0);
       return;
     }
@@ -261,27 +268,47 @@ void Server::runWriteEventFile(struct kevent *&curr_event) {
 
 void Server::runWriteEventClient(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runWriteEventClient\n" << DFT;
-  std::map<int, Transaction *>::iterator it = clients.find(curr_event->ident);
+  std::map<int, Transaction *>::const_iterator it =
+      clients.find(curr_event->ident);
   if (it != clients.end()) {
     // TODO 응답시간이 너무 길어질 때의 처리도 필요하다.
     // request의 body를 받는 부분에서 같이 처리해야함
     if (it->second->getFlag() == RESPONSE_DONE) {
       if (this->clients[curr_event->ident]->executeWrite() == -1) {
-        this->disconnectClient(curr_event->ident, this->clients);
+        this->disconnectClient(curr_event->ident);
       }
-    } else if (it->second->getFlag() == END) {
-      this->disconnectClient(curr_event->ident, this->clients);
+    } else if (it->second->getFlag() == END) {  // not keep-alive
+      this->disconnectClient(curr_event->ident);
     }
+    // } else if (it->second->getFlag() == END) {
+    //   const std::map<std::string, std::string> &check_header =
+    //       it->second->getRequest().getHeader();
+    //   std::map<std::string, std::string>::const_iterator check =
+    //       check_header.find("Connection");
+    //   if ((check != check_header.end()) && check->second == "keep-alive")
+    //     ; // Request msg clear?
+    //   else {
+    //     this->disconnectClient(curr_event->ident);
+    //   }
+    // }
     // TODO 어떤 조건이었지??? => 아마 keepalive를 위해 사용되는 조건들
     // if (write() == -1) {
-    //   this->disconnectClient(curr_event->ident, this->clients);
+    //   this->disconnectClient(curr_event->ident);
     // } else {
     //   this->clients[curr_event->ident]->getRequest().clearSetRawMsg();
     // }
+    /*
+    } else if (it->second->getFlag() == END) {
+      if (it->second->getRequest().getHeader()["Connection"] == "keep-alive")
+        ;
+      else
+        this->disconnectClient(curr_event->ident);
+    }
+    */
   }
 }
 
-//----- utils -----------------------------------------------------------------
+//----- utils ----------------------------------------------------------------
 void Server::setChangeList(std::vector<struct kevent> &change_list,
                            uintptr_t ident, int16_t filter, uint16_t flags,
                            uint32_t fflags, intptr_t data, void *udata) {
@@ -296,21 +323,51 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
   change_list.push_back(temp_event);
 }
 
-void Server::disconnectClient(int client_fd,
-                              std::map<int, Transaction *> &clients) {
+void Server::disconnectClient(int client_fd) {
   // std::cout << GRY << "Debug: Server: disconnectClient\n" << DFT;
+  if (ft::isFileDescriptorValid(
+          this->clients[client_fd]->getFileDescriptor())) {
+    int file_fd = this->clients[client_fd]->getFileDescriptor();
+    ft::safeClose(file_fd);
+    if (this->clients[client_fd]->getFlag() == FILE_WRITE) {
+      this->setChangeList(this->change_list, file_fd, EVFILT_WRITE, EV_DELETE,
+                          0, 0, NULL);
+    } else {
+      this->setChangeList(this->change_list, file_fd, EVFILT_READ, EV_DELETE, 0,
+                          0, NULL);
+    }
+  }
+
   this->setChangeList(this->change_list, client_fd, EVFILT_READ, EV_DELETE, 0,
                       0, NULL);
   this->setChangeList(this->change_list, client_fd, EVFILT_WRITE, EV_DELETE, 0,
                       0, NULL);
-  delete clients[client_fd];
+
+  // delete this->clients[client_fd];
+
+  //  const std::map<std::string, std::string> &check_header =
+  //      this->clients[client_fd]->getRequest().getHeader();
+  //  std::map<std::string, std::string>::const_iterator check =
+  //      check_header.find("Connection");
+  //  if ((check != check_header.end()) && (check->second == "keep-alive")) {
+  //    ;
+  //    new Transaction(client_socket, *it2)
+  //  } else {
+  //    ft::safeClose(client_fd);
+  //    this->clients.erase(client_fd);
+  //    std::cout << RED << "client disconnected: " << client_fd << DFT
+  //              << std::endl;
+  //  }
   ft::safeClose(client_fd);
-  clients.erase(client_fd);
-  std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
-  // system("leaks webserv | grep leaked");
+  this->clients.erase(client_fd);
+
+  // ft::safeClose(client_fd);
+  // this->clients.erase(client_fd);
+  // std::cout << RED << "client disconnected: " << client_fd << DFT <<
+  // std::endl; system("leaks webserv | grep leaked");
 }
 
-//----- safe_method ------------------------------------------------------------
+//----- safe_method -----------------------------------------------------------
 int Server::safeKevent(int nevents, const timespec *timeout) {
   // std::cout << GRY << "Debug: Server: safeKevent\n" << DFT;
   int new_events =
@@ -324,4 +381,8 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
     std::cout << "new_event is 0\n";
   }
   return new_events;
+}
+
+const char *Server::ServerUnhealthyException::what() const throw() {
+  return "500";
 }

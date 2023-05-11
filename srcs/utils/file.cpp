@@ -1,27 +1,30 @@
 #include "../include/include.hpp"
 
-bool ft::isFileEmpty(int fd) {
-  char buffer[1];
-  ssize_t bytesRead = read(fd, buffer, sizeof(buffer));
+bool ft::isFileDescriptorEmpty(int fd) {
+  off_t offset = lseek(fd, 0, SEEK_END);  // 파일의 끝으로 오프셋 이동
 
-  if (bytesRead == -1) {
-    // 파일 읽기 실패
-    return false;
-  }
-
-  if (bytesRead == 0) {
-    // 파일 비어있음
+  if (offset == 0) {
     return true;
   }
-    //  파일이 비어있지 않음
+  lseek(fd, 0, SEEK_SET);
+  return false;
+}
+
+bool ft::isFileEmpty(const char *file_name) {
+  // 1 stat
+  struct stat st;
+  stat(file_name, &st);
+  if (st.st_size == 0) {
+    return true;
+  }
   return false;
 }
 
 bool ft::isFileDescriptorValid(int fd) {
   struct stat fileStat;
+
   if (fstat(fd, &fileStat) == -1) {
     return false;
   }
-
   return S_ISREG(fileStat.st_mode);
 }

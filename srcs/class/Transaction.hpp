@@ -33,7 +33,6 @@ class Transaction {
   ServerConfig::t_location location;
 
   std::string resource;
-  std::FILE *file_ptr;
 
   int cgi_pid;
 
@@ -54,7 +53,7 @@ class Transaction {
   Request &getRequest();
   const ServerConfig &getServerConfig() const;
   const t_step &getFlag() const;
-  const FILE *getFilePtr() const;
+  const int &getFileDescriptor() const;
 
   // ---- setter ------------------------------
   void setFlag(t_step);
@@ -65,8 +64,8 @@ class Transaction {
   int checkDirectory(
       void);  // URI가 directory일 때 처리 (index 처리 or 없으면 autoindex)
   // 1. getIndex 2. openIndex 3. handleUriDirectory
-  void checkAllowedMethod(void);  
-      // 유효한 method인지 체크 (requset의 method와 conf의 method 비교)
+  void checkAllowedMethod(void);
+  // 유효한 method인지 체크 (requset의 method와 conf의 method 비교)
 
   int checkFile(void);  // file descriptor를 반환해야 하는 경우 처리
   // this->file_ptr setting, setFlag
