@@ -198,16 +198,13 @@ void Transaction::checkServerName() {
 }
 
 //---- executor ----------------------------------------------------------------
-int Transaction::executeRead(void) {
+void Transaction::executeRead(void) {
   // std::cout << GRY << "Debug: Transaction: executeRead\n" << DFT;
 
   char buf[BUFFER_SIZE + 1];
   int read_len = ft::safeRecv(this->socket_fd, buf, BUFFER_SIZE);
   int head_rest_len = 0;
 
-  if (read_len == -1) {
-    return -1;
-  }
   if (this->flag == START) {
     head_rest_len = this->executeReadHead(buf, read_len);
     this->checkServerName();
@@ -231,7 +228,6 @@ int Transaction::executeRead(void) {
   if (this->flag == REQUEST_DONE) {
     // std::cout << this->request << std::endl;
   }
-  return 0;
 }
 
 int Transaction::executeReadHead(char *buf, int read_len) {

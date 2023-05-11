@@ -26,7 +26,7 @@ bool ft::isFileDescriptorValid(int fd) {
   if (fstat(fd, &fileStat) == -1) {
     return false;
   }
-  return S_ISREG(fileStat.st_mode);
+  return true;
 }
 
 bool ft::isDirectory(const char *path) {
