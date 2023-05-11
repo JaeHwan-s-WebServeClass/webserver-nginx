@@ -134,7 +134,7 @@ void Server::run() {
         }
         this->clients.clear();
       } catch (std::exception &e) {
-        if (curr_event->udata) {  // 파일일 때
+        if (curr_event->udata) { // 파일일 때
           setErrorPage(e.what(),
                        reinterpret_cast<Transaction *&>(curr_event->udata));
           reinterpret_cast<Transaction *>(curr_event->udata)
@@ -142,7 +142,7 @@ void Server::run() {
           ft::safeClose(curr_event->ident);
           this->setChangeList(this->change_list, curr_event->ident,
                               curr_event->filter, EV_DELETE, 0, 0, NULL);
-        } else {  // 클라이언트일 때
+        } else { // 클라이언트일 때
           setErrorPage(e.what(), this->clients[curr_event->ident]);
           this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
         }
@@ -205,9 +205,9 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
 
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
-    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) {  // directory
+    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) { // directory
       return;
-    } else if (file_fd == NONE_FD) {  // delete, put
+    } else if (file_fd == NONE_FD) { // delete, put
       this->clients[curr_event->ident]->executeMethod(0, 0);
       return;
     }
@@ -277,34 +277,9 @@ void Server::runWriteEventClient(struct kevent *&curr_event) {
       if (this->clients[curr_event->ident]->executeWrite() == -1) {
         this->disconnectClient(curr_event->ident);
       }
-    } else if (it->second->getFlag() == END) {  // not keep-alive
+    } else if (it->second->getFlag() == END) {
       this->disconnectClient(curr_event->ident);
     }
-    // } else if (it->second->getFlag() == END) {
-    //   const std::map<std::string, std::string> &check_header =
-    //       it->second->getRequest().getHeader();
-    //   std::map<std::string, std::string>::const_iterator check =
-    //       check_header.find("Connection");
-    //   if ((check != check_header.end()) && check->second == "keep-alive")
-    //     ; // Request msg clear?
-    //   else {
-    //     this->disconnectClient(curr_event->ident);
-    //   }
-    // }
-    // TODO 어떤 조건이었지??? => 아마 keepalive를 위해 사용되는 조건들
-    // if (write() == -1) {
-    //   this->disconnectClient(curr_event->ident);
-    // } else {
-    //   this->clients[curr_event->ident]->getRequest().clearSetRawMsg();
-    // }
-    /*
-    } else if (it->second->getFlag() == END) {
-      if (it->second->getRequest().getHeader()["Connection"] == "keep-alive")
-        ;
-      else
-        this->disconnectClient(curr_event->ident);
-    }
-    */
   }
 }
 
@@ -338,33 +313,44 @@ void Server::disconnectClient(int client_fd) {
     }
   }
 
-  this->setChangeList(this->change_list, client_fd, EVFILT_READ, EV_DELETE, 0,
-                      0, NULL);
-  this->setChangeList(this->change_list, client_fd, EVFILT_WRITE, EV_DELETE, 0,
-                      0, NULL);
+  const std::map<std::string, std::string> &check_header =
+      this->clients[client_fd]->getRequest().getHeader();
+  std::map<std::string, std::string>::const_iterator check =
+      check_header.find("Connection");
+  if ((check != check_header.end()) && (check->second == "keep-alive")) {
+    std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
+    for (; it != this->server_config.end(); ++it) {
+      if (&(*it) == &this->clients[client_fd]->getServerConfig()) {
+        break;
+      }
+    }
+    delete this->clients[client_fd];
+    this->clients[client_fd] = new Transaction(client_fd, *it);
+  } else {
+    this->setChangeList(this->change_list, client_fd, EVFILT_READ, EV_DELETE, 0,
+                        0, NULL);
+    this->setChangeList(this->change_list, client_fd, EVFILT_WRITE, EV_DELETE,
+                        0, 0, NULL);
+    delete this->clients[client_fd];
+    ft::safeClose(client_fd);
+    this->clients.erase(client_fd);
+    std::cout << RED << "client disconnected: " << client_fd << DFT
+              << std::endl;
+  }
 
-  delete this->clients[client_fd];
+  // this->setChangeList(this->change_list, client_fd, EVFILT_READ, EV_DELETE,
+  // 0,
+  //                     0, NULL);
+  // this->setChangeList(this->change_list, client_fd, EVFILT_WRITE, EV_DELETE,
+  // 0,
+  //                     0, NULL);
 
-  // const std::map<std::string, std::string> &check_header =
-  //     this->clients[client_fd]->getRequest().getHeader();
-  // std::map<std::string, std::string>::const_iterator check =
-  //     check_header.find("Connection");
-  // if ((check != check_header.end()) && (check->second == "keep-alive")) {
-  //   ;
-  //   new Transaction(client_socket, *it2);
-  // } else {
-  //   ft::safeClose(client_fd);
-  //   this->clients.erase(client_fd);
-  //   std::cout << RED << "client disconnected: " << client_fd << DFT
-  //             << std::endl;
-  // }
-  ft::safeClose(client_fd);
-  this->clients.erase(client_fd);
-
+  // delete this->clients[client_fd];
   // ft::safeClose(client_fd);
   // this->clients.erase(client_fd);
-  std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
-  system("leaks webserv | grep leaked");
+
+  // std::cout << RED << "client disconnected: " << client_fd << DFT <<
+  // std::endl; system("leaks webserv | grep leaked");
 }
 
 //----- safe_method -----------------------------------------------------------
