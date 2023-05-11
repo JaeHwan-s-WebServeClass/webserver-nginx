@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <cctype>
@@ -27,6 +28,9 @@ void printError(std::string);
 std::string printHelper(std::string msg);
 std::string printHelper(std::vector<std::string> msg);
 void printVector(const std::vector<std::string> &);
+
+bool isFileEmpty(int fd);
+bool isFileDescriptorValid(int fd);
 
 int hexToInt(const std::string &);
 std::string intToStr(int);
