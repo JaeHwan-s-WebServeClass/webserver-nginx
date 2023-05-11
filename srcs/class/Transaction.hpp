@@ -70,7 +70,7 @@ class Transaction {
   int checkFile(void);  // file descriptor를 반환해야 하는 경우 처리
   // this->file_ptr setting, setFlag
   void checkServerName();
-  int executeRead(void);
+  void executeRead(void);
   int executeReadHead(char *, int);
   void executeReadEntity(char *, int, int);
   int executeWrite(void);

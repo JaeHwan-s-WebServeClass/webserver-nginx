@@ -199,9 +199,7 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
 
 void Server::runReadEventClient(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runReadEventClient\n" << DFT;
-  if (this->clients[curr_event->ident]->executeRead() == -1) {
-    this->disconnectClient(curr_event->ident);
-  }
+  this->clients[curr_event->ident]->executeRead();
 
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();

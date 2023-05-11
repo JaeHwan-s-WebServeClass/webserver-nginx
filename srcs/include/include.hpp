@@ -32,6 +32,7 @@ void printVector(const std::vector<std::string> &);
 bool isFileEmpty(const char *file_name);
 bool isFileDescriptorEmpty(int fd);
 bool isFileDescriptorValid(int fd);
+bool isDirectory(const char *path);
 
 int hexToInt(const std::string &);
 std::string intToStr(int);

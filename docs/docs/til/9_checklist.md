@@ -23,8 +23,9 @@
 ### basic checklist
 
 - [ ] kqueue and `kevent()`
-    - [ ] 하나의 `kevent()`만이 있어야한다.
-    - [ ] fd에 대한 READ/WRITE가 `kevent()`를 거치지 않고 수행하지 말아야한다.
+    - [ ] 하나의 `kqueue()`만이 있어야한다.
+    - [ ] fd에 대한 READ/WRITE가 `kqueue()`를 거치지 않고 수행하지 말아야한다.
+    - [ ] 하나의 클라이언트에 대해 `kqueue()`당 하나의 `read()`와 하나의 `write()`가 존재해야한다.
 - [ ] read/recv/write/send
     - [ ] 에러가 발생할 경우 client가 제거되어야 한다.
     - [ ] the returned value is well checked. (checking only -1 or 0 is not good you should check both)
