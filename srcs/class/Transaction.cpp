@@ -60,6 +60,9 @@ void Transaction::checkResource() {
   }
   request_location = this->request.getUrl().substr(0, pos);
   request_filename = this->request.getUrl().substr(pos);
+  if ((request_filename == "/.") || (request_filename == "/..")) {
+    throw ErrorPageDefaultException();
+  }
   // STEP 2 . request_loc과 conf_loc을 비교해서 실제 local의 resource 구하기
   std::map<std::string, ServerConfig::t_location>::const_iterator it;
   if ((it = this->server_config.getLocation().find(request_location)) !=
@@ -378,7 +381,10 @@ void Transaction::httpGet(int data_size, int fd) {
 }
 
 void Transaction::httpDelete() {
-  // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
+  // std::cout < GRY << "Debug: Transaction: httpDelete\n" << DFT;
+  if (ft::isDirectory(this->resource.c_str())) {
+    throw ErrorPage403Exception();
+  }
   if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
     this->setFlag(FILE_DONE);
     this->response.setStatus("200");

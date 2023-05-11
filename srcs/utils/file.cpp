@@ -28,3 +28,13 @@ bool ft::isFileDescriptorValid(int fd) {
   }
   return S_ISREG(fileStat.st_mode);
 }
+
+bool ft::isDirectory(const char *path) {
+  struct stat st;
+
+  stat(path, &st);
+  if (S_ISDIR(st.st_mode)) {
+    return true;
+  }
+  return false;
+}

@@ -349,10 +349,27 @@ void Server::disconnectClient(int client_fd) {
   //     this->clients[client_fd]->getRequest().getHeader();
   // std::map<std::string, std::string>::const_iterator check =
   //     check_header.find("Connection");
+
+  // std::vector<ServerConfig>::const_iterator it2 =
+  // this->server_config.begin(); for (; it2 != this->server_config.end();
+  // it2++) {
+  //   if (it2->getListen() == it->getPort()) {
+  //     this->clients[client_fd] = new Transaction(client_socket, *it2);
+  //     break;
+  //   }
+  // }
+
   // if ((check != check_header.end()) && (check->second == "keep-alive")) {
-  //   ;
-  //   new Transaction(client_socket, *it2);
+  //   delete this->clients[client_fd];
+  //   new Transaction(client_fd, );
   // } else {
+  //   this->setChangeList(this->change_list, client_fd, EVFILT_READ, EV_DELETE,
+  //   0,
+  //                       0, NULL);
+  //   this->setChangeList(this->change_list, client_fd, EVFILT_WRITE,
+  //   EV_DELETE, 0,
+  //                       0, NULL);
+  //   delete this->clients[client_fd];
   //   ft::safeClose(client_fd);
   //   this->clients.erase(client_fd);
   //   std::cout << RED << "client disconnected: " << client_fd << DFT
@@ -361,10 +378,8 @@ void Server::disconnectClient(int client_fd) {
   ft::safeClose(client_fd);
   this->clients.erase(client_fd);
 
-  // ft::safeClose(client_fd);
-  // this->clients.erase(client_fd);
   std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
-  system("leaks webserv | grep leaked");
+  // system("leaks webserv | grep leaked");
 }
 
 //----- safe_method -----------------------------------------------------------
