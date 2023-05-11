@@ -167,11 +167,11 @@ void Server::runErrorServer(struct kevent *&curr_event) {
     if (curr_event->udata) {
       ft::printError("Error: Server: runErrorServer: file error");
       throw Transaction::ErrorPageDefaultException();
-    } else {
+    } else if (this->clients.find(curr_event->ident) != this->clients.end()) {
       this->disconnectClient(curr_event->ident);
       ft::printError("Error: Server: runErrorServer: client socket error");
       throw Transaction::ErrorPageDefaultException();
-    }
+    }  // else는 어디로...
   }
 }
 

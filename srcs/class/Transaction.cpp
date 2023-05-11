@@ -3,6 +3,7 @@
 //---- OCCF -------------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
     : socket_fd(socket_fd),
+      fd(-1),
       flag(START),
       response(this->flag),
       request(this->flag),
