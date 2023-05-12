@@ -206,7 +206,7 @@ void Server::runErrorServer(struct kevent *&curr_event) {
       this->disconnectClient(curr_event->ident);
       ft::printError("Error: Server: runErrorServer: client socket error");
       throw Transaction::ErrorPage500Exception();
-    }  // TODO else는 어디로...
+    }  // TODO else 귀신
   }
 }
 
@@ -264,9 +264,6 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
 
 void Server::runReadEventFile(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runReadEventFile\n" << DFT;
-  // TODO file_fd를 vector로 관리할지는 추후 논의 필요.
-  // 여러개의 client가 동시에 혹은 진행중인 사이클 내에서 같은 file에 접근할
-  // 경우 어떤 문제가 생길까..?
   Transaction *curr_transaction =
       reinterpret_cast<Transaction *>(curr_event->udata);
 
@@ -310,8 +307,6 @@ void Server::runWriteEventClient(struct kevent *&curr_event) {
   std::map<int, Transaction *>::const_iterator it =
       clients.find(curr_event->ident);
   if (it != clients.end()) {
-    // TODO 응답시간이 너무 길어질 때의 처리도 필요하다.
-    // request의 body를 받는 부분에서 같이 처리해야함
     if (it->second->getFlag() == RESPONSE_DONE) {
       if (this->clients[curr_event->ident]->executeWrite() == -1) {
         this->disconnectClient(curr_event->ident);

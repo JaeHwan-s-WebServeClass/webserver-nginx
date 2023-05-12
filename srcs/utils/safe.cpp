@@ -107,7 +107,6 @@ ssize_t ft::safeWrite(int fd, char *buf, int size) {
   return write_len;
 }
 
-// // TODO 얘는 throw Server::ServerUnhealthyException(); 안해도 됨?
 // //----- open/close
 // ------------------------------------------------------------ size_t
 size_t ft::safeOpen(std::string resource, int flag, mode_t mode) {
@@ -117,6 +116,7 @@ size_t ft::safeOpen(std::string resource, int flag, mode_t mode) {
   if ((fd = open(resource.c_str(), flag, mode)) == -1) {
     std::cout << RED << "Error: ft: open() error\n" << DFT;
     g_server_status = UNHEALTHY;
+    throw Server::ServerUnhealthyException();
   }
   return fd;
 }
@@ -127,6 +127,7 @@ int ft::safeClose(int fd) {
     if (close(fd) == -1) {
       std::cout << RED << "Error: ft: close() error\n" << DFT;
       g_server_status = UNHEALTHY;
+      throw Server::ServerUnhealthyException();
     }
   }
   return 0;
