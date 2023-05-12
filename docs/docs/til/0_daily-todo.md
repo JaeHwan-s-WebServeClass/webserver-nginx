@@ -678,3 +678,23 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 <br>
 
 ***
+
+## [33일차] 2023.05.12 (금)
+
+### 진행 계획
+
+* config file
+* eval-HTTP response status code
+* use max_body_size & max_head_size in conf
+* close file_fd after check it is not client
+* use max_body_size & max_head_size in conf
+* close file_fd after check it is not client
+  
+### 결과
+
+[13:00 ~ 18:00] 마무리 작업
+
+<br>
+
+## 팀 나눠서 동료 평가 진행하기~
+
