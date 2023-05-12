@@ -25,10 +25,10 @@ const std::vector<std::string> &ServerConfig::getServerName() const {
 const std::vector<std::string> &ServerConfig::getErrorPage() const {
   return this->error_page;
 }
-int ServerConfig::getClientMaxBodySize() const {
+size_t ServerConfig::getClientMaxBodySize() const {
   return this->client_max_body_size;
 }
-int ServerConfig::getClientMaxHeadSize() const {
+size_t ServerConfig::getClientMaxHeadSize() const {
   return this->client_max_head_size;
 }
 const std::string &ServerConfig::getRoot() const { return this->root; }

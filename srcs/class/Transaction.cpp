@@ -266,7 +266,8 @@ int Transaction::executeReadHead(char *buf, int read_len) {
       }
     }
   }
-  if (this->request.getRawHead().length() > MAX_HEAD_SIZE) {
+  if (this->request.getRawHead().length() >
+      this->server_config.getClientMaxHeadSize()) {
     ft::printError("Error: Transaction: executeReadHead: over max header size");
     throw Transaction::ErrorPageDefaultException();
   }
@@ -300,7 +301,8 @@ void Transaction::executeReadEntity(char *buf, int read_len,
         "Error: Transaction: executeReadEntity: invalid request header");
     throw Transaction::ErrorPageDefaultException();
   }
-  if (this->request.getEntitySize() > MAX_BODY_SIZE) {
+  if (this->request.getEntitySize() >
+      this->server_config.getClientMaxBodySize()) {
     ft::printError("Error: Transaction: executeReadEntity: over max body size");
     throw Transaction::ErrorPageDefaultException();
   }
@@ -365,8 +367,9 @@ void Transaction::httpGet(int data_size, int fd) {
       ft::safeClose(fd);
     }
   } else {  // 2. 그냥 get
-    char buf[MAX_BODY_SIZE + 1];
-    size_t read_len = ft::safeRead(this->fd, buf, MAX_BODY_SIZE);
+    char buf[this->server_config.getClientMaxBodySize() + 1];
+    size_t read_len =
+        ft::safeRead(this->fd, buf, this->server_config.getClientMaxBodySize());
     buf[read_len] = '\0';
     this->response.setEntity(buf, read_len);
     if (static_cast<int>(read_len) >= data_size) {

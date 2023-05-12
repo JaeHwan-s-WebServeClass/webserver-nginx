@@ -27,8 +27,8 @@ class ServerConfig {
   int listen;
   std::vector<std::string> server_name;
   std::vector<std::string> error_page;
-  int client_max_body_size;
-  int client_max_head_size;
+  size_t client_max_body_size;
+  size_t client_max_head_size;
   std::string root;
   int http_method;
   std::map<std::string, t_location> locations;
@@ -45,8 +45,8 @@ class ServerConfig {
   const int &getListen() const;
   const std::vector<std::string> &getServerName() const;
   const std::vector<std::string> &getErrorPage() const;
-  int getClientMaxBodySize() const;
-  int getClientMaxHeadSize() const;
+  size_t getClientMaxBodySize() const;
+  size_t getClientMaxHeadSize() const;
   const std::string &getRoot() const;
   const std::map<std::string, t_location> &getLocation() const;
   const std::string &getRedirect() const;

@@ -9,8 +9,6 @@
 
 #define MAX_EVENT_SIZE 1024
 
-#define MAX_HEAD_SIZE 9999
-#define MAX_BODY_SIZE 9999
 #define BUFFER_SIZE 9999
 
 #define F_STREAM_SIZE 294
