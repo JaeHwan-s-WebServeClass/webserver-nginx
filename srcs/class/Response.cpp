@@ -63,6 +63,9 @@ void Response::setStatus(std::string status_code) {
   } else if (status_code == "404") {
     this->status_code = "404";
     this->status_msg = "Not Found :(";
+  } else if (status_code == "405") {
+    this->status_code = "405";
+    this->status_msg = "Method Not Allowed";
   } else if (status_code == "409") {
     this->status_code = "409";
     this->status_msg = "Conflict";
@@ -115,7 +118,7 @@ void Response::setResponseMsg() {
   this->flag = RESPONSE_DONE;
 
   // DEBUG
-  std::cout << "response msg: " << response_msg << std::endl;
+  // std::cout << "response msg: " << response_msg << std::endl;
 }
 
 void Response::setErrorMsg(std::string status_code,

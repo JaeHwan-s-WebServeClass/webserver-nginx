@@ -21,3 +21,4 @@ nav:
     - '6_debate': til/6_debate.md
     - '7_requestmsg_parsing' : til/7_requestmsg_parsing.md
     - '8_response_msg_mockup_test' : til/8_response_msg_mockup_test.md
+    - '9_checklist' : til/9_checklist.md

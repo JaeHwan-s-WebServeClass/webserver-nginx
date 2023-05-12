@@ -1,18 +1,18 @@
 #include "Server.hpp"
 
+extern int g_server_status;
+
 //---- OCCF -------------------------------------------------------------------
 Server::Server(std::vector<ServerConfig> &server_config)
-    : server_config(server_config) {
+    : server_config(server_config), disconnect(false) {
   std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
-  // TODO 같은 포트 여러개 들어올 때 예외처리
-  // server_name 으로 처리해야할 듯
   for (; it != this->server_config.end(); it++) {
     ServerSocket tmp_socket(AF_INET, (*it).getListen());
     this->server_socket.push_back(tmp_socket);
   }
   if ((this->kq = kqueue()) == -1) {
-    ft::printError("Error: Server: constructor: kqueue()");
-    throw Transaction::ErrorPageDefaultException();
+    g_server_status = UNHEALTHY;
+    throw std::string("Error: Server: constructor: kqueue()");
   }
 }
 Server::Server(const Server &ref) : server_config(ref.server_config) {
@@ -75,7 +75,25 @@ void Server::setErrorPage(std::string error_code, Transaction *&transaction) {
                                          this->error_page[error_code]);
 }
 
-//---- main loop --------------------------------------------------------------
+void Server::clearFileDescriptor(int client_fd) {
+  int file_fd = this->clients[client_fd]->getFileDescriptor();
+
+  if (ft::isFileDescriptorValid(file_fd)) {
+    if (this->clients.find(file_fd) == this->clients.end()) {
+      ft::safeClose(file_fd);
+    }
+    if (this->clients[client_fd]->getFlag() == FILE_WRITE) {
+      this->setChangeList(this->change_list, file_fd, EVFILT_WRITE, EV_DELETE,
+                          0, 0, NULL);
+    } else {
+      this->setChangeList(this->change_list, file_fd, EVFILT_READ, EV_DELETE, 0,
+                          0, NULL);
+    }
+  }
+}
+
+//---- main loop
+//--------------------------------------------------------------
 void Server::run() {
   // std::cout << GRY << "Debug: Server: run\n" << DFT;
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
@@ -88,54 +106,79 @@ void Server::run() {
   int new_events;
   struct kevent *curr_event;
   while (1) {
-    new_events = this->safeKevent(MAX_EVENT_SIZE, NULL);
+    try {
+      new_events = this->safeKevent(MAX_EVENT_SIZE, NULL);
+    } catch (std::exception &e) {
+      std::map<int, Transaction *>::iterator it = this->clients.begin();
+      for (; it != this->clients.end(); ++it) {
+        this->clearFileDescriptor(it->first);
+        setErrorPage(e.what(), it->second);
+        it->second->setFlag(RESPONSE_DONE);
+      }
+    }
+
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
 
-      if (curr_event->flags & EV_ERROR) {
-        this->runErrorServer(curr_event);
-      } else if ((this->clients.find(curr_event->ident) !=
-                  this->clients.end()) &&
-                 (curr_event->flags & EV_EOF)) {
-        this->disconnectClient(curr_event->ident, this->clients);
-      } else if (curr_event->filter == EVFILT_READ) {
-        std::vector<ServerSocket>::const_iterator it =
-            this->server_socket.begin();
-        for (; it != this->server_socket.end(); it++) {
-          if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
-            break;
-          }
+      try {
+        if (g_server_status == UNHEALTHY) {
+          throw ServerUnhealthyException();
         }
-        try {
+        if (curr_event->flags & EV_ERROR) {
+          this->runErrorServer(curr_event);
+        } else if ((this->clients.find(curr_event->ident) !=
+                    this->clients.end()) &&
+                   (curr_event->flags & (EV_EOF)) &&
+                   curr_event->filter == EVFILT_READ) {
+          this->disconnectClient(curr_event->ident);
+        } else if (curr_event->filter == EVFILT_READ) {
+          std::vector<ServerSocket>::const_iterator it =
+              this->server_socket.begin();
+          for (; it != this->server_socket.end(); it++) {
+            if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
+              break;
+            }
+          }
           if (it != this->server_socket.end()) {
             this->runReadEventServer(it);
           } else if (this->clients.find(curr_event->ident) !=
                      this->clients.end()) {
             this->runReadEventClient(curr_event);
-          } else {
+          } else if (curr_event->udata) {
             this->runReadEventFile(curr_event);
           }
-        } catch (std::exception &e) {
-          if (curr_event->udata) {  // 파일일 때
-            setErrorPage(e.what(),
-                         reinterpret_cast<Transaction *&>(curr_event->udata));
-            reinterpret_cast<Transaction *>(curr_event->udata)
-                ->setFlag(RESPONSE_DONE);
-            ft::safeFclose(const_cast<FILE *>(
-                (reinterpret_cast<Transaction *>(curr_event->udata))
-                    ->getFilePtr()));
-          } else {  // 클라이언트일 때
-            setErrorPage(e.what(), this->clients[curr_event->ident]);
-            this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
+        } else if (curr_event->filter == EVFILT_WRITE) {
+          if (curr_event->udata) {
+            this->runWriteEventFile(curr_event);
+          } else {
+            this->runWriteEventClient(curr_event);
           }
         }
-      } else if (curr_event->filter == EVFILT_WRITE) {
-        if (curr_event->udata) {
-          this->runWriteEventFile(curr_event);
-        } else {
-          this->runWriteEventClient(curr_event);
+      } catch (ServerUnhealthyException &e) {
+        std::map<int, Transaction *>::iterator it = this->clients.begin();
+        for (; it != this->clients.end(); it++) {
+          this->disconnectClient(it->first);
         }
+        this->clients.clear();
+        break;
+      } catch (std::exception &e) {
+        if (curr_event->udata) {  // 파일일 때
+          setErrorPage(e.what(),
+                       reinterpret_cast<Transaction *&>(curr_event->udata));
+          reinterpret_cast<Transaction *>(curr_event->udata)
+              ->setFlag(RESPONSE_DONE);
+          ft::safeClose(curr_event->ident);
+          this->setChangeList(this->change_list, curr_event->ident,
+                              curr_event->filter, EV_DELETE, 0, 0, NULL);
+        } else {  // 클라이언트일 때
+          setErrorPage(e.what(), this->clients[curr_event->ident]);
+          this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
+        }
+      }
+      if (this->disconnect == true) {
+        this->disconnect = false;
+        break;
       }
     }
   }
@@ -144,30 +187,37 @@ void Server::run() {
 void Server::runErrorServer(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runErrorServer\n" << DFT;
   // DEBUG
-  std::cout << RED << "error: " << strerror(curr_event->data) << std::endl
+  // FIXME
+  std::cout << RED << "error: " << strerror(curr_event->data)
+            << " errno: " << errno << std::endl
             << DFT;
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
     if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
       ft::printError("Error: Server: runErrorServer: server socket error");
-      throw Transaction::ErrorPageDefaultException();
+      throw Transaction::ErrorPage500Exception();
     }
   }
   if (it == this->server_socket.end()) {
     if (curr_event->udata) {
       ft::printError("Error: Server: runErrorServer: file error");
-      throw Transaction::ErrorPageDefaultException();
-    } else {
-      this->disconnectClient(curr_event->ident, this->clients);
+      throw Transaction::ErrorPage500Exception();
+    } else if (this->clients.find(curr_event->ident) != this->clients.end()) {
+      this->disconnectClient(curr_event->ident);
       ft::printError("Error: Server: runErrorServer: client socket error");
-      throw Transaction::ErrorPageDefaultException();
-    }
+      throw Transaction::ErrorPage500Exception();
+    }  // TODO else 귀신
   }
 }
 
 void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
   // std::cout << GRY << "Debug: Server: runReadEventServer\n" << DFT;
-  int client_socket = it->safeAccept();
+  int client_socket;
+  try {
+    client_socket = it->safeAccept();
+  } catch (std::exception &e) {
+    return;
+  }
   std::cout << GRN << "accept new client: " << client_socket << DFT
             << std::endl;
   fcntl(client_socket, F_SETFL, O_NONBLOCK);
@@ -175,7 +225,6 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
                       EV_ADD | EV_ENABLE, 0, 0, NULL);
   this->setChangeList(this->change_list, client_socket, EVFILT_WRITE,
                       EV_ADD | EV_ENABLE, 0, 0, NULL);
-  // TODO 같은 port 인 경우 처리해야 함 (server_name)
   std::vector<ServerConfig>::const_iterator it2 = this->server_config.begin();
   for (; it2 != this->server_config.end(); it2++) {
     if (it2->getListen() == it->getPort()) {
@@ -190,16 +239,13 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
 
 void Server::runReadEventClient(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runReadEventClient\n" << DFT;
-  if (this->clients[curr_event->ident]->executeRead() == -1) {
-    this->disconnectClient(curr_event->ident, this->clients);
-  }
+  this->clients[curr_event->ident]->executeRead();
 
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
-    if (file_fd == DIRECTORY) {  // directory
+    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) {  // directory
       return;
     } else if (file_fd == NONE_FD) {  // delete, put
-      std::cout << "fild_fd: " << file_fd << std::endl;
       this->clients[curr_event->ident]->executeMethod(0, 0);
       return;
     }
@@ -218,10 +264,6 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
 
 void Server::runReadEventFile(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runReadEventFile\n" << DFT;
-  // TODO file_fd를 vector로 관리할지는 추후 논의 필요.
-  // 여러개의 client가 동시에 혹은 진행중인 사이클 내에서 같은 file에 접근할
-  // 경우 어떤 문제가 생길까..?
-
   Transaction *curr_transaction =
       reinterpret_cast<Transaction *>(curr_event->udata);
 
@@ -262,27 +304,20 @@ void Server::runWriteEventFile(struct kevent *&curr_event) {
 
 void Server::runWriteEventClient(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runWriteEventClient\n" << DFT;
-  std::map<int, Transaction *>::iterator it = clients.find(curr_event->ident);
+  std::map<int, Transaction *>::const_iterator it =
+      clients.find(curr_event->ident);
   if (it != clients.end()) {
-    // TODO 응답시간이 너무 길어질 때의 처리도 필요하다.
-    // request의 body를 받는 부분에서 같이 처리해야함
     if (it->second->getFlag() == RESPONSE_DONE) {
       if (this->clients[curr_event->ident]->executeWrite() == -1) {
-        this->disconnectClient(curr_event->ident, this->clients);
+        this->disconnectClient(curr_event->ident);
       }
     } else if (it->second->getFlag() == END) {
-      this->disconnectClient(curr_event->ident, this->clients);
+      this->disconnectClient(curr_event->ident);
     }
-    // TODO 어떤 조건이었지??? => 아마 keepalive를 위해 사용되는 조건들
-    // if (write() == -1) {
-    //   this->disconnectClient(curr_event->ident, this->clients);
-    // } else {
-    //   this->clients[curr_event->ident]->getRequest().clearSetRawMsg();
-    // }
   }
 }
 
-//----- utils -----------------------------------------------------------------
+//----- utils ----------------------------------------------------------------
 void Server::setChangeList(std::vector<struct kevent> &change_list,
                            uintptr_t ident, int16_t filter, uint16_t flags,
                            uint32_t fflags, intptr_t data, void *udata) {
@@ -297,36 +332,54 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
   change_list.push_back(temp_event);
 }
 
-void Server::disconnectClient(int client_fd,
-                              std::map<int, Transaction *> &clients) {
+void Server::disconnectClient(int client_fd) {
   // std::cout << GRY << "Debug: Server: disconnectClient\n" << DFT;
-  this->setChangeList(this->change_list, client_fd, EVFILT_READ, EV_DELETE, 0,
-                      0, NULL);
-  delete clients[client_fd];
-  ft::safeClose(client_fd);
-  clients.erase(client_fd);
-  std::cout << RED << "client disconnected: " << client_fd << DFT << std::endl;
+  this->clearFileDescriptor(client_fd);
+
+  const std::map<std::string, std::string> &check_header =
+      this->clients[client_fd]->getRequest().getHeader();
+  std::map<std::string, std::string>::const_iterator check =
+      check_header.find("Connection");
+  if ((check != check_header.end()) && (check->second == "keep-alive")) {
+    std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
+    for (; it != this->server_config.end(); ++it) {
+      if (&(*it) == &this->clients[client_fd]->getServerConfig()) {
+        break;
+      }
+    }
+    delete this->clients[client_fd];
+    this->clients[client_fd] = new Transaction(client_fd, *it);
+  } else {
+    this->setChangeList(this->change_list, client_fd, EVFILT_READ, EV_DELETE, 0,
+                        0, NULL);
+    this->setChangeList(this->change_list, client_fd, EVFILT_WRITE, EV_DELETE,
+                        0, 0, NULL);
+    delete this->clients[client_fd];
+    ft::safeClose(client_fd);
+    this->clients.erase(client_fd);
+    this->disconnect = true;
+    std::cout << RED << "client disconnected: " << client_fd << DFT
+              << std::endl;
+  }
+  // std::endl; system("leaks webserv | grep leaked");
 }
 
-//----- safe_method ------------------------------------------------------------
+//----- safe_method -----------------------------------------------------------
 int Server::safeKevent(int nevents, const timespec *timeout) {
   // std::cout << GRY << "Debug: Server: safeKevent\n" << DFT;
   int new_events =
       kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
              this->event_list, nevents, timeout);
 
-  // int new_events = 0;
-
-  // if (!(new_events =
-  //           kevent(this->kq, &(this->change_list[0]), this->change_list.size(),
-  //                  this->event_list, nevents, timeout)))
-  //   this->disconnectClient(this->event_list->ident, this->clients);
-
   if (new_events == -1) {
     ft::printError("Error: Server: safeKevent");
-    throw Transaction::ErrorPageDefaultException();
+    throw Transaction::ErrorPage500Exception();
   } else if (new_events == 0) {
     std::cout << "new_event is 0\n";
   }
   return new_events;
+}
+
+const char *Server::ServerUnhealthyException::what() const throw() {
+  return "500";
 }

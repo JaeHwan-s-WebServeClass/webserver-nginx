@@ -1,4 +1,5 @@
 #include "../class/ServerConfig.hpp"
+#include "../class/Transaction.hpp"
 #include "../include/include.hpp"
 
 int isLocation(std::string &line, std::string *location_key) {

@@ -657,11 +657,44 @@ recv, send 함수 앞/뒤로 SIGPIPE를 ignore 처리 && transaction 하나의 c
 
 ### 결과
 
-[13:00 ~ 20:00] 깃허브 이슈 36-refactoring 분담 처리 중
-
-
+[13:00 ~ 22:30] 깃허브 이슈 36-refactoring 분담 처리 중
 
 <br>
 
 ***
+
+## [32일차] 2023.05.11 (목)
+
+### 진행 계획
+
+* try-catch & 서버가 종료되지 않게 하기
+* GET 이 빈파일 조회 및 응답 보내기
+* 클라이언트가 disconnected 할 때, file이 살아있는 경우 file fd를 체크해서 처리해주기
+
+### 결과
+
+[18:00 ~ :] 마무리 작업
+
+<br>
+
+***
+
+## [33일차] 2023.05.12 (금)
+
+### 진행 계획
+
+* config file
+* eval-HTTP response status code
+* use max_body_size & max_head_size in conf
+* close file_fd after check it is not client
+* use max_body_size & max_head_size in conf
+* close file_fd after check it is not client
+  
+### 결과
+
+[13:00 ~ 18:00] 마무리 작업
+
+<br>
+
+## 팀 나눠서 동료 평가 진행하기~
 

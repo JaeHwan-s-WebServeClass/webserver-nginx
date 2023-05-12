@@ -3,6 +3,7 @@
 //---- OCCF -------------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
     : socket_fd(socket_fd),
+      file_fd(-1),
       flag(START),
       response(this->flag),
       request(this->flag),
@@ -17,12 +18,12 @@ Transaction::Transaction(const Transaction &ref)
 }
 Transaction &Transaction::operator=(const Transaction &ref) {
   this->socket_fd = ref.socket_fd;
+  this->file_fd = ref.file_fd;
   this->flag = ref.flag;
   this->response = ref.response;
   this->request = ref.request;
   this->location = ref.location;
   this->resource = ref.resource;
-  this->file_ptr = ref.file_ptr;
   this->cgi_pid = ref.cgi_pid;
   return *this;
 }
@@ -35,7 +36,7 @@ const ServerConfig &Transaction::getServerConfig() const {
   return this->server_config;
 }
 const t_step &Transaction::getFlag() const { return this->flag; }
-const FILE *Transaction::getFilePtr() const { return this->file_ptr; }
+const int &Transaction::getFileDescriptor() const { return this->file_fd; }
 
 //---- setter ------------------------------------------------------------------
 void Transaction::setFlag(t_step flag) { this->flag = flag; }
@@ -61,6 +62,9 @@ void Transaction::checkResource() {
   }
   request_location = this->request.getUrl().substr(0, pos);
   request_filename = this->request.getUrl().substr(pos);
+  if ((request_filename == "/.") || (request_filename == "/..")) {
+    throw ErrorPage403Exception();
+  }
   // STEP 2 . request_loc과 conf_loc을 비교해서 실제 local의 resource 구하기
   std::map<std::string, ServerConfig::t_location>::const_iterator it;
   if ((it = this->server_config.getLocation().find(request_location)) !=
@@ -73,14 +77,15 @@ void Transaction::checkResource() {
     this->resource +=
         "." + server_config.getRoot() + loc_root + request_filename;
   } else {
-    throw ErrorPage500Exception();
+    throw ErrorPage404Exception();
   }
 }
 
 int Transaction::checkDirectory() {
   // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
   if (this->request.getMethod() != "GET") {
-    throw ErrorPage500Exception();
+    this->response.setHeader("Allow", "GET");
+    throw ErrorPage405Exception();
   }
 
   std::vector<std::string>::const_iterator it = this->location.index.begin();
@@ -94,9 +99,9 @@ int Transaction::checkDirectory() {
         this->setFlag(FILE_READ);
         return this->executeCGI();
       } else {
-        this->fd = ft::safeOpen(this->resource, O_RDONLY, 0644);
+        this->file_fd = ft::safeOpen(this->resource, O_RDONLY, 0644);
         this->setFlag(FILE_READ);
-        return this->fd;
+        return this->file_fd;
       }
     }
   }
@@ -142,22 +147,27 @@ int Transaction::checkFile() {
     this->setFlag(FILE_READ);
     return this->executeCGI();
   } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
-    this->fd = ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    this->file_fd =
+        ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     this->setFlag(FILE_WRITE);
   } else if (this->request.getMethod() == "PUT") {
     if (access(this->resource.c_str(), F_OK) == 0) {
-      std::cout << "status: " << this->response.getStatusCode() << std::endl;
       return NONE_FD;
     } else {
-      this->fd =
+      this->file_fd =
           ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
       this->setFlag(FILE_WRITE);
     }
   } else {  // 3. 평범한 get
-    this->fd = ft::safeOpen(this->resource, O_RDWR, 0644);
+    if (ft::isFileEmpty(this->resource.c_str())) {
+      this->response.setStatus("200");
+      this->response.setResponseMsg();
+      return EMPTY_FILE;
+    }
+    this->file_fd = ft::safeOpen(this->resource, O_RDWR, 0644);
     this->setFlag(FILE_READ);
   }
-  return (this->fd);
+  return (this->file_fd);
 }
 
 void Transaction::checkAllowedMethod() {
@@ -171,6 +181,12 @@ void Transaction::checkAllowedMethod() {
       (this->request.getMethod() == "PUT" &&
        this->location.http_method & PUT)) {
     return;
+  }
+  if ((this->request.getMethod() == "GET") ||
+      (this->request.getMethod() == "POST") ||
+      (this->request.getMethod() == "DELETE") ||
+      (this->request.getMethod() == "PUT")) {
+    throw ErrorPage405Exception();
   }
   throw ErrorPage501Exception();
 }
@@ -192,16 +208,13 @@ void Transaction::checkServerName() {
 }
 
 //---- executor ----------------------------------------------------------------
-int Transaction::executeRead(void) {
+void Transaction::executeRead(void) {
   // std::cout << GRY << "Debug: Transaction: executeRead\n" << DFT;
 
   char buf[BUFFER_SIZE + 1];
   int read_len = ft::safeRecv(this->socket_fd, buf, BUFFER_SIZE);
   int head_rest_len = 0;
 
-  if (read_len == -1) {
-    return -1;
-  }
   if (this->flag == START) {
     head_rest_len = this->executeReadHead(buf, read_len);
     this->checkServerName();
@@ -223,9 +236,8 @@ int Transaction::executeRead(void) {
 
   // DEBUG
   if (this->flag == REQUEST_DONE) {
-    std::cout << this->request << std::endl;
+    // std::cout << this->request << std::endl;
   }
-  return 0;
 }
 
 int Transaction::executeReadHead(char *buf, int read_len) {
@@ -240,13 +252,9 @@ int Transaction::executeReadHead(char *buf, int read_len) {
       this->flag = REQUEST_HEAD;
 
       // DEBUG: checking raw head
-      // std::cout << GRY << "------------------ raw head
-      // ------------------"
-      //           << DFT << std::endl;
-      // std::cout << GRY << this->request.getRawHead() << DFT <<
-      // std::endl; std::cout << GRY <<
-      // "----------------------------------------------"
-      //           << DFT << std::endl;
+      // std::cout << ft::printHelper("------------- raw head -------------");
+      // std::cout << GRY << this->request.getRawHead() << DFT;
+      // std::cout << ft::printHelper("------------------------------------");
 
       this->request.parserHead();
       this->request.setRawHead(line + "\n");
@@ -254,15 +262,14 @@ int Transaction::executeReadHead(char *buf, int read_len) {
     } else if (this->flag == START) {
       this->request.setRawHead(line + "\n");
       if (read_stream.eof()) {
-        // 이런 상황들에 대해서는 default로 error를 던지고 default error page를
-        // 보여주자 아니면 외부 사이트로 리다이렉트 시켜버리기? => 공룡게임..?
         ft::printError(
             "Error: Transaction: executeReadHead: over max header size");
         throw Transaction::ErrorPageDefaultException();
       }
     }
   }
-  if (this->request.getRawHead().length() > MAX_HEAD_SIZE) {
+  if (this->request.getRawHead().length() >
+      this->server_config.getClientMaxHeadSize()) {
     ft::printError("Error: Transaction: executeReadHead: over max header size");
     throw Transaction::ErrorPageDefaultException();
   }
@@ -296,7 +303,8 @@ void Transaction::executeReadEntity(char *buf, int read_len,
         "Error: Transaction: executeReadEntity: invalid request header");
     throw Transaction::ErrorPageDefaultException();
   }
-  if (this->request.getEntitySize() > MAX_BODY_SIZE) {
+  if (this->request.getEntitySize() >
+      this->server_config.getClientMaxBodySize()) {
     ft::printError("Error: Transaction: executeReadEntity: over max body size");
     throw Transaction::ErrorPageDefaultException();
   }
@@ -361,12 +369,13 @@ void Transaction::httpGet(int data_size, int fd) {
       ft::safeClose(fd);
     }
   } else {  // 2. 그냥 get
-    char buf[MAX_BODY_SIZE + 1];
-    size_t read_len = ft::safeRead(this->fd, buf, MAX_BODY_SIZE);
+    char buf[this->server_config.getClientMaxBodySize() + 1];
+    size_t read_len = ft::safeRead(this->file_fd, buf,
+                                   this->server_config.getClientMaxBodySize());
     buf[read_len] = '\0';
     this->response.setEntity(buf, read_len);
     if (static_cast<int>(read_len) >= data_size) {
-      ft::safeClose(this->fd);
+      ft::safeClose(this->file_fd);
       this->setFlag(FILE_DONE);
       this->response.setStatus("200");
       this->response.setHeader("Content-Type", "text/html");
@@ -374,11 +383,11 @@ void Transaction::httpGet(int data_size, int fd) {
   }
 }
 
-// FIXME 빈파일을 지우려할 때, 이벤트가 발생 안하므로 무한루프에 걸림
-// stat으로 파일 사이즈를 체크
-// GET을 이벤트 기반으로 동작시키지 않을수도....
 void Transaction::httpDelete() {
-  // std::cout << GRY << "Debug: Transaction: httpDelete\n" << DFT;
+  // std::cout < GRY << "Debug: Transaction: httpDelete\n" << DFT;
+  if (ft::isDirectory(this->resource.c_str())) {
+    throw ErrorPage403Exception();
+  }
   if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
     this->setFlag(FILE_DONE);
     this->response.setStatus("200");
@@ -392,19 +401,27 @@ void Transaction::httpDelete() {
 void Transaction::httpPost(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
   if (this->flag == FILE_READ) {  // cgi pipe read
-    char buf[BUFFER_SIZE + 1];
-    int read_len;
-    read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
-    buf[read_len] = '\0';
-    this->request.setEntityCgi(buf, read_len);
-    if (read_len == data_size) {
-      this->request.setEntityClear();
-      this->request.setEntity(this->request.getEntityCgi());
-      this->setFlag(FILE_CGI);
+    int wait_pid, status;
+    wait_pid = waitpid(this->cgi_pid, &status, WNOHANG);
+    if (wait_pid == this->cgi_pid || this->request.getEntityCgi().size()) {
+      char buf[BUFFER_SIZE];
+      int read_len;
+      read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
+      this->request.setEntityCgi(buf, read_len);
+      if (read_len == data_size) {
+        this->request.setEntityClear();
+        this->request.setEntity(this->request.getEntityCgi());
+        this->setFlag(FILE_CGI);
+        ft::safeClose(fd);
+      }
+    } else if (wait_pid && (wait_pid == -1 || WIFSIGNALED(status) ||
+                            (WIFEXITED(status) && WEXITSTATUS(status)))) {
       ft::safeClose(fd);
+      throw ErrorPage500Exception();
     }
   } else if (this->flag == FILE_WRITE) {  // upload file
-    ft::safeWrite(this->fd, const_cast<char *>(&this->request.getEntity()[0]),
+    ft::safeWrite(this->file_fd,
+                  const_cast<char *>(&this->request.getEntity()[0]),
                   this->request.getEntitySize());
     ft::safeClose(fd);
     this->setFlag(FILE_DONE);
@@ -417,21 +434,18 @@ void Transaction::httpPost(int data_size, int fd) {
 void Transaction::httpPut(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPut\n" << DFT;
   if (fd == 0 && data_size == 0) {
-    this->response.setStatus("409");
     this->response.setHeader("Content-Type", "text/plain");
+    // FIXME string으로 넘겨줄게 아니라 config에서 받아오던가 해야함
     this->response.setHeader("Allow", "GET, POST, DELETE");
-    this->response.setEntity("409 Conflict: The resource already exists", 45);
-    this->response.setResponseMsg();
-    return;
+    throw ErrorPage409Exception();
   }
-
   ft::safeWrite(fd, const_cast<char *>(&this->request.getEntity()[0]),
                 this->request.getEntitySize());
   ft::safeClose(fd);
   this->setFlag(FILE_DONE);
   this->response.setStatus("201");
   this->response.setHeader("Content-Type", "text/plain");
-  this->response.setEntity("201 Created", 12);
+  this->response.setEntity("201 Created", 11);
 }
 
 //---- cgi ---------------------------------------------------------------------
@@ -455,12 +469,9 @@ int Transaction::executeCGI(void) {
   this->cgi_pid = ft::safeFork();
   if (this->cgi_pid == 0) {
     ft::safeClose(fd[0]);
-    // TODO safe func
-    dup2(fd[1], STDOUT_FILENO);
+    ft::safeDup2(fd[1], STDOUT_FILENO);
     ft::safeClose(fd[1]);
-    if (execve((this->location.cgi_exec).c_str(), (char **)args, NULL) == -1) {
-      exit(1);
-    }
+    ft::safeExecve((this->location.cgi_exec).c_str(), (char **)args, NULL);
   } else {
     ft::safeClose(fd[1]);
   }
@@ -470,8 +481,6 @@ int Transaction::executeCGI(void) {
 
 //---- redirection ------------------------------------------------------------
 void Transaction::executeRedirect() {
-  // <head><script> window.location.href =
-  //     'moonscode.com/login' < / script > </ head>
   std::string entity = "<html><head><script>window.location.href = \'" +
                        this->server_config.getRedirect() + "\'</script></html>";
   this->response.setStatus("301");
@@ -486,6 +495,12 @@ const char *Transaction::ErrorPage403Exception::what() const throw() {
 }
 const char *Transaction::ErrorPage404Exception::what() const throw() {
   return "404";
+}
+const char *Transaction::ErrorPage405Exception::what() const throw() {
+  return "405";
+}
+const char *Transaction::ErrorPage409Exception::what() const throw() {
+  return "409";
 }
 const char *Transaction::ErrorPage500Exception::what() const throw() {
   return "500";

@@ -22,6 +22,7 @@ CLASS_NAME 	=	Server.cpp \
 UTILS_DIR 	:=	./srcs/utils/
 UTILS_NAME 	=	split.cpp \
 				print.cpp \
+				file.cpp \
 				convert.cpp \
 				trim.cpp \
 				safe.cpp \
@@ -36,8 +37,8 @@ OBJ 		=	$(SRC:.cpp=.o)
 
 INCLUDE		:=	-I./srcs/include/
 CC 			:=	c++
-CPPFLAGS 	:=	-Wall -Wextra -Werror -std=c++98
-# CPPFLAGS 	:=	-fsanitize=address -g3
+# CPPFLAGS 	:=	-Wall -Wextra -Werror -std=c++98 -o3
+CPPFLAGS 	:=	-fsanitize=address -g3 -o3
 
 all : $(NAME)
 
