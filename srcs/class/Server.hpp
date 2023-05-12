@@ -32,6 +32,8 @@ class Server {
   // error_status, 시작줄 + 헤더 + 엔티
   std::map<std::string, std::string> error_page;
 
+  bool disconnect;
+
   Server();
 
  public:
@@ -72,8 +74,12 @@ class Server {
   /// @return
   void disconnectClient(int);
 
+  void clearFileDescriptor(int client_fd);
+
   // ---- safe_method -------------------------
   int safeKevent(int nevents, const timespec *timeout);
+
+  // ---- exception ---------------------------
   class ServerUnhealthyException : public std::exception {
     virtual const char *what(void) const throw();
   };

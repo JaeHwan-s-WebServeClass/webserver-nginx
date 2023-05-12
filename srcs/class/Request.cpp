@@ -88,10 +88,9 @@ void Request::addContentLengthEntity(char *buf, int read_len) {
     this->setFlag(REQUEST_ENTITY);
   } else if (this->getEntitySize() > this->getContentLength()) {
     ft::printError("Error: Request: Request Entity Over Content-Length");
+    // TODO 400
     throw Transaction::ErrorPageDefaultException();
   }
-  // FIXME 아래 코드대신, kevent 에서 timeout 처리하기
-  // else if (this->request.getEntitySize < getContentLength())
 }
 
 void Request::addChunkedEntity(char *buf, size_t read_len) {
@@ -110,6 +109,7 @@ void Request::addChunkedEntity(char *buf, size_t read_len) {
           return;
         } else if (chunk_size < 0) {
           ft::printError("Error: Request: Chunk size overflow");
+          // TODO 400
           throw Transaction::ErrorPageDefaultException();
         }
         chunk_size += 2;

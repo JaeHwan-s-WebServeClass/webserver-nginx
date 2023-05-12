@@ -33,8 +33,7 @@ const int &ServerSocket::getServerSocket() const { return this->server_socket; }
 void ServerSocket::setNonBlock(int socket_fd) {
   // std::cout << GRY << "Debug: ServerSocket::setNonBlock\n" << DFT;
   if (fcntl(socket_fd, F_SETFL, O_NONBLOCK) == -1) {
-    ft::printError("Error: ServerSocket: setNonBlock: fcntl()");
-    throw Transaction::ErrorPageDefaultException();
+    throw std::string("Error: ServerSocket: setNonBlock: fcntl()");
   }
 }
 
@@ -42,8 +41,7 @@ void ServerSocket::setNonBlock(int socket_fd) {
 void ServerSocket::safeSocket(int domain, int type, int protocol) {
   // std::cout << GRY << "Debug: ServerSocket::safeSocket\n" << DFT;
   if ((this->server_socket = socket(domain, type, protocol)) == -1) {
-    ft::printError("Error: ServerSocket: safeSocket");
-    throw Transaction::ErrorPageDefaultException();
+    throw std::string("Error: ServerSocket: safeSocket");
   }
 }
 
@@ -54,16 +52,14 @@ void ServerSocket::safeBind(void) {
            sizeof(this->server_addr)) == -1) {
     // DEBUG
     // std::cout << "socket fd : " << this->port << std::endl;
-    ft::printError("Error: ServerSocket: safeBind");
-    throw Transaction::ErrorPageDefaultException();
+    throw std::string("Error: ServerSocket: safeBind");
   }
 }
 
 void ServerSocket::safeListen(int backlog) {
   // std::cout << GRY << "Debug: ServerSocket::safeListen\n" << DFT;
   if (listen(this->server_socket, backlog) == -1) {
-    ft::printError("Error: ServerSocket: safeListen");
-    throw Transaction::ErrorPageDefaultException();
+    throw std::string("Error: ServerSocket: safeListen");
   }
 }
 

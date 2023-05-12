@@ -62,7 +62,7 @@ void Transaction::checkResource() {
   request_location = this->request.getUrl().substr(0, pos);
   request_filename = this->request.getUrl().substr(pos);
   if ((request_filename == "/.") || (request_filename == "/..")) {
-    throw ErrorPageDefaultException();
+    throw ErrorPage403Exception();
   }
   // STEP 2 . request_loc과 conf_loc을 비교해서 실제 local의 resource 구하기
   std::map<std::string, ServerConfig::t_location>::const_iterator it;
@@ -76,14 +76,15 @@ void Transaction::checkResource() {
     this->resource +=
         "." + server_config.getRoot() + loc_root + request_filename;
   } else {
-    throw ErrorPage500Exception();
+    throw ErrorPage404Exception();
   }
 }
 
 int Transaction::checkDirectory() {
   // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
   if (this->request.getMethod() != "GET") {
-    throw ErrorPage500Exception();
+    this->response.setHeader("Allow", "GET");
+    throw ErrorPage405Exception();
   }
 
   std::vector<std::string>::const_iterator it = this->location.index.begin();
@@ -179,6 +180,12 @@ void Transaction::checkAllowedMethod() {
        this->location.http_method & PUT)) {
     return;
   }
+  if ((this->request.getMethod() == "GET") ||
+      (this->request.getMethod() == "POST") ||
+      (this->request.getMethod() == "DELETE") ||
+      (this->request.getMethod() == "PUT")) {
+    throw ErrorPage405Exception();
+  }
   throw ErrorPage501Exception();
 }
 
@@ -243,13 +250,9 @@ int Transaction::executeReadHead(char *buf, int read_len) {
       this->flag = REQUEST_HEAD;
 
       // DEBUG: checking raw head
-      // std::cout << GRY << "------------------ raw head
-      // ------------------"
-      //           << DFT << std::endl;
-      // std::cout << GRY << this->request.getRawHead() << DFT <<
-      // std::endl; std::cout << GRY <<
-      // "----------------------------------------------"
-      //           << DFT << std::endl;
+      // std::cout << ft::printHelper("------------- raw head -------------");
+      // std::cout << GRY << this->request.getRawHead() << DFT;
+      // std::cout << ft::printHelper("------------------------------------");
 
       this->request.parserHead();
       this->request.setRawHead(line + "\n");
@@ -257,8 +260,6 @@ int Transaction::executeReadHead(char *buf, int read_len) {
     } else if (this->flag == START) {
       this->request.setRawHead(line + "\n");
       if (read_stream.eof()) {
-        // 이런 상황들에 대해서는 default로 error를 던지고 default error page를
-        // 보여주자 아니면 외부 사이트로 리다이렉트 시켜버리기? => 공룡게임..?
         ft::printError(
             "Error: Transaction: executeReadHead: over max header size");
         throw Transaction::ErrorPageDefaultException();
@@ -427,12 +428,10 @@ void Transaction::httpPost(int data_size, int fd) {
 void Transaction::httpPut(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPut\n" << DFT;
   if (fd == 0 && data_size == 0) {
-    this->response.setStatus("409");
     this->response.setHeader("Content-Type", "text/plain");
+    // FIXME string으로 넘겨줄게 아니라 config에서 받아오던가 해야함
     this->response.setHeader("Allow", "GET, POST, DELETE");
-    this->response.setEntity("409 Conflict: The resource already exists", 41);
-    this->response.setResponseMsg();
-    return;
+    throw ErrorPage409Exception();
   }
   ft::safeWrite(fd, const_cast<char *>(&this->request.getEntity()[0]),
                 this->request.getEntitySize());
@@ -490,6 +489,12 @@ const char *Transaction::ErrorPage403Exception::what() const throw() {
 }
 const char *Transaction::ErrorPage404Exception::what() const throw() {
   return "404";
+}
+const char *Transaction::ErrorPage405Exception::what() const throw() {
+  return "405";
+}
+const char *Transaction::ErrorPage409Exception::what() const throw() {
+  return "409";
 }
 const char *Transaction::ErrorPage500Exception::what() const throw() {
   return "500";

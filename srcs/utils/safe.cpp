@@ -111,7 +111,7 @@ ssize_t ft::safeWrite(int fd, char *buf, int size) {
 // //----- open/close
 // ------------------------------------------------------------ size_t
 size_t ft::safeOpen(std::string resource, int flag, mode_t mode) {
-  std::cout << GRY << "Debug: safeOpen\n" << DFT;
+  // std::cout << GRY << "Debug: safeOpen\n" << DFT;
   int fd;
 
   if ((fd = open(resource.c_str(), flag, mode)) == -1) {
@@ -122,6 +122,7 @@ size_t ft::safeOpen(std::string resource, int flag, mode_t mode) {
 }
 
 int ft::safeClose(int fd) {
+  // std::cout << GRY << "Debug: safeClose\n" << DFT;
   if (ft::isFileDescriptorValid(fd)) {
     if (close(fd) == -1) {
       std::cout << RED << "Error: ft: close() error\n" << DFT;

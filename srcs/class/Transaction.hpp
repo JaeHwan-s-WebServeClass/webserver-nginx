@@ -96,6 +96,12 @@ class Transaction {
   class ErrorPage404Exception : public std::exception {
     virtual const char *what(void) const throw();
   };
+  class ErrorPage405Exception : public std::exception {
+    virtual const char *what(void) const throw();
+  };
+  class ErrorPage409Exception : public std::exception {
+    virtual const char *what(void) const throw();
+  };
   class ErrorPage500Exception : public std::exception {
     virtual const char *what(void) const throw();
   };

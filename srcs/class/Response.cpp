@@ -2,7 +2,10 @@
 
 //---- OCCF -------------------------------------------------------------------
 Response::Response(t_step &flag)
-    : flag(flag), response_msg(0), http_version("HTTP/1.1"), status_code(""),
+    : flag(flag),
+      response_msg(0),
+      http_version("HTTP/1.1"),
+      status_code(""),
       status_msg("") {
   this->entity.reserve(512);
 }
@@ -60,6 +63,9 @@ void Response::setStatus(std::string status_code) {
   } else if (status_code == "404") {
     this->status_code = "404";
     this->status_msg = "Not Found :(";
+  } else if (status_code == "405") {
+    this->status_code = "405";
+    this->status_msg = "Method Not Allowed";
   } else if (status_code == "409") {
     this->status_code = "409";
     this->status_msg = "Conflict";

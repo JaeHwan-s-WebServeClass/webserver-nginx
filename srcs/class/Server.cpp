@@ -4,15 +4,15 @@ extern int g_server_status;
 
 //---- OCCF -------------------------------------------------------------------
 Server::Server(std::vector<ServerConfig> &server_config)
-    : server_config(server_config) {
+    : server_config(server_config), disconnect(false) {
   std::vector<ServerConfig>::const_iterator it = this->server_config.begin();
   for (; it != this->server_config.end(); it++) {
     ServerSocket tmp_socket(AF_INET, (*it).getListen());
     this->server_socket.push_back(tmp_socket);
   }
   if ((this->kq = kqueue()) == -1) {
-    ft::printError("Error: Server: constructor: kqueue()");
-    throw Transaction::ErrorPageDefaultException();
+    g_server_status = UNHEALTHY;
+    throw std::string("Error: Server: constructor: kqueue()");
   }
 }
 Server::Server(const Server &ref) : server_config(ref.server_config) {
@@ -75,7 +75,23 @@ void Server::setErrorPage(std::string error_code, Transaction *&transaction) {
                                          this->error_page[error_code]);
 }
 
-//---- main loop --------------------------------------------------------------
+void Server::clearFileDescriptor(int client_fd) {
+  if (ft::isFileDescriptorValid(
+          this->clients[client_fd]->getFileDescriptor())) {
+    int file_fd = this->clients[client_fd]->getFileDescriptor();
+    ft::safeClose(file_fd);
+    if (this->clients[client_fd]->getFlag() == FILE_WRITE) {
+      this->setChangeList(this->change_list, file_fd, EVFILT_WRITE, EV_DELETE,
+                          0, 0, NULL);
+    } else {
+      this->setChangeList(this->change_list, file_fd, EVFILT_READ, EV_DELETE, 0,
+                          0, NULL);
+    }
+  }
+}
+
+//---- main loop
+//--------------------------------------------------------------
 void Server::run() {
   // std::cout << GRY << "Debug: Server: run\n" << DFT;
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
@@ -88,7 +104,17 @@ void Server::run() {
   int new_events;
   struct kevent *curr_event;
   while (1) {
-    new_events = this->safeKevent(MAX_EVENT_SIZE, NULL);
+    try {
+      new_events = this->safeKevent(MAX_EVENT_SIZE, NULL);
+    } catch (std::exception &e) {
+      std::map<int, Transaction *>::iterator it = this->clients.begin();
+      for (; it != this->clients.end(); ++it) {
+        this->clearFileDescriptor(it->first);
+        setErrorPage(e.what(), it->second);
+        it->second->setFlag(RESPONSE_DONE);
+      }
+    }
+
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
@@ -133,8 +159,9 @@ void Server::run() {
           this->disconnectClient(it->first);
         }
         this->clients.clear();
+        break;
       } catch (std::exception &e) {
-        if (curr_event->udata) { // 파일일 때
+        if (curr_event->udata) {  // 파일일 때
           setErrorPage(e.what(),
                        reinterpret_cast<Transaction *&>(curr_event->udata));
           reinterpret_cast<Transaction *>(curr_event->udata)
@@ -142,10 +169,14 @@ void Server::run() {
           ft::safeClose(curr_event->ident);
           this->setChangeList(this->change_list, curr_event->ident,
                               curr_event->filter, EV_DELETE, 0, 0, NULL);
-        } else { // 클라이언트일 때
+        } else {  // 클라이언트일 때
           setErrorPage(e.what(), this->clients[curr_event->ident]);
           this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
         }
+      }
+      if (this->disconnect == true) {
+        this->disconnect = false;
+        break;
       }
     }
   }
@@ -154,30 +185,37 @@ void Server::run() {
 void Server::runErrorServer(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runErrorServer\n" << DFT;
   // DEBUG
-  std::cout << RED << "error: " << strerror(curr_event->data) << std::endl
+  // FIXME
+  std::cout << RED << "error: " << strerror(curr_event->data)
+            << " errno: " << errno << std::endl
             << DFT;
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
     if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
       ft::printError("Error: Server: runErrorServer: server socket error");
-      throw Transaction::ErrorPageDefaultException();
+      throw Transaction::ErrorPage500Exception();
     }
   }
   if (it == this->server_socket.end()) {
     if (curr_event->udata) {
       ft::printError("Error: Server: runErrorServer: file error");
-      throw Transaction::ErrorPageDefaultException();
+      throw Transaction::ErrorPage500Exception();
     } else if (this->clients.find(curr_event->ident) != this->clients.end()) {
       this->disconnectClient(curr_event->ident);
       ft::printError("Error: Server: runErrorServer: client socket error");
-      throw Transaction::ErrorPageDefaultException();
-    }  // else는 어디로...
+      throw Transaction::ErrorPage500Exception();
+    }  // TODO else는 어디로...
   }
 }
 
 void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
   // std::cout << GRY << "Debug: Server: runReadEventServer\n" << DFT;
-  int client_socket = it->safeAccept();
+  int client_socket;
+  try {
+    client_socket = it->safeAccept();
+  } catch (std::exception &e) {
+    return;
+  }
   std::cout << GRN << "accept new client: " << client_socket << DFT
             << std::endl;
   fcntl(client_socket, F_SETFL, O_NONBLOCK);
@@ -203,9 +241,9 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
 
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
-    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) { // directory
+    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) {  // directory
       return;
-    } else if (file_fd == NONE_FD) { // delete, put
+    } else if (file_fd == NONE_FD) {  // delete, put
       this->clients[curr_event->ident]->executeMethod(0, 0);
       return;
     }
@@ -229,6 +267,7 @@ void Server::runReadEventFile(struct kevent *&curr_event) {
   // 경우 어떤 문제가 생길까..?
   Transaction *curr_transaction =
       reinterpret_cast<Transaction *>(curr_event->udata);
+
   if (curr_transaction->getFlag() == FILE_READ) {
     curr_transaction->executeMethod(static_cast<int>(curr_event->data),
                                     curr_event->ident);
@@ -298,18 +337,7 @@ void Server::setChangeList(std::vector<struct kevent> &change_list,
 
 void Server::disconnectClient(int client_fd) {
   // std::cout << GRY << "Debug: Server: disconnectClient\n" << DFT;
-  if (ft::isFileDescriptorValid(
-          this->clients[client_fd]->getFileDescriptor())) {
-    int file_fd = this->clients[client_fd]->getFileDescriptor();
-    ft::safeClose(file_fd);
-    if (this->clients[client_fd]->getFlag() == FILE_WRITE) {
-      this->setChangeList(this->change_list, file_fd, EVFILT_WRITE, EV_DELETE,
-                          0, 0, NULL);
-    } else {
-      this->setChangeList(this->change_list, file_fd, EVFILT_READ, EV_DELETE, 0,
-                          0, NULL);
-    }
-  }
+  this->clearFileDescriptor(client_fd);
 
   const std::map<std::string, std::string> &check_header =
       this->clients[client_fd]->getRequest().getHeader();
@@ -332,22 +360,10 @@ void Server::disconnectClient(int client_fd) {
     delete this->clients[client_fd];
     ft::safeClose(client_fd);
     this->clients.erase(client_fd);
+    this->disconnect = true;
     std::cout << RED << "client disconnected: " << client_fd << DFT
               << std::endl;
   }
-
-  // this->setChangeList(this->change_list, client_fd, EVFILT_READ, EV_DELETE,
-  // 0,
-  //                     0, NULL);
-  // this->setChangeList(this->change_list, client_fd, EVFILT_WRITE, EV_DELETE,
-  // 0,
-  //                     0, NULL);
-
-  // delete this->clients[client_fd];
-  // ft::safeClose(client_fd);
-  // this->clients.erase(client_fd);
-
-  // std::cout << RED << "client disconnected: " << client_fd << DFT <<
   // std::endl; system("leaks webserv | grep leaked");
 }
 
@@ -360,7 +376,7 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
 
   if (new_events == -1) {
     ft::printError("Error: Server: safeKevent");
-    throw Transaction::ErrorPageDefaultException();
+    throw Transaction::ErrorPage500Exception();
   } else if (new_events == 0) {
     std::cout << "new_event is 0\n";
   }
