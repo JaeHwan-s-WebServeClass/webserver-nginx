@@ -76,10 +76,12 @@ void Server::setErrorPage(std::string error_code, Transaction *&transaction) {
 }
 
 void Server::clearFileDescriptor(int client_fd) {
-  if (ft::isFileDescriptorValid(
-          this->clients[client_fd]->getFileDescriptor())) {
-    int file_fd = this->clients[client_fd]->getFileDescriptor();
-    ft::safeClose(file_fd);
+  int file_fd = this->clients[client_fd]->getFileDescriptor();
+
+  if (ft::isFileDescriptorValid(file_fd)) {
+    if (this->clients.find(file_fd) == this->clients.end()) {
+      ft::safeClose(file_fd);
+    }
     if (this->clients[client_fd]->getFlag() == FILE_WRITE) {
       this->setChangeList(this->change_list, file_fd, EVFILT_WRITE, EV_DELETE,
                           0, 0, NULL);

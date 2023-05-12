@@ -22,7 +22,7 @@
 class Transaction {
  private:
   int socket_fd;  // client 랑 연결된 socket fd
-  int fd;
+  int file_fd;
 
   t_step flag;
 

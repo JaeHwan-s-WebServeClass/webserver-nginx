@@ -3,7 +3,7 @@
 //---- OCCF -------------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
     : socket_fd(socket_fd),
-      fd(-1),
+      file_fd(-1),
       flag(START),
       response(this->flag),
       request(this->flag),
@@ -18,6 +18,7 @@ Transaction::Transaction(const Transaction &ref)
 }
 Transaction &Transaction::operator=(const Transaction &ref) {
   this->socket_fd = ref.socket_fd;
+  this->file_fd = ref.file_fd;
   this->flag = ref.flag;
   this->response = ref.response;
   this->request = ref.request;
@@ -35,7 +36,7 @@ const ServerConfig &Transaction::getServerConfig() const {
   return this->server_config;
 }
 const t_step &Transaction::getFlag() const { return this->flag; }
-const int &Transaction::getFileDescriptor() const { return this->fd; }
+const int &Transaction::getFileDescriptor() const { return this->file_fd; }
 
 //---- setter ------------------------------------------------------------------
 void Transaction::setFlag(t_step flag) { this->flag = flag; }
@@ -98,9 +99,9 @@ int Transaction::checkDirectory() {
         this->setFlag(FILE_READ);
         return this->executeCGI();
       } else {
-        this->fd = ft::safeOpen(this->resource, O_RDONLY, 0644);
+        this->file_fd = ft::safeOpen(this->resource, O_RDONLY, 0644);
         this->setFlag(FILE_READ);
-        return this->fd;
+        return this->file_fd;
       }
     }
   }
@@ -146,13 +147,14 @@ int Transaction::checkFile() {
     this->setFlag(FILE_READ);
     return this->executeCGI();
   } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
-    this->fd = ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    this->file_fd =
+        ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     this->setFlag(FILE_WRITE);
   } else if (this->request.getMethod() == "PUT") {
     if (access(this->resource.c_str(), F_OK) == 0) {
       return NONE_FD;
     } else {
-      this->fd =
+      this->file_fd =
           ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
       this->setFlag(FILE_WRITE);
     }
@@ -162,10 +164,10 @@ int Transaction::checkFile() {
       this->response.setResponseMsg();
       return EMPTY_FILE;
     }
-    this->fd = ft::safeOpen(this->resource, O_RDWR, 0644);
+    this->file_fd = ft::safeOpen(this->resource, O_RDWR, 0644);
     this->setFlag(FILE_READ);
   }
-  return (this->fd);
+  return (this->file_fd);
 }
 
 void Transaction::checkAllowedMethod() {
@@ -368,12 +370,12 @@ void Transaction::httpGet(int data_size, int fd) {
     }
   } else {  // 2. 그냥 get
     char buf[this->server_config.getClientMaxBodySize() + 1];
-    size_t read_len =
-        ft::safeRead(this->fd, buf, this->server_config.getClientMaxBodySize());
+    size_t read_len = ft::safeRead(this->file_fd, buf,
+                                   this->server_config.getClientMaxBodySize());
     buf[read_len] = '\0';
     this->response.setEntity(buf, read_len);
     if (static_cast<int>(read_len) >= data_size) {
-      ft::safeClose(this->fd);
+      ft::safeClose(this->file_fd);
       this->setFlag(FILE_DONE);
       this->response.setStatus("200");
       this->response.setHeader("Content-Type", "text/html");
@@ -418,7 +420,8 @@ void Transaction::httpPost(int data_size, int fd) {
       throw ErrorPage500Exception();
     }
   } else if (this->flag == FILE_WRITE) {  // upload file
-    ft::safeWrite(this->fd, const_cast<char *>(&this->request.getEntity()[0]),
+    ft::safeWrite(this->file_fd,
+                  const_cast<char *>(&this->request.getEntity()[0]),
                   this->request.getEntitySize());
     ft::safeClose(fd);
     this->setFlag(FILE_DONE);
