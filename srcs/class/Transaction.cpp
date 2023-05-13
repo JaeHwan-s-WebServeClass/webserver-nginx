@@ -435,8 +435,6 @@ void Transaction::httpPut(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPut\n" << DFT;
   if (fd == 0 && data_size == 0) {
     this->response.setHeader("Content-Type", "text/plain");
-    // FIXME string으로 넘겨줄게 아니라 config에서 받아오던가 해야함
-    this->response.setHeader("Allow", "GET, POST, DELETE");
     throw ErrorPage409Exception();
   }
   ft::safeWrite(fd, const_cast<char *>(&this->request.getEntity()[0]),
