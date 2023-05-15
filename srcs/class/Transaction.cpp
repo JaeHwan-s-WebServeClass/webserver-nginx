@@ -62,7 +62,18 @@ void Transaction::checkResource() {
   }
   request_location = this->request.getUrl().substr(0, pos);
   request_filename = this->request.getUrl().substr(pos);
-  if ((request_filename == "/.") || (request_filename == "/..")) {
+  // std::string relative_path;
+  // if (pos == 1) {
+  //   relative_path = request_filename.substr(0);
+  // } else {
+  //   relative_path = request_filename.substr(1);
+  // }
+  // if ((relative_path == ".") || (relative_path == "..")) {
+  //   throw ErrorPage403Exception();
+  // }
+  if (((pos == 1) &&
+       ((request_filename == ".") || (request_filename == ".."))) ||
+      (request_filename == "/.") || (request_filename == "/..")) {
     throw ErrorPage403Exception();
   }
   // STEP 2 . request_loc과 conf_loc을 비교해서 실제 local의 resource 구하기
