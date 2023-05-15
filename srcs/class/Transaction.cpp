@@ -62,15 +62,7 @@ void Transaction::checkResource() {
   }
   request_location = this->request.getUrl().substr(0, pos);
   request_filename = this->request.getUrl().substr(pos);
-  // std::string relative_path;
-  // if (pos == 1) {
-  //   relative_path = request_filename.substr(0);
-  // } else {
-  //   relative_path = request_filename.substr(1);
-  // }
-  // if ((relative_path == ".") || (relative_path == "..")) {
-  //   throw ErrorPage403Exception();
-  // }
+
   if (((pos == 1) &&
        ((request_filename == ".") || (request_filename == ".."))) ||
       (request_filename == "/.") || (request_filename == "/..")) {
