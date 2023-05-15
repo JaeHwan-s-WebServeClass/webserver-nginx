@@ -10,8 +10,11 @@ query_list = argument1.split("&")
 # 각 쿼리를 다시 = 기준으로 쪼개서 딕셔너리에 저장
 query_dict = {}
 for query in query_list:
-    key, value = query.split("=")
-    query_dict[key] = value
+    if "=" in query:
+        key, value = query.split("=")
+        query_dict[key] = value
+    else:
+        query_dict[query] = query
 
 def generate_python_code(text):
     code = """
@@ -36,4 +39,5 @@ html=""" + '\"\"\"\n' + """
 print(html)
 """
     return code
-print(generate_python_code(query_dict["text"]))
+text = query_dict.get("text") or list(query_dict.values())[0]
+print(generate_python_code(text))
