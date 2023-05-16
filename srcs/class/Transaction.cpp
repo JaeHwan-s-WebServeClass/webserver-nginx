@@ -35,6 +35,7 @@ Request &Transaction::getRequest() { return this->request; }
 const ServerConfig &Transaction::getServerConfig() const {
   return this->server_config;
 }
+const int Transaction::getPid() const { return this->cgi_pid; };
 const t_step &Transaction::getFlag() const { return this->flag; }
 const int &Transaction::getFileDescriptor() const { return this->file_fd; }
 
@@ -42,13 +43,6 @@ const int &Transaction::getFileDescriptor() const { return this->file_fd; }
 void Transaction::setFlag(t_step flag) { this->flag = flag; }
 
 //---- checker -----------------------------------------------------------------
-// - request done 상황
-// 1. 리소스가 파일인지 폴더인지 체크
-// 1-1. autoindex 처리
-// 3. method 유효성 확인
-// 4. 파일 오픈 후 fd 반환
-// - 파일을 이벤트 등록 전
-
 void Transaction::checkResource() {
   // std::cout << GRY << "Debug: Transaction: checkResource\n" << DFT;
   std::string request_location;
@@ -406,7 +400,12 @@ void Transaction::httpPost(int data_size, int fd) {
   if (this->flag == FILE_READ) {  // cgi pipe read
     int wait_pid, status;
     wait_pid = waitpid(this->cgi_pid, &status, WNOHANG);
-    if (wait_pid == this->cgi_pid || this->request.getEntityCgi().size()) {
+    if (wait_pid && (wait_pid == -1 || WIFSIGNALED(status) ||
+                     (WIFEXITED(status) && WEXITSTATUS(status)))) {
+      ft::safeClose(fd);
+      throw ErrorPage500Exception();
+    } else if (wait_pid == this->cgi_pid ||
+               this->request.getEntityCgi().size()) {
       char buf[BUFFER_SIZE];
       int read_len;
       read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
@@ -417,10 +416,6 @@ void Transaction::httpPost(int data_size, int fd) {
         this->setFlag(FILE_CGI);
         ft::safeClose(fd);
       }
-    } else if (wait_pid && (wait_pid == -1 || WIFSIGNALED(status) ||
-                            (WIFEXITED(status) && WEXITSTATUS(status)))) {
-      ft::safeClose(fd);
-      throw ErrorPage500Exception();
     }
   } else if (this->flag == FILE_WRITE) {  // upload file
     ft::safeWrite(this->file_fd,
@@ -499,6 +494,9 @@ const char *Transaction::ErrorPage404Exception::what() const throw() {
 }
 const char *Transaction::ErrorPage405Exception::what() const throw() {
   return "405";
+}
+const char *Transaction::ErrorPage408Exception::what() const throw() {
+  return "408";
 }
 const char *Transaction::ErrorPage409Exception::what() const throw() {
   return "409";

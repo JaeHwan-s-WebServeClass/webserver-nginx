@@ -8,6 +8,7 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 
+#include <csignal>
 #include <exception>
 #include <iostream>
 #include <map>
@@ -21,7 +22,7 @@
 #include "Transaction.hpp"
 
 class Server {
- private:
+private:
   std::map<int, Transaction *> clients;
   int kq;
   struct kevent event_list[MAX_EVENT_SIZE];
@@ -36,7 +37,7 @@ class Server {
 
   Server();
 
- public:
+public:
   // ---- occf --------------------------------
   /// @param server_socket
   Server(std::vector<ServerConfig> &);
@@ -51,6 +52,7 @@ class Server {
   // ---- main loop ---------------------------
   void run(void);
   void runErrorServer(struct kevent *&);
+  void runTimerEventClient(struct kevent *&);
   void runReadEventServer(std::vector<ServerSocket>::const_iterator);
   void runReadEventClient(struct kevent *&);
   void runReadEventFile(struct kevent *&);

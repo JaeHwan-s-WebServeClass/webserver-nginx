@@ -66,6 +66,9 @@ void Response::setStatus(std::string status_code) {
   } else if (status_code == "405") {
     this->status_code = "405";
     this->status_msg = "Method Not Allowed";
+  } else if (status_code == "408") {
+    this->status_code = "408";
+    this->status_msg = "Request Timeout";
   } else if (status_code == "409") {
     this->status_code = "409";
     this->status_msg = "Conflict";
