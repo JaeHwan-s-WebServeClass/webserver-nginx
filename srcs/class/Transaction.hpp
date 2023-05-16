@@ -54,6 +54,7 @@ public:
   const ServerConfig &getServerConfig() const;
   const t_step &getFlag() const;
   const int &getFileDescriptor() const;
+  const int getPid() const ;
 
   // ---- setter ------------------------------
   void setFlag(t_step);

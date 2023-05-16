@@ -213,15 +213,19 @@ void Server::runErrorServer(struct kevent *&curr_event) {
 }
 
 void Server::runTimerEventClient(struct kevent *&curr_event) {
-  Transaction *tmp_transaction =
-      this->clients.find(curr_event->ident) == this->clients.end()
-          ? 0
-          : this->clients[curr_event->ident];
+  if (curr_event->ident == 0) { // cgi timer
+    kill(reinterpret_cast<intptr_t>(curr_event->udata), SIGTERM);
+  } else {
+    Transaction *tmp_transaction =
+        this->clients.find(curr_event->ident) == this->clients.end()
+            ? 0
+            : this->clients[curr_event->ident];
 
-  if (tmp_transaction == curr_event->udata) {
-    if (tmp_transaction->getFlag() < REQUEST_DONE) {
-      curr_event->udata = 0;
-      throw Transaction::ErrorPage408Exception();
+    if (tmp_transaction == curr_event->udata) {
+      if (tmp_transaction->getFlag() < REQUEST_DONE) {
+        curr_event->udata = 0;
+        throw Transaction::ErrorPage408Exception();
+      }
     }
   }
 }
@@ -247,8 +251,8 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
       Transaction *new_transaction = new Transaction(client_socket, *it2);
       this->clients[client_socket] = new_transaction;
       this->setChangeList(this->change_list, client_socket, EVFILT_TIMER,
-                          EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_SECONDS, 30,
-                          new_transaction);
+                          EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_SECONDS,
+                          TIMEOUT, new_transaction);
       break;
     }
   }
@@ -259,25 +263,28 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
 
 void Server::runReadEventClient(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runReadEventClient\n" << DFT;
-  this->clients[curr_event->ident]->executeRead();
+  Transaction *tmp_transaction = this->clients[curr_event->ident];
+  tmp_transaction->executeRead();
 
-  if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
-    int file_fd = this->clients[curr_event->ident]->executeResource();
+  if (tmp_transaction->getFlag() == REQUEST_DONE) {
+    int file_fd = tmp_transaction->executeResource();
     if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) { // directory
       return;
     } else if (file_fd == NONE_FD) { // delete, put
-      this->clients[curr_event->ident]->executeMethod(0, 0);
+      tmp_transaction->executeMethod(0, 0);
       return;
     }
     fcntl(file_fd, F_SETFL, O_NONBLOCK);
-    if (this->clients[curr_event->ident]->getFlag() == FILE_READ) {
+    if (tmp_transaction->getFlag() == FILE_READ) {
       this->setChangeList(this->change_list, file_fd, EVFILT_READ,
-                          EV_ADD | EV_ENABLE | EV_EOF, 0, 0,
-                          this->clients[curr_event->ident]);
-    } else if (this->clients[curr_event->ident]->getFlag() == FILE_WRITE) {
+                          EV_ADD | EV_ENABLE | EV_EOF, 0, 0, tmp_transaction);
+      this->setChangeList(this->change_list, 0, EVFILT_TIMER,
+                          EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_SECONDS,
+                          TIMEOUT,
+                          reinterpret_cast<void *>(tmp_transaction->getPid()));
+    } else if (tmp_transaction->getFlag() == FILE_WRITE) {
       this->setChangeList(this->change_list, file_fd, EVFILT_WRITE,
-                          EV_ADD | EV_ENABLE | EV_EOF, 0, 0,
-                          this->clients[curr_event->ident]);
+                          EV_ADD | EV_ENABLE | EV_EOF, 0, 0, tmp_transaction);
     }
   }
 }

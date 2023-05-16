@@ -30,6 +30,7 @@ Request &Transaction::getRequest() { return this->request; }
 const ServerConfig &Transaction::getServerConfig() const {
   return this->server_config;
 }
+const int Transaction::getPid() const { return this->cgi_pid; };
 const t_step &Transaction::getFlag() const { return this->flag; }
 const int &Transaction::getFileDescriptor() const { return this->file_fd; }
 
@@ -401,7 +402,12 @@ void Transaction::httpPost(int data_size, int fd) {
   if (this->flag == FILE_READ) { // cgi pipe read
     int wait_pid, status;
     wait_pid = waitpid(this->cgi_pid, &status, WNOHANG);
-    if (wait_pid == this->cgi_pid || this->request.getEntityCgi().size()) {
+    if (wait_pid && (wait_pid == -1 || WIFSIGNALED(status) ||
+                     (WIFEXITED(status) && WEXITSTATUS(status)))) {
+      ft::safeClose(fd);
+      throw ErrorPage500Exception();
+    } else if (wait_pid == this->cgi_pid ||
+               this->request.getEntityCgi().size()) {
       char buf[BUFFER_SIZE];
       int read_len;
       read_len = ft::safeRead(fd, buf, BUFFER_SIZE);
@@ -412,10 +418,6 @@ void Transaction::httpPost(int data_size, int fd) {
         this->setFlag(FILE_CGI);
         ft::safeClose(fd);
       }
-    } else if (wait_pid && (wait_pid == -1 || WIFSIGNALED(status) ||
-                            (WIFEXITED(status) && WEXITSTATUS(status)))) {
-      ft::safeClose(fd);
-      throw ErrorPage500Exception();
     }
   } else if (this->flag == FILE_WRITE) { // upload file
     ft::safeWrite(this->file_fd,

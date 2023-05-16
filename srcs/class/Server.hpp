@@ -8,6 +8,7 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 
+#include <csignal>
 #include <exception>
 #include <iostream>
 #include <map>

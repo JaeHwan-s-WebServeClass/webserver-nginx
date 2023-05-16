@@ -25,6 +25,8 @@
 #define HEALTHY 0
 #define UNHEALTHY 1
 
+#define TIMEOUT 5
+
 typedef enum step {
   START,
   REQUEST_HEAD,
