@@ -60,6 +60,7 @@ void Server::loadErrorPage() {
     ft::safeClose(fd);
   }
   this->change_list.clear();
+  error_page["408"] = "";
   // DEBUG
   // std::map<std::string, std::string>::iterator mapit =
   // this->error_page.begin(); for (; mapit != this->error_page.end(); ++mapit)
@@ -116,7 +117,6 @@ void Server::run() {
         it->second->setFlag(RESPONSE_DONE);
       }
     }
-
     this->change_list.clear();
     for (int i = 0; i < new_events; i++) {
       curr_event = &(this->event_list[i]);
@@ -132,6 +132,8 @@ void Server::run() {
                    (curr_event->flags & (EV_EOF)) &&
                    curr_event->filter == EVFILT_READ) {
           this->disconnectClient(curr_event->ident);
+        } else if (curr_event->filter == EVFILT_TIMER) {
+          runTimerEventClient(curr_event);
         } else if (curr_event->filter == EVFILT_READ) {
           std::vector<ServerSocket>::const_iterator it =
               this->server_socket.begin();
@@ -163,7 +165,7 @@ void Server::run() {
         this->clients.clear();
         break;
       } catch (std::exception &e) {
-        if (curr_event->udata) {  // 파일일 때
+        if (curr_event->udata) { // 파일일 때
           setErrorPage(e.what(),
                        reinterpret_cast<Transaction *&>(curr_event->udata));
           reinterpret_cast<Transaction *>(curr_event->udata)
@@ -171,7 +173,7 @@ void Server::run() {
           ft::safeClose(curr_event->ident);
           this->setChangeList(this->change_list, curr_event->ident,
                               curr_event->filter, EV_DELETE, 0, 0, NULL);
-        } else {  // 클라이언트일 때
+        } else { // 클라이언트일 때
           setErrorPage(e.what(), this->clients[curr_event->ident]);
           this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
         }
@@ -206,7 +208,21 @@ void Server::runErrorServer(struct kevent *&curr_event) {
       this->disconnectClient(curr_event->ident);
       ft::printError("Error: Server: runErrorServer: client socket error");
       throw Transaction::ErrorPage500Exception();
-    }  // TODO else 귀신
+    } // TODO else 귀신
+  }
+}
+
+void Server::runTimerEventClient(struct kevent *&curr_event) {
+  Transaction *tmp_transaction =
+      this->clients.find(curr_event->ident) == this->clients.end()
+          ? 0
+          : this->clients[curr_event->ident];
+
+  if (tmp_transaction == curr_event->udata) {
+    if (tmp_transaction->getFlag() < REQUEST_DONE) {
+      curr_event->udata = 0;
+      throw Transaction::ErrorPage408Exception();
+    }
   }
 }
 
@@ -228,7 +244,11 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
   std::vector<ServerConfig>::const_iterator it2 = this->server_config.begin();
   for (; it2 != this->server_config.end(); it2++) {
     if (it2->getListen() == it->getPort()) {
-      this->clients[client_socket] = new Transaction(client_socket, *it2);
+      Transaction *new_transaction = new Transaction(client_socket, *it2);
+      this->clients[client_socket] = new_transaction;
+      this->setChangeList(this->change_list, client_socket, EVFILT_TIMER,
+                          EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_SECONDS, 30,
+                          new_transaction);
       break;
     }
   }
@@ -243,9 +263,9 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
 
   if (this->clients[curr_event->ident]->getFlag() == REQUEST_DONE) {
     int file_fd = this->clients[curr_event->ident]->executeResource();
-    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) {  // directory
+    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) { // directory
       return;
-    } else if (file_fd == NONE_FD) {  // delete, put
+    } else if (file_fd == NONE_FD) { // delete, put
       this->clients[curr_event->ident]->executeMethod(0, 0);
       return;
     }

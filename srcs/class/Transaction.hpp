@@ -20,8 +20,8 @@
 #include "ServerConfig.hpp"
 
 class Transaction {
- private:
-  int socket_fd;  // client 랑 연결된 socket fd
+private:
+  int socket_fd; // client 랑 연결된 socket fd
   int file_fd;
 
   t_step flag;
@@ -38,7 +38,7 @@ class Transaction {
 
   Transaction();
 
- public:
+public:
   // ---- occf --------------------------------
   /// @brief Transaction 생성자
   /// @param socket_fd
@@ -59,15 +59,15 @@ class Transaction {
   void setFlag(t_step);
 
   // ---- checker -----------------------------
-  void checkResource(void);  // set this->location, this->resoure
+  void checkResource(void); // set this->location, this->resoure
   // 1. setResource
   int checkDirectory(
-      void);  // URI가 directory일 때 처리 (index 처리 or 없으면 autoindex)
+      void); // URI가 directory일 때 처리 (index 처리 or 없으면 autoindex)
   // 1. getIndex 2. openIndex 3. handleUriDirectory
   void checkAllowedMethod(void);
   // 유효한 method인지 체크 (requset의 method와 conf의 method 비교)
 
-  int checkFile(void);  // file descriptor를 반환해야 하는 경우 처리
+  int checkFile(void); // file descriptor를 반환해야 하는 경우 처리
   // this->file_ptr setting, setFlag
   void checkServerName();
   void executeRead(void);
@@ -97,6 +97,9 @@ class Transaction {
     virtual const char *what(void) const throw();
   };
   class ErrorPage405Exception : public std::exception {
+    virtual const char *what(void) const throw();
+  };
+  class ErrorPage408Exception : public std::exception {
     virtual const char *what(void) const throw();
   };
   class ErrorPage409Exception : public std::exception {
