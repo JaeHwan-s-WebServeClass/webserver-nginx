@@ -2,12 +2,17 @@
 
 //---- OCCF -------------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
-    : socket_fd(socket_fd), file_fd(-1), flag(START), response(this->flag),
-      request(this->flag), server_config(server_config) {
+    : socket_fd(socket_fd),
+      file_fd(-1),
+      flag(START),
+      response(this->flag),
+      request(this->flag),
+      server_config(server_config) {
   // std::cout << GRY << "Debug: Transaction: constructor\n" << DFT;
 }
 Transaction::Transaction(const Transaction &ref)
-    : response(this->flag), request(this->flag),
+    : response(this->flag),
+      request(this->flag),
       server_config(ref.server_config) {
   *this = ref;
 }
@@ -38,13 +43,6 @@ const int &Transaction::getFileDescriptor() const { return this->file_fd; }
 void Transaction::setFlag(t_step flag) { this->flag = flag; }
 
 //---- checker -----------------------------------------------------------------
-// - request done 상황
-// 1. 리소스가 파일인지 폴더인지 체크
-// 1-1. autoindex 처리
-// 3. method 유효성 확인
-// 4. 파일 오픈 후 fd 반환
-// - 파일을 이벤트 등록 전
-
 void Transaction::checkResource() {
   // std::cout << GRY << "Debug: Transaction: checkResource\n" << DFT;
   std::string request_location;
@@ -121,7 +119,7 @@ int Transaction::checkDirectory() {
       this->response.setHeader("Content-Type", "text/html");
       this->response.setResponseMsg();
       return DIRECTORY;
-    } else { //  디렉토리가 없는 경우
+    } else {  //  디렉토리가 없는 경우
       throw ErrorPage403Exception();
     }
   } else {
@@ -145,7 +143,7 @@ int Transaction::checkFile() {
       ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
     this->setFlag(FILE_READ);
     return this->executeCGI();
-  } else if (this->request.getMethod() == "POST") { // 2. 평범한 post
+  } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
     this->file_fd =
         ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     this->setFlag(FILE_WRITE);
@@ -157,7 +155,7 @@ int Transaction::checkFile() {
           ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
       this->setFlag(FILE_WRITE);
     }
-  } else { // 3. 평범한 get
+  } else {  // 3. 평범한 get
     if (ft::isFileEmpty(this->resource.c_str())) {
       this->response.setStatus("200");
       this->response.setResponseMsg();
@@ -367,7 +365,7 @@ void Transaction::httpGet(int data_size, int fd) {
       this->response.setHeader("Content-Type", "text/html");
       ft::safeClose(fd);
     }
-  } else { // 2. 그냥 get
+  } else {  // 2. 그냥 get
     char buf[this->server_config.getClientMaxBodySize() + 1];
     size_t read_len = ft::safeRead(this->file_fd, buf,
                                    this->server_config.getClientMaxBodySize());
@@ -387,19 +385,19 @@ void Transaction::httpDelete() {
   if (ft::isDirectory(this->resource.c_str())) {
     throw ErrorPage403Exception();
   }
-  if (std::remove(this->resource.c_str()) == 0) { // 파일 삭제 성공
+  if (std::remove(this->resource.c_str()) == 0) {  // 파일 삭제 성공
     this->setFlag(FILE_DONE);
     this->response.setStatus("200");
     this->response.setHeader("Content-Type", "text/plain");
     this->response.setEntity("200 OK", 6);
-  } else { // 파일 삭제 실패
+  } else {  // 파일 삭제 실패
     throw ErrorPage500Exception();
   }
 }
 
 void Transaction::httpPost(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: httpPost\n" << DFT;
-  if (this->flag == FILE_READ) { // cgi pipe read
+  if (this->flag == FILE_READ) {  // cgi pipe read
     int wait_pid, status;
     wait_pid = waitpid(this->cgi_pid, &status, WNOHANG);
     if (wait_pid && (wait_pid == -1 || WIFSIGNALED(status) ||
@@ -419,7 +417,7 @@ void Transaction::httpPost(int data_size, int fd) {
         ft::safeClose(fd);
       }
     }
-  } else if (this->flag == FILE_WRITE) { // upload file
+  } else if (this->flag == FILE_WRITE) {  // upload file
     ft::safeWrite(this->file_fd,
                   const_cast<char *>(&this->request.getEntity()[0]),
                   this->request.getEntitySize());

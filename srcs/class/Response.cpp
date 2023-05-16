@@ -2,7 +2,10 @@
 
 //---- OCCF -------------------------------------------------------------------
 Response::Response(t_step &flag)
-    : flag(flag), response_msg(0), http_version("HTTP/1.1"), status_code(""),
+    : flag(flag),
+      response_msg(0),
+      http_version("HTTP/1.1"),
+      status_code(""),
       status_msg("") {
   this->entity.reserve(512);
 }
@@ -63,6 +66,9 @@ void Response::setStatus(std::string status_code) {
   } else if (status_code == "405") {
     this->status_code = "405";
     this->status_msg = "Method Not Allowed";
+  } else if (status_code == "408") {
+    this->status_code = "408";
+    this->status_msg = "Request Timeout";
   } else if (status_code == "409") {
     this->status_code = "409";
     this->status_msg = "Conflict";
@@ -72,9 +78,6 @@ void Response::setStatus(std::string status_code) {
   } else if (status_code == "501") {
     this->status_code = "501";
     this->status_msg = "Not Implemented :O";
-  } else if (status_code == "408") {
-    this->status_code = "408";
-    this->status_msg = "Request Timeout";
   } else {
     this->status_code = "418";
     this->status_msg = "I'm a teapot";
@@ -125,9 +128,7 @@ void Response::setErrorMsg(std::string status_code,
                            const std::string &error_msg) {
   this->setStatus(status_code);
   this->setEntity(error_msg.c_str(), error_msg.size());
-  if (status_code != "408") {
-    this->setHeader("Content-Type", "text/html");
-  }
+  this->setHeader("Content-Type", "text/html");
   this->setHeader("Connection", "close");
   this->setResponseMsg();
 }
