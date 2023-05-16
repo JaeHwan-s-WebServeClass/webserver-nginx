@@ -12,7 +12,7 @@ pid_t ft::safeFork() {
 
   pid = fork();
   if (pid == -1) {
-    std::cout << RED << "Error: ft: fork() error\n" << DFT;
+    // std::cout << RED << "Error: ft: fork() error\n" << DFT;
     g_server_status = UNHEALTHY;
     throw Transaction::ErrorPage500Exception();
   }
@@ -22,7 +22,7 @@ pid_t ft::safeFork() {
 void ft::safePipe(int *fd) {
   // std::cout << GRY << "Debug: safePipe\n" << DFT;
   if (pipe(fd) == -1) {
-    std::cout << RED << "Error: ft: pipe() error\n" << DFT;
+    // std::cout << RED << "Error: ft: pipe() error\n" << DFT;
     g_server_status = UNHEALTHY;
     throw Transaction::ErrorPage500Exception();
   }
@@ -50,7 +50,7 @@ int ft::safeSend(int fd, Response &response) {
       send(fd, response.getResponseMsg(), response.getResponseMsgSize(), 0);
 
   if ((send_len == -1) || (send_len == 0)) {
-    std::cout << RED << "Error: ft: send() error\n" << DFT;
+    // std::cout << RED << "Error: ft: send() error\n" << DFT;
     g_server_status = UNHEALTHY;
     signal(SIGPIPE, SIG_DFL);
 
@@ -66,7 +66,7 @@ int ft::safeRecv(int fd, char *buf, int size) {
   int recv_len = recv(fd, buf, size, 0);
 
   if ((recv_len == -1) || (recv_len == 0)) {
-    std::cout << RED << "Error: ft: recv() error\n" << DFT;
+    // std::cout << RED << "Error: ft: recv() error\n" << DFT;
     g_server_status = UNHEALTHY;
     signal(SIGPIPE, SIG_DFL);
 
@@ -82,7 +82,7 @@ ssize_t ft::safeRead(int fd, char *buf, int size) {
   signal(SIGPIPE, SIG_IGN);
   ssize_t read_len = read(fd, buf, size);
   if (read_len == -1) {
-    std::cout << RED << "Error: ft: read() error\n" << DFT;
+    // std::cout << RED << "Error: ft: read() error\n" << DFT;
     g_server_status = UNHEALTHY;
     signal(SIGPIPE, SIG_DFL);
 
@@ -97,7 +97,7 @@ ssize_t ft::safeWrite(int fd, char *buf, int size) {
   signal(SIGPIPE, SIG_IGN);
   ssize_t write_len = write(fd, buf, size);
   if (write_len == -1) {
-    std::cout << RED << "Error: ft: write() error\n" << DFT;
+    // std::cout << RED << "Error: ft: write() error\n" << DFT;
     g_server_status = UNHEALTHY;
     signal(SIGPIPE, SIG_DFL);
 
@@ -107,14 +107,13 @@ ssize_t ft::safeWrite(int fd, char *buf, int size) {
   return write_len;
 }
 
-// //----- open/close
-// ------------------------------------------------------------ size_t
+//----- open/close  ----------------------------------------------------------
 size_t ft::safeOpen(std::string resource, int flag, mode_t mode) {
   // std::cout << GRY << "Debug: safeOpen\n" << DFT;
   int fd;
 
   if ((fd = open(resource.c_str(), flag, mode)) == -1) {
-    std::cout << RED << "Error: ft: open() error\n" << DFT;
+    // std::cout << RED << "Error: ft: open() error\n" << DFT;
     g_server_status = UNHEALTHY;
     throw Server::ServerUnhealthyException();
   }
@@ -125,10 +124,21 @@ int ft::safeClose(int fd) {
   // std::cout << GRY << "Debug: safeClose\n" << DFT;
   if (ft::isFileDescriptorValid(fd)) {
     if (close(fd) == -1) {
-      std::cout << RED << "Error: ft: close() error\n" << DFT;
+      // std::cout << RED << "Error: ft: close() error\n" << DFT;
       g_server_status = UNHEALTHY;
       throw Server::ServerUnhealthyException();
     }
   }
   return 0;
+}
+
+//----- stat  ----------------------------------------------------------
+struct stat ft::safeStat(std::string file_path) {
+  struct stat file_state;
+  if (stat(file_path.c_str(), &file_state) < 0) {
+    // std::cout << RED << "Error: ft: stat() error\n" << DFT;
+    g_server_status = UNHEALTHY;
+    throw Server::ServerUnhealthyException();
+  }
+  return file_state;
 }

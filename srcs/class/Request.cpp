@@ -102,7 +102,7 @@ void Request::addChunkedEntity(char *buf, size_t read_len) {
         hex_str.pop_back();
         hex_str.pop_back();
         chunk_size = ft::hexToInt(hex_str);
-        std::cout << "chunk_size: " << chunk_size << "\n";
+        // std::cout << "chunk_size: " << chunk_size << "\n";
         if (chunk_size == 0) {
           this->setFlag(REQUEST_ENTITY);
           return;

@@ -188,10 +188,8 @@ void Server::run() {
 void Server::runErrorServer(struct kevent *&curr_event) {
   // std::cout << GRY << "Debug: Server: runErrorServer\n" << DFT;
   // DEBUG
-  // FIXME
-  std::cout << RED << "error: " << strerror(curr_event->data)
-            << " errno: " << errno << std::endl
-            << DFT;
+  // std::cout << RED << "error: " << strerror(curr_event->data)
+  // << " errno: " << errno << std::endl << DFT;
   std::vector<ServerSocket>::const_iterator it = this->server_socket.begin();
   for (; it != this->server_socket.end(); it++) {
     if (static_cast<int>(curr_event->ident) == it->getServerSocket()) {
@@ -237,8 +235,8 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
   } catch (std::exception &e) {
     return;
   }
-  std::cout << GRN << "accept new client: " << client_socket << DFT
-            << std::endl;
+  // std::cout << GRN << "accept new client: " << client_socket << DFT
+  // << std::endl;
   fcntl(client_socket, F_SETFL, O_NONBLOCK);
   this->setChangeList(this->change_list, client_socket, EVFILT_READ,
                       EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -299,7 +297,7 @@ void Server::runReadEventFile(struct kevent *&curr_event) {
     if (curr_transaction->getFlag() == FILE_CGI) {
       this->setChangeList(this->change_list, curr_event->ident, EVFILT_READ,
                           EV_DELETE, 0, 0, NULL);
-      int file_fd = curr_transaction->checkFile();
+      int file_fd = curr_transaction->executeResourceFile();
 
       fcntl(file_fd, F_SETFL, O_NONBLOCK);
       this->setChangeList(this->change_list, file_fd, EVFILT_WRITE,
@@ -384,8 +382,8 @@ void Server::disconnectClient(int client_fd) {
     ft::safeClose(client_fd);
     this->clients.erase(client_fd);
     this->disconnect = true;
-    std::cout << RED << "client disconnected: " << client_fd << DFT
-              << std::endl;
+    // std::cout << RED << "client disconnected: " << client_fd << DFT
+    // << std::endl;
   }
   // std::endl; system("leaks webserv | grep leaked");
 }
@@ -401,7 +399,7 @@ int Server::safeKevent(int nevents, const timespec *timeout) {
     ft::printError("Error: Server: safeKevent");
     throw Transaction::ErrorPage500Exception();
   } else if (new_events == 0) {
-    std::cout << "new_event is 0\n";
+    // std::cout << "new_event is 0\n";
   }
   return new_events;
 }

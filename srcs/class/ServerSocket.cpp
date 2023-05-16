@@ -13,8 +13,8 @@ ServerSocket::ServerSocket(sa_family_t address_family, int port) {
   this->setNonBlock(this->server_socket);
 
   // DEBUG: check server socket port number
-  std::cout << "Construct ServerSocket: Port number: "
-            << this->server_addr.sin_port << std::endl;
+  // std::cout << "Construct ServerSocket: Port number: "
+  // << this->server_addr.sin_port << std::endl;
 }
 ServerSocket::ServerSocket(const ServerSocket &ref) { *this = ref; }
 ServerSocket &ServerSocket::operator=(const ServerSocket &ref) {

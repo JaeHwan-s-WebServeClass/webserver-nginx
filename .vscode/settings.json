@@ -66,6 +66,7 @@
 		"algorithm": "cpp",
 		"__tree": "cpp",
 		"map": "cpp",
-		"filesystem": "cpp"
+		"filesystem": "cpp",
+		"csignal": "cpp"
 	}
 }

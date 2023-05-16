@@ -18,9 +18,9 @@ int main(int argc, char **argv) {
     server.loadErrorPage();
     server.run();
   } catch (std::exception &e) {
-    std::cout << RED << "main exception: " << e.what() << DFT << std::endl;
+    // std::cout << RED << "main exception: " << e.what() << DFT << std::endl;
   } catch (std::string &s) {
-    std::cout << RED << "main: " << s << DFT << std::endl;
+    // std::cout << RED << "main: " << s << DFT << std::endl;
   }
   return (0);
 }

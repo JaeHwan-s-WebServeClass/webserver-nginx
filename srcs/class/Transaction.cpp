@@ -1,5 +1,7 @@
 #include "Transaction.hpp"
 
+extern int g_server_status;
+
 //---- OCCF -------------------------------------------------------------------
 Transaction::Transaction(int socket_fd, const ServerConfig &server_config)
     : socket_fd(socket_fd),
@@ -35,16 +37,14 @@ Request &Transaction::getRequest() { return this->request; }
 const ServerConfig &Transaction::getServerConfig() const {
   return this->server_config;
 }
-const int Transaction::getPid() const { return this->cgi_pid; };
+const int &Transaction::getPid() const { return this->cgi_pid; };
 const t_step &Transaction::getFlag() const { return this->flag; }
 const int &Transaction::getFileDescriptor() const { return this->file_fd; }
 
 //---- setter ------------------------------------------------------------------
 void Transaction::setFlag(t_step flag) { this->flag = flag; }
-
-//---- checker -----------------------------------------------------------------
-void Transaction::checkResource() {
-  // std::cout << GRY << "Debug: Transaction: checkResource\n" << DFT;
+void Transaction::setResource() {
+  // std::cout << GRY << "Debug: Transaction: setResource\n" << DFT;
   std::string request_location;
   std::string request_filename = "";
 
@@ -52,14 +52,14 @@ void Transaction::checkResource() {
   if (pos == std::string::npos) {
     throw ErrorPage404Exception();
   } else if (pos == 0) {
-    pos += 1;
+    request_location = this->request.getUrl().substr(0, pos + 1);
+    request_filename = this->request.getUrl().substr(pos + 1);
+  } else {
+    request_location = this->request.getUrl().substr(0, pos);
+    request_filename = this->request.getUrl().substr(pos + 1);
   }
-  request_location = this->request.getUrl().substr(0, pos);
-  request_filename = this->request.getUrl().substr(pos);
 
-  if (((pos == 1) &&
-       ((request_filename == ".") || (request_filename == ".."))) ||
-      (request_filename == "/.") || (request_filename == "/..")) {
+  if ((request_filename == ".") || (request_filename == "..")) {
     throw ErrorPage403Exception();
   }
   // STEP 2 . request_loc과 conf_loc을 비교해서 실제 local의 resource 구하기
@@ -68,7 +68,7 @@ void Transaction::checkResource() {
       this->server_config.getLocation().end()) {
     this->location = it->second;
     std::string loc_root = this->location.root;
-    if ((loc_root.back() != '/') && (request_filename[0] != '/')) {
+    if ((loc_root.back() != '/')) {
       loc_root += "/";
     }
     this->resource +=
@@ -78,95 +78,7 @@ void Transaction::checkResource() {
   }
 }
 
-int Transaction::checkDirectory() {
-  // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
-  if (this->request.getMethod() != "GET") {
-    this->response.setHeader("Allow", "GET");
-    throw ErrorPage405Exception();
-  }
-
-  std::vector<std::string>::const_iterator it = this->location.index.begin();
-  // index 파일을 찾아서 있으면 보여줌
-  for (; it != this->location.index.end(); ++it) {
-    std::string tmp = this->resource + *it;
-    if (access(tmp.c_str(), F_OK) != -1) {
-      this->resource = tmp;
-      if ((this->location.cgi_exec != "") &&
-          ft::findSuffix(this->resource, ".py")) {
-        this->setFlag(FILE_READ);
-        return this->executeCGI();
-      } else {
-        this->file_fd = ft::safeOpen(this->resource, O_RDONLY, 0644);
-        this->setFlag(FILE_READ);
-        return this->file_fd;
-      }
-    }
-  }
-  // index 파일을 못찾았으면 autoindex 처리
-  if (this->location.autoindex) {
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir(this->resource.c_str())) != NULL) {
-      std::string body = "<html><body>";
-      while ((ent = readdir(dir)) != NULL) {
-        body += "<a href=\"" + std::string(ent->d_name) + "\">" +
-                std::string(ent->d_name) + "</a><br>";
-      }
-      body += "</body></html>";
-      closedir(dir);
-      this->response.setEntity(body.c_str(), body.size());
-      this->response.setStatus("200");
-      this->response.setHeader("Content-Type", "text/html");
-      this->response.setResponseMsg();
-      return DIRECTORY;
-    } else {  //  디렉토리가 없는 경우
-      throw ErrorPage403Exception();
-    }
-  } else {
-    throw ErrorPage403Exception();
-  }
-  return DIRECTORY;
-}
-
-int Transaction::checkFile() {
-  // std::cout << GRY << "Debug: Transaction: checkFile\n" << DFT;
-  if ((this->request.getMethod() != "POST" &&
-       this->request.getMethod() != "PUT") &&
-      (access(this->resource.c_str(), F_OK) == -1)) {
-    throw ErrorPage404Exception();
-  }
-  if (this->request.getMethod() == "DELETE") {
-    return NONE_FD;
-  }
-  // 1. cgi 처리 해야하는 상황인데, 아직 처리 안된 상태
-  if ((this->location.cgi_exec != "") && (this->request.getMethod() != "PUT") &&
-      ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
-    this->setFlag(FILE_READ);
-    return this->executeCGI();
-  } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
-    this->file_fd =
-        ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-    this->setFlag(FILE_WRITE);
-  } else if (this->request.getMethod() == "PUT") {
-    if (access(this->resource.c_str(), F_OK) == 0) {
-      return NONE_FD;
-    } else {
-      this->file_fd =
-          ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-      this->setFlag(FILE_WRITE);
-    }
-  } else {  // 3. 평범한 get
-    if (ft::isFileEmpty(this->resource.c_str())) {
-      this->response.setStatus("200");
-      this->response.setResponseMsg();
-      return EMPTY_FILE;
-    }
-    this->file_fd = ft::safeOpen(this->resource, O_RDWR, 0644);
-    this->setFlag(FILE_READ);
-  }
-  return (this->file_fd);
-}
-
+//---- checker -----------------------------------------------------------------
 void Transaction::checkAllowedMethod() {
   // std::cout << GRY << "Debug: Transaction: checkAllowedMethod\n" << DFT;
   if ((this->request.getMethod() == "GET" &&
@@ -204,7 +116,16 @@ void Transaction::checkServerName() {
   }
 }
 
-//---- executor ----------------------------------------------------------------
+bool Transaction::checkDirectory() {
+  // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
+
+  if (access(this->resource.c_str(), F_OK) == -1) {
+    throw ErrorPage404Exception();
+  }
+
+  return (S_ISDIR(ft::safeStat(this->resource).st_mode));
+}
+//---- executor : read --------------------------------------------------------
 void Transaction::executeRead(void) {
   // std::cout << GRY << "Debug: Transaction: executeRead\n" << DFT;
 
@@ -306,21 +227,112 @@ void Transaction::executeReadEntity(char *buf, int read_len,
     throw Transaction::ErrorPageDefaultException();
   }
 }
-
+//---- executor : resource ----------------------------------------------------
 int Transaction::executeResource() {
   // std::cout << GRY << "Debug: Transaction: executeResource\n" << DFT;
-  // STEP 1 . request_URL을 path(location)와 filename(filename)으로 쪼개기
-  this->checkResource();
-  // STEP 2 . 처리할 수 있는 method인지 확인
+  this->setResource();
   this->checkAllowedMethod();
-  // STEP 3 . URL이 "/"로 끝났을 때 => 디렉토리
-  if (this->request.getUrl().back() == '/') {
-    return this->checkDirectory();
+  if (this->checkDirectory()) {
+    return this->executeResourceDirectory();
   }
-  // STEP 4 . 각 상황에 따른 fd값 반환
-  return this->checkFile();
+
+  return this->executeResourceFile();
 }
 
+int Transaction::executeResourceDirectory() {
+  // std::cout << GRY << "Debug: Transaction: executeResourceDirectory\n" <<
+  // DFT;
+  if (this->request.getUrl().back() != '/') {
+    throw ErrorPage404Exception();
+  }
+  if (this->request.getMethod() != "GET") {
+    this->response.setHeader("Allow", "GET");
+    throw ErrorPage405Exception();
+  }
+
+  std::vector<std::string>::const_iterator it = this->location.index.begin();
+  // index 파일을 찾아서 있으면 보여줌
+  for (; it != this->location.index.end(); ++it) {
+    std::string tmp = this->resource + *it;
+    if (access(tmp.c_str(), F_OK) != -1) {
+      this->resource = tmp;
+      if ((this->location.cgi_exec != "") &&
+          ft::findSuffix(this->resource, ".py")) {
+        this->setFlag(FILE_READ);
+        return this->executeCGI();
+      } else {
+        this->file_fd = ft::safeOpen(this->resource, O_RDONLY, 0644);
+        this->setFlag(FILE_READ);
+        return this->file_fd;
+      }
+    }
+  }
+  // index 파일을 못찾았으면 autoindex 처리
+  if (this->location.autoindex) {
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir(this->resource.c_str())) != NULL) {
+      std::string body = "<html><body>";
+      while ((ent = readdir(dir)) != NULL) {
+        body += "<a href=\"" + std::string(ent->d_name) + "\">" +
+                std::string(ent->d_name) + "</a><br>";
+      }
+      body += "</body></html>";
+      closedir(dir);
+      this->response.setEntity(body.c_str(), body.size());
+      this->response.setStatus("200");
+      this->response.setHeader("Content-Type", "text/html");
+      this->response.setResponseMsg();
+      return DIRECTORY;
+    } else {  //  디렉토리가 없는 경우
+      throw ErrorPage403Exception();
+    }
+  } else {
+    throw ErrorPage403Exception();
+  }
+  return DIRECTORY;
+}
+
+int Transaction::executeResourceFile() {
+  // std::cout << GRY << "Debug: Transaction: executeResourceFile\n" << DFT;
+  if ((this->request.getMethod() != "POST" &&
+       this->request.getMethod() != "PUT") &&
+      (access(this->resource.c_str(), F_OK) == -1)) {
+    throw ErrorPage404Exception();
+  }
+  if (this->request.getMethod() == "DELETE") {
+    return NONE_FD;
+  }
+  // 1. cgi 처리 해야하는 상황인데, 아직 처리 안된 상태
+  if ((this->location.cgi_exec != "") && (this->request.getMethod() != "PUT") &&
+      ft::findSuffix(this->resource, ".py") && this->flag != FILE_CGI) {
+    this->setFlag(FILE_READ);
+    return this->executeCGI();
+  } else if (this->request.getMethod() == "POST") {  // 2. 평범한 post
+    this->file_fd =
+        ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    this->setFlag(FILE_WRITE);
+  } else if (this->request.getMethod() == "PUT") {
+    if (access(this->resource.c_str(), F_OK) == 0) {
+      return NONE_FD;
+    } else {
+      this->file_fd =
+          ft::safeOpen(this->resource, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+      this->setFlag(FILE_WRITE);
+    }
+  } else {  // 3. 평범한 get
+    if (ft::isFileEmpty(this->resource.c_str())) {
+      this->response.setStatus("200");
+      this->response.setResponseMsg();
+      return EMPTY_FILE;
+    }
+    this->file_fd = ft::safeOpen(this->resource, O_RDWR, 0644);
+    this->setFlag(FILE_READ);
+  }
+  return (this->file_fd);
+}
+
+//---- executor : write -------------------------------------------------------
 int Transaction::executeWrite(void) {
   // std::cout << GRY << "Debug: Transacation: executeWrite\n";
   if ((ft::safeSend(this->socket_fd, this->response) == -1)) {
@@ -330,6 +342,7 @@ int Transaction::executeWrite(void) {
   return 0;
 }
 
+//---- executor : method ------------------------------------------------------
 int Transaction::executeMethod(int data_size, int fd) {
   // std::cout << GRY << "Debug: Transaction: executeMethod\n" << DFT;
   if (!std::atoi(this->response.getStatusCode().c_str())) {
