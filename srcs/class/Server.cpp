@@ -164,7 +164,7 @@ void Server::run() {
         this->clients.clear();
         break;
       } catch (std::exception &e) {
-        if (curr_event->udata) { // 파일일 때
+        if (curr_event->udata) {  // 파일일 때
           setErrorPage(e.what(),
                        reinterpret_cast<Transaction *&>(curr_event->udata));
           reinterpret_cast<Transaction *>(curr_event->udata)
@@ -172,7 +172,7 @@ void Server::run() {
           ft::safeClose(curr_event->ident);
           this->setChangeList(this->change_list, curr_event->ident,
                               curr_event->filter, EV_DELETE, 0, 0, NULL);
-        } else { // 클라이언트일 때
+        } else {  // 클라이언트일 때
           setErrorPage(e.what(), this->clients[curr_event->ident]);
           this->clients[curr_event->ident]->setFlag(RESPONSE_DONE);
         }
@@ -210,7 +210,7 @@ void Server::runErrorServer(struct kevent *&curr_event) {
 }
 
 void Server::runTimerEventClient(struct kevent *&curr_event) {
-  if (curr_event->ident == 0) { // cgi timer
+  if (curr_event->ident == 0) {  // cgi timer
     kill(reinterpret_cast<intptr_t>(curr_event->udata), SIGTERM);
   } else {
     Transaction *tmp_transaction =
@@ -235,8 +235,8 @@ void Server::runReadEventServer(std::vector<ServerSocket>::const_iterator it) {
   } catch (std::exception &e) {
     return;
   }
-  // std::cout << GRN << "accept new client: " << client_socket << DFT
-  // << std::endl;
+  std::cout << GRN << "accept new client: " << client_socket << DFT
+            << std::endl;
   fcntl(client_socket, F_SETFL, O_NONBLOCK);
   this->setChangeList(this->change_list, client_socket, EVFILT_READ,
                       EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -265,9 +265,9 @@ void Server::runReadEventClient(struct kevent *&curr_event) {
 
   if (tmp_transaction->getFlag() == REQUEST_DONE) {
     int file_fd = tmp_transaction->executeResource();
-    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) { // directory
+    if ((file_fd == DIRECTORY) || (file_fd == EMPTY_FILE)) {  // directory
       return;
-    } else if (file_fd == NONE_FD) { // delete, put
+    } else if (file_fd == NONE_FD) {  // delete, put
       tmp_transaction->executeMethod(0, 0);
       return;
     }
@@ -382,8 +382,8 @@ void Server::disconnectClient(int client_fd) {
     ft::safeClose(client_fd);
     this->clients.erase(client_fd);
     this->disconnect = true;
-    // std::cout << RED << "client disconnected: " << client_fd << DFT
-    // << std::endl;
+    std::cout << RED << "client disconnected: " << client_fd << DFT
+              << std::endl;
   }
   // std::endl; system("leaks webserv | grep leaked");
 }

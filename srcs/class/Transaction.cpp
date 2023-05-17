@@ -153,9 +153,9 @@ void Transaction::executeRead(void) {
   }
 
   // DEBUG
-  if (this->flag == REQUEST_DONE) {
-    // std::cout << this->request << std::endl;
-  }
+  // if (this->flag == REQUEST_DONE) {
+  // std::cout << this->request << std::endl;
+  // }
 }
 
 int Transaction::executeReadHead(char *buf, int read_len) {
@@ -232,7 +232,7 @@ int Transaction::executeResource() {
   // std::cout << GRY << "Debug: Transaction: executeResource\n" << DFT;
   this->setResource();
   this->checkAllowedMethod();
-  if (this->checkDirectory()) {
+  if ((this->request.getMethod() == "GET") && this->checkDirectory()) {
     return this->executeResourceDirectory();
   }
 
