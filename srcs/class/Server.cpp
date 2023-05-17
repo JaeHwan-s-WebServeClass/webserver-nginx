@@ -35,7 +35,6 @@ Server::~Server() {}
 void Server::loadErrorPage() {
   ServerConfig temp_conf = this->server_config[0];
   std::vector<std::string> conf_error_page = temp_conf.getErrorPage();
-  // struct timespec timeout = {5, 0};
 
   std::vector<std::string>::const_iterator it = conf_error_page.begin();
 
@@ -386,7 +385,6 @@ void Server::disconnectClient(int client_fd) {
     std::cout << RED << "client disconnected: " << client_fd << DFT
               << std::endl;
   }
-  // std::endl; system("leaks webserv | grep leaked");
 }
 
 //----- safe_method -----------------------------------------------------------

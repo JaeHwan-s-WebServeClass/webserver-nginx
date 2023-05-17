@@ -53,7 +53,6 @@ int ft::safeSend(int fd, Response &response) {
     std::cout << RED << "Error: ft: send() error\n" << DFT;
     g_server_status = UNHEALTHY;
     signal(SIGPIPE, SIG_DFL);
-
     throw Server::ServerUnhealthyException();
   }
   signal(SIGPIPE, SIG_DFL);
@@ -69,7 +68,6 @@ int ft::safeRecv(int fd, char *buf, int size) {
     std::cout << RED << "Error: ft: recv() error\n" << DFT;
     g_server_status = UNHEALTHY;
     signal(SIGPIPE, SIG_DFL);
-
     throw Server::ServerUnhealthyException();
   }
   signal(SIGPIPE, SIG_DFL);
@@ -85,7 +83,6 @@ ssize_t ft::safeRead(int fd, char *buf, int size) {
     std::cout << RED << "Error: ft: read() error\n" << DFT;
     g_server_status = UNHEALTHY;
     signal(SIGPIPE, SIG_DFL);
-
     throw Server::ServerUnhealthyException();
   }
   signal(SIGPIPE, SIG_DFL);
@@ -100,7 +97,6 @@ ssize_t ft::safeWrite(int fd, char *buf, int size) {
     std::cout << RED << "Error: ft: write() error\n" << DFT;
     g_server_status = UNHEALTHY;
     signal(SIGPIPE, SIG_DFL);
-
     throw Server::ServerUnhealthyException();
   }
   signal(SIGPIPE, SIG_DFL);
@@ -135,6 +131,7 @@ int ft::safeClose(int fd) {
 //----- stat  ----------------------------------------------------------
 struct stat ft::safeStat(std::string file_path) {
   struct stat file_state;
+
   if (stat(file_path.c_str(), &file_state) < 0) {
     std::cout << RED << "Error: ft: stat() error\n" << DFT;
     g_server_status = UNHEALTHY;

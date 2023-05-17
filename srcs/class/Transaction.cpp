@@ -118,17 +118,15 @@ void Transaction::checkServerName() {
 
 bool Transaction::checkDirectory() {
   // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
-
   if (access(this->resource.c_str(), F_OK) == -1) {
     throw ErrorPage404Exception();
   }
-
   return (S_ISDIR(ft::safeStat(this->resource).st_mode));
 }
+
 //---- executor : read --------------------------------------------------------
 void Transaction::executeRead(void) {
   // std::cout << GRY << "Debug: Transaction: executeRead\n" << DFT;
-
   char buf[BUFFER_SIZE + 1];
   int read_len = ft::safeRecv(this->socket_fd, buf, BUFFER_SIZE);
   int head_rest_len = 0;
@@ -151,7 +149,6 @@ void Transaction::executeRead(void) {
        this->flag == REQUEST_HEAD)) {
     this->setFlag(REQUEST_DONE);
   }
-
   // DEBUG
   // if (this->flag == REQUEST_DONE) {
   // std::cout << this->request << std::endl;
@@ -168,12 +165,10 @@ int Transaction::executeReadHead(char *buf, int read_len) {
   while (std::getline(read_stream, line, '\n')) {
     if (line.length() == 0 || line == "\r") {
       this->flag = REQUEST_HEAD;
-
       // DEBUG: checking raw head
       // std::cout << ft::printHelper("------------- raw head -------------");
       // std::cout << GRY << this->request.getRawHead() << DFT;
       // std::cout << ft::printHelper("------------------------------------");
-
       this->request.parserHead();
       this->request.setRawHead(line + "\n");
       break;
@@ -235,13 +230,11 @@ int Transaction::executeResource() {
   if ((this->request.getMethod() == "GET") && this->checkDirectory()) {
     return this->executeResourceDirectory();
   }
-
   return this->executeResourceFile();
 }
 
 int Transaction::executeResourceDirectory() {
-  // std::cout << GRY << "Debug: Transaction: executeResourceDirectory\n" <<
-  // DFT;
+  // std::cout << GRY << "Debug: Transaction: executeResourceDir\n" << DFT;
   if (this->request.getUrl().back() != '/') {
     throw ErrorPage404Exception();
   }
