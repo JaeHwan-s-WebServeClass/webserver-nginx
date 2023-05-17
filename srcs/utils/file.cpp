@@ -1,14 +1,14 @@
 #include "../include/include.hpp"
 
-bool ft::isFileDescriptorEmpty(int fd) {
-  off_t offset = lseek(fd, 0, SEEK_END);  // 파일의 끝으로 오프셋 이동
+// bool ft::isFileDescriptorEmpty(int fd) {
+//   off_t offset = lseek(fd, 0, SEEK_END);  // 파일의 끝으로 오프셋 이동
 
-  if (offset == 0) {
-    return true;
-  }
-  lseek(fd, 0, SEEK_SET);
-  return false;
-}
+//   if (offset == 0) {
+//     return true;
+//   }
+//   lseek(fd, 0, SEEK_SET);
+//   return false;
+// }
 
 bool ft::isFileEmpty(const char *file_name) {
   // 1 stat
@@ -29,12 +29,14 @@ bool ft::isFileDescriptorValid(int fd) {
   return true;
 }
 
-bool ft::isDirectory(const char *path) {
-  struct stat st;
+bool ft::isDirectory(std::string file_path) {
+  DIR *dir;
+  dir = opendir(file_path.c_str());
 
-  stat(path, &st);
-  if (S_ISDIR(st.st_mode)) {
+  if ((dir = opendir(file_path.c_str())) == NULL) {
+    return false;
+  } else {
+    closedir(dir);
     return true;
   }
-  return false;
 }

@@ -64,7 +64,7 @@ class Transaction {
   // ---- checker -----------------------------
   void checkAllowedMethod(void);
   void checkServerName();
-  bool checkDirectory();
+
   // ---- executor ----------------------------
   void executeRead(void);
   int executeReadHead(char *, int);
