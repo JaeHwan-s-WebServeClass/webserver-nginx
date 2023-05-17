@@ -127,15 +127,3 @@ int ft::safeClose(int fd) {
   }
   return 0;
 }
-
-//----- stat  ----------------------------------------------------------
-struct stat ft::safeStat(std::string file_path) {
-  struct stat file_state;
-
-  if (stat(file_path.c_str(), &file_state) < 0) {
-    std::cout << RED << "Error: ft: stat() error\n" << DFT;
-    g_server_status = UNHEALTHY;
-    throw Server::ServerUnhealthyException();
-  }
-  return file_state;
-}

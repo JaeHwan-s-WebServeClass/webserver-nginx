@@ -118,10 +118,12 @@ void Transaction::checkServerName() {
 
 bool Transaction::checkDirectory() {
   // std::cout << GRY << "Debug: Transaction: checkDirectory\n" << DFT;
-  if (access(this->resource.c_str(), F_OK) == -1) {
-    throw ErrorPage404Exception();
+  struct stat file_status;
+
+  if ((stat(this->resource.c_str(), &file_status)) == -1) {
+    return false;
   }
-  return (S_ISDIR(ft::safeStat(this->resource).st_mode));
+  return (S_ISDIR(file_status.st_mode));
 }
 
 //---- executor : read --------------------------------------------------------
@@ -227,7 +229,7 @@ int Transaction::executeResource() {
   // std::cout << GRY << "Debug: Transaction: executeResource\n" << DFT;
   this->setResource();
   this->checkAllowedMethod();
-  if ((this->request.getMethod() == "GET") && this->checkDirectory()) {
+  if (this->checkDirectory()) {
     return this->executeResourceDirectory();
   }
   return this->executeResourceFile();
