@@ -76,3 +76,8 @@ tags
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,c++,vim
+
+.gitmodules
+.DS_Store
+Doxyfile
+doxy
