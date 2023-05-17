@@ -44,7 +44,8 @@ void Server::loadErrorPage() {
     it++;
     std::string filename = *it;
     std::string rootdir = temp_conf.getRoot();
-    int fd = ft::safeOpen('.' + rootdir + filename, O_RDONLY, 0644);
+    int fd =
+        ft::safeOpen('.' + rootdir + "/error_page" + filename, O_RDONLY, 0644);
     fcntl(fd, F_SETFL, O_NONBLOCK);
     this->setChangeList(this->change_list, fd, EVFILT_READ, EV_ADD | EV_ENABLE,
                         0, 0, NULL);
