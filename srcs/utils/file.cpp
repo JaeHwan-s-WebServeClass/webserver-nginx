@@ -20,7 +20,6 @@ bool ft::isFileDescriptorValid(int fd) {
 
 bool ft::isDirectory(std::string file_path) {
   DIR *dir;
-  dir = opendir(file_path.c_str());
 
   if ((dir = opendir(file_path.c_str())) == NULL) {
     return false;
