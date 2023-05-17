@@ -22,6 +22,8 @@
 #define DIRECTORY -1
 #define NONE_FD -2
 
+#define DEFALUT_CGIPID -2
+
 #define HEALTHY 0
 #define UNHEALTHY 1
 
