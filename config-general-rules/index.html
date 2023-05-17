@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>configuration file rules - My Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "configuration file rules";
+        var mkdocs_page_input_path = "config-general-rules.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> My Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Intro</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../dev-method/">How to develop</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../convention/">Convention</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../requirements/">Requirements</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../allowed-functions/">Allowed Functions</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">TIL</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/0_daily-todo/">Daily todo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/1_how-to-work-echo-server/">1_how-to-work-echo-server</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/2_webserver-specification/">2_webserver-specification</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/3_simple-configuration-parser/">3_simple-configuration-parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/4_terminal-input-issue/">4_terminal-input-issue</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/5_doxygen/">5_doxygen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/6_debate/">6_debate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/7_requestmsg_parsing/">7_requestmsg_parsing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/8_response_msg_mockup_test/">8_response_msg_mockup_test</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/9_checklist/">9_checklist</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">My Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+      <li>configuration file rules</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="configuration-file-rules">configuration file rules</h1>
+<hr />
+<h2 id="general-rules">general rules</h2>
+<ol>
+<li>
+<p>semicolon(;) 포함하기 (없으면 error 처리)</p>
+</li>
+<li>
+<p>value 값</p>
+<ul>
+<li>error page는 한 줄에 연속해서</li>
+</ul>
+</li>
+<li>
+<p>client size들은 byte 단위</p>
+<ul>
+<li>client_max_body_size</li>
+<li>client_max_head_size</li>
+<li>default 값 설정해놓기</li>
+</ul>
+</li>
+<li>
+<p>delimiter:</p>
+<ul>
+<li>key랑 value는 tab으로</li>
+<li>value끼리는 space로</li>
+</ul>
+</li>
+<li>
+<p>directory: <code>/dir_name</code>의 형식으로</p>
+</li>
+<li>
+<p>location:</p>
+<ul>
+<li>이중 location 없음</li>
+<li><code>location (tab) /example</code>의 형식으로?</li>
+<li>location block을 server block의 가장 하단에 위치시켜야한다?</li>
+</ul>
+</li>
+<li>
+<p>bracket {}:</p>
+</li>
+</ol>
+<hr />
+<!-- 
+## parsing
+
+- getline으로 받아왔을 때 우선적으로 처리할 것:
+    - 아예 비어있는 줄이 들어오게 되면 skip
+    - 주석 문자 `#`로 시작하는 줄도 skip
+
+- 한 줄을 받고 마지막이
+    - `;`인 경우 -> key 값을 찾는다
+    - `{}`인 경우 -> server 생성하거나 location 함수를 호출한다
+    - 아무것도 없는 경우 -> throw error
+
+***
+
+1. server를 기준으로 split한다.
+2. split된 부분에서 괄호를 확인한다.
+    - server 옆에 '{' 확인한다.
+    - split된 부분의 마지막 부분이 '}'로 끝나는지 확인한다.
+3. server 기준으로 split된 덩어리를 다시 location 기준으로 split한다.
+    - location도 server와 같은 방식으로 '{}' 확인한다.
+    - location에 해당하지 않는 부분
+    - location에 해당하는 부분
+4. directive의 파싱을 진행한다.
+    a. trim (앞부분 tab 제거)
+    b. tab 기준 split
+    c. space 기준 split
+
+ㄴ 3번을 먼저할지 4번을 먼저할지 -->
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

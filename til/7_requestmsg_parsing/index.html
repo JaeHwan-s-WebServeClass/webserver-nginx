@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>7_requestmsg_parsing - My Docs</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "7_requestmsg_parsing";
+        var mkdocs_page_input_path = "til/7_requestmsg_parsing.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> My Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Intro</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../dev-method/">How to develop</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../convention/">Convention</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../requirements/">Requirements</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../allowed-functions/">Allowed Functions</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">TIL</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../0_daily-todo/">Daily todo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../1_how-to-work-echo-server/">1_how-to-work-echo-server</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2_webserver-specification/">2_webserver-specification</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../3_simple-configuration-parser/">3_simple-configuration-parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../4_terminal-input-issue/">4_terminal-input-issue</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../5_doxygen/">5_doxygen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../6_debate/">6_debate</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">7_requestmsg_parsing</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1">1.</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2">2. 클라이언트 요청 메시지 확인</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3">3. 헤드와 바디 파싱</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4">4. 시작줄 헤더 바디 파싱</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#4-1">4-1. 시작줄</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#4-2">4-2. 헤더</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../8_response_msg_mockup_test/">8_response_msg_mockup_test</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../9_checklist/">9_checklist</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">My Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+          <li>TIL &raquo;</li>
+      <li>7_requestmsg_parsing</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="request">request 메시지 파싱</h1>
+<h2 id="1">1.</h2>
+<p>파싱을 하기 위한 몇 가지 순서를 정했다.</p>
+<ol>
+<li>클라이언트에서 요청에 대해 어떤 형태로 메시지가 오는지 확인</li>
+<li>메시지를 헤드(시작줄 + 헤더) 와 바디로 구분하여 파싱</li>
+<li>시작줄부터 헤더는 개행 하나로 구분하지만, 바디와는 개행 두개로 구분하기 때문에 헤드와 바디로 나눔</li>
+<li>시작줄 : method, url, version 로 파싱 <br>
+헤더 : map 자료구조에 ':' 를 구분자로 두 개의 데이터를 넣음 <br>
+바디 : vector 에 string 으로 넣음</li>
+</ol>
+<p><br></p>
+<h2 id="2">2. 클라이언트 요청 메시지 확인</h2>
+<p>아래 요청을 보냈다.<br>
+<code>http://localhost:8080/?message=hi</code></p>
+<p>다음 응답이 왔다.</p>
+<pre><code class="language-http">GET /?message=hi HTTP/1.1
+Host: localhost:8080
+Connection: keep-alive
+Cache-Control: max-age=0
+sec-ch-ua: &quot;Chromium&quot;;v=&quot;112&quot;, &quot;Google Chrome&quot;;v=&quot;112&quot;, &quot;Not:A-Brand&quot;;v=&quot;99&quot;
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;macOS&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br
+Accept-Language: ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7
+</code></pre>
+<p><br></p>
+<h2 id="3">3. 헤드와 바디 파싱</h2>
+<p>메시지를 헤드(시작줄 + 헤더) 와 바디로 구분하여 파싱했다.</p>
+<ul>
+<li>포스트맨으로 테스트 했다. POST 로 http://localhost:8080 을 보냈다.</li>
+</ul>
+<p align='center'> <img src="https://user-images.githubusercontent.com/85930183/231100591-dc6a8343-8038-4f68-941b-1cefc6f3cd49.png" width="95%">
+</p>
+
+<p><br></p>
+<h2 id="4">4. 시작줄 헤더 바디 파싱</h2>
+<p>이제 헤드를 시작줄과 헤더로 나누고, 바디는 vector 에 string 으로 push_back 한다.</p>
+<p>시작줄과 헤더는 다음과 같이 한 번 더 파싱한다.</p>
+<p><br></p>
+<h3 id="4-1">4-1. 시작줄</h3>
+<p>method, url, version 으로 파싱</p>
+<p><br></p>
+<h3 id="4-2">4-2. 헤더</h3>
+<p>옵션과 값들을 map 안에 key &amp; value 로 넣음</p>
+<ul>
+<li>포스트맨으로 테스트 했다. POST 로 http://localhost:8080 을 보냈다.</li>
+</ul>
+<p align='center'><img src="https://user-images.githubusercontent.com/85930183/231134351-935d929e-6cd2-4764-99a1-cf972213c287.png" width="90%"></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../6_debate/" class="btn btn-neutral float-left" title="6_debate"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../8_response_msg_mockup_test/" class="btn btn-neutral float-right" title="8_response_msg_mockup_test">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../6_debate/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../8_response_msg_mockup_test/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

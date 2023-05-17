@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>3_simple-configuration-parser - My Docs</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "3_simple-configuration-parser";
+        var mkdocs_page_input_path = "til/3_simple-configuration-parser.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> My Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Intro</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../dev-method/">How to develop</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../convention/">Convention</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../requirements/">Requirements</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../allowed-functions/">Allowed Functions</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">TIL</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../0_daily-todo/">Daily todo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../1_how-to-work-echo-server/">1_how-to-work-echo-server</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2_webserver-specification/">2_webserver-specification</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">3_simple-configuration-parser</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#_1">음...</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_2">할 일</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_3">진행 과정</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#but">BUT... 자료구조 결정과 파서 구현을 잠시 미뤘다...</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../4_terminal-input-issue/">4_terminal-input-issue</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../5_doxygen/">5_doxygen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../6_debate/">6_debate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../7_requestmsg_parsing/">7_requestmsg_parsing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../8_response_msg_mockup_test/">8_response_msg_mockup_test</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../9_checklist/">9_checklist</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">My Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+          <li>TIL &raquo;</li>
+      <li>3_simple-configuration-parser</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="nginxconf">nginx.conf 파일 파싱</h1>
+<h2 id="_1">음...</h2>
+<p>무작정 파싱을 하려다보니, 막막했다.
+그래서 configuration 파일에 필요한 최소 옵션들을 먼저 파싱해보며 테스트를 진행해보기로 했다.
+<br></p>
+<hr />
+<h2 id="_2">할 일</h2>
+<ul>
+<li>아래 파일을 파싱해보기 </li>
+</ul>
+<pre><code class="language-text">server {
+    listen       80; // host:port 의 첫 번째 서버가 이 host:port 의 기본값이 된다.
+    server_name  example.com www.example.com; // server_names 을 설정할지 여부를 결정한다.
+
+    error_page  404              /404.html; // 기본 오류 페이지를 설정한다.
+    client_max_body_size 10m; //클라이언트 본문 크기를 제한한다.
+
+    location / {
+        autoindex on;
+    }
+}
+</code></pre>
+<hr />
+<h2 id="_3">진행 과정</h2>
+<p>파일을 파싱하며 데이터들을 어떤 자료구조에 넣어야할지 많은 대화를 했다.</p>
+<p>☝🏻 처음에 이야기했던 건 vector 였다.</p>
+<p>예를 들면 이런 형태</p>
+<pre><code>server_name[0] = example.com;
+server_name[1] = www.example.com;
+</code></pre>
+<p>❗️ 하지만, location 의 경우 여러 번 나올 수 있기 때문에 vector 보다, map 이 좋다는 의견이 나왔다.</p>
+<pre><code>// 자료구조 선언
+std::map&lt;std::string, map&lt;std::string, std::string&gt;&gt; location;
+
+// 예시
+location[0] = &lt;std::string(/), map&lt;std::string(autoindex), std::string(on)&gt;
+location[1] = &lt;std::string(/example), map&lt;std::string(autoindex), std::string(on)&gt;
+</code></pre>
+<hr />
+<h3 id="but">BUT... 자료구조 결정과 파서 구현을 잠시 미뤘다...</h3>
+<p>config 파일에 들어올 수 있는 여러가지 옵션들을 고려하다보니 파서 구조 결정하기가 어려웠다.
+가장 어려웠던 건, 이중... 삼중... location 설정 시 어떻게 처리해야할지였다.</p>
+<ol>
+<li>블록('server{  }, 'location{  }') 과 디렉티브('CMD ; 로 끝나는 문장') 를 기준으로 나누기</li>
+<li>{, } 를 스택에 쌓아가며 개수를 맞춰서 server 와 ,location 그리고 directive 로 나누기</li>
+<li>server 와 location 을 딜리미터로 나누기
+<br>
+등등...</li>
+</ol>
+<p>고민을 많이 하다가, silee 와 kkim 등에게 도움을 요청하고 조언을 받아본 결과
+파서는 잠시 미루고 에코 서버 구현을 먼저 해보기로 했다.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../2_webserver-specification/" class="btn btn-neutral float-left" title="2_webserver-specification"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../4_terminal-input-issue/" class="btn btn-neutral float-right" title="4_terminal-input-issue">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../2_webserver-specification/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../4_terminal-input-issue/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

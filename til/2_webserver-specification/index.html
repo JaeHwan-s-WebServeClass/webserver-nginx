@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>2_webserver-specification - My Docs</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "2_webserver-specification";
+        var mkdocs_page_input_path = "til/2_webserver-specification.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> My Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Intro</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../dev-method/">How to develop</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../convention/">Convention</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../requirements/">Requirements</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../allowed-functions/">Allowed Functions</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">TIL</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../0_daily-todo/">Daily todo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../1_how-to-work-echo-server/">1_how-to-work-echo-server</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">2_webserver-specification</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1-serversocket-class-">1. ServerSocket Class - 서버 소켓 관리자</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-1">1-1. 멤버 변수</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1-2">1-2. 멤버 함수</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1-3">1-3. 생성자</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2-server-class-">2. Server Class - 서버 관리자</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#2-1">2-1. 멤버 변수</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-2">2-2. 멤버 함수</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-3">2-3. 생성자</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3-request-class-">3. Request Class - 요청자</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#3-1">3-1. 멤버 변수</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-2">3-2. 멤버 함수</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-3">3-3. 생성자</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4-response-class-">4. Response Class - 응답자</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#4-1">4-1. 멤버 변수</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#4-2">4-2. 멤버 함수</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#4-3">4-3. 생성자</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../3_simple-configuration-parser/">3_simple-configuration-parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../4_terminal-input-issue/">4_terminal-input-issue</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../5_doxygen/">5_doxygen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../6_debate/">6_debate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../7_requestmsg_parsing/">7_requestmsg_parsing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../8_response_msg_mockup_test/">8_response_msg_mockup_test</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../9_checklist/">9_checklist</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">My Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+          <li>TIL &raquo;</li>
+      <li>2_webserver-specification</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="_1">에코 서버 객체화 하기</h1>
+<p>☝🏻 멤버 변수 default 는 private</p>
+<p><br></p>
+<hr />
+<h2 id="1-serversocket-class-">1. ServerSocket Class - 서버 소켓 관리자</h2>
+<p>☝🏻 소켓 생성(socket) + 소켓과 IP 연결(address struct, bind, listen)</p>
+<h3 id="1-1">1-1. 멤버 변수</h3>
+<pre><code class="language-C++">#include &lt;arpa/inet.h&gt;
+#include &lt;sys/socket.h&gt;
+
+int                        server_socket
+struct sockaddr_in         server_addr
+</code></pre>
+<h3 id="1-2">1-2. 멤버 함수</h3>
+<pre><code class="language-C++">void    safeSocket(int domain, int type, int protocol);
+void    safeListen(int backlog);
+void    safeBind(void);
+int     safeAccept(void);
+
+void    setNonBlock(int socket_fd);
+int     getServerSocket(void);
+</code></pre>
+<h3 id="1-3">1-3. 생성자</h3>
+<pre><code class="language-C++">ServerSocket(sa_family_t address_family, int port);
+</code></pre>
+<p><br></p>
+<hr />
+<h2 id="2-server-class-">2. Server Class - 서버 관리자</h2>
+<h3 id="2-1">2-1. 멤버 변수</h3>
+<pre><code class="language-C++">private:
+    std::map&lt;int, std::string&gt;  clients
+    int                         kq
+    std::vector&lt;struct kevent&gt;  change_list
+    struct kevent               event_list[8]
+
+    ServerSocket                *server_socket;
+</code></pre>
+<h3 id="2-2">2-2. 멤버 함수</h3>
+<pre><code class="language-C++">public:
+    int     kqueue(void);
+
+    // 내부에서 EV_SET 및 change_list 에 kevent 를 push_back 함
+    void    setChangeList(std::vector&lt;struct kevent&gt; &amp;change_list, 
+                            uintptr_t                ident,
+                            int16_t                  filter,
+                            uint16_t                 flags,
+                            uint32_t                 fflags,
+                            intptr_t                 data,
+                            void                     *udata);
+
+    void    run(void);
+    void    disconnectClient(int client_fd, std::map&lt;int, std::string&gt; &amp;clients);
+
+    int safeKevent(int nevents, const timespec *timeout);
+    int safeRecv(int fd, char *buf);
+    int safeSend(int fd);
+
+</code></pre>
+<h3 id="2-3">2-3. 생성자</h3>
+<pre><code class="language-C++">Server(ServerSocket &amp;server_socket);
+
+</code></pre>
+<p><br></p>
+<hr />
+<h2 id="3-request-class-">3. Request Class - 요청자</h2>
+<h3 id="3-1">3-1. 멤버 변수</h3>
+<pre><code class="language-c++">#define POST 0
+#define GET 1
+#define DELETE 2
+
+private:
+    std::string                         raw_msg;
+
+    bool                                 head_done;
+    std::string                          method;
+    std::string                          url;
+    std::string                          version;
+    std::map&lt;std::string, std::string&gt;   header;
+    std::vector&lt;std::string&gt;             entity;
+</code></pre>
+<h3 id="3-2">3-2. 멤버 함수</h3>
+<pre><code class="language-c++">public:
+    // setMethod();
+    // setUrl();
+    // setHeader();
+    // setEntity();
+
+    void        setRawMsg(const std::string &amp;);
+    std::string getRawMsg();
+    void        clearSetRawMsg();
+    void        parserHead();
+    void        toString();
+</code></pre>
+<h3 id="3-3">3-3. 생성자</h3>
+<pre><code class="language-c++">Request();
+</code></pre>
+<p><br></p>
+<hr />
+<h2 id="4-response-class-">4. Response Class - 응답자</h2>
+<h3 id="4-1">4-1. 멤버 변수</h3>
+<pre><code class="language-c++">#define POST 0
+#define GET 1
+#define DELETE 2
+
+private:
+
+</code></pre>
+<h3 id="4-2">4-2. 멤버 함수</h3>
+<pre><code class="language-c++">public:
+
+</code></pre>
+<h3 id="4-3">4-3. 생성자</h3>
+<pre><code class="language-c++">Response();
+</code></pre>
+<p><br></p>
+<hr />
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../1_how-to-work-echo-server/" class="btn btn-neutral float-left" title="1_how-to-work-echo-server"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../3_simple-configuration-parser/" class="btn btn-neutral float-right" title="3_simple-configuration-parser">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../1_how-to-work-echo-server/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../3_simple-configuration-parser/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

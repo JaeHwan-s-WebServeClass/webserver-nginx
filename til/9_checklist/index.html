@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>9_checklist - My Docs</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "9_checklist";
+        var mkdocs_page_input_path = "til/9_checklist.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> My Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Intro</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../dev-method/">How to develop</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../convention/">Convention</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../requirements/">Requirements</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../allowed-functions/">Allowed Functions</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">TIL</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../0_daily-todo/">Daily todo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../1_how-to-work-echo-server/">1_how-to-work-echo-server</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2_webserver-specification/">2_webserver-specification</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../3_simple-configuration-parser/">3_simple-configuration-parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../4_terminal-input-issue/">4_terminal-input-issue</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../5_doxygen/">5_doxygen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../6_debate/">6_debate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../7_requestmsg_parsing/">7_requestmsg_parsing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../8_response_msg_mockup_test/">8_response_msg_mockup_test</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">9_checklist</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#mandatory-part">mandatory part</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#basic-explanation">basic explanation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#basic-checklist">basic checklist</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#configuration">configuration</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#basic-features">basic features</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#check-with-browser">check with browser</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#port-issues">port issues</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#siegestress-test">siege/stress test</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#bonus-part">bonus part</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">My Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+          <li>TIL &raquo;</li>
+      <li>9_checklist</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="webserv">webserv</h1>
+<hr />
+<ul>
+<li><a href="https://github.com/FareWellWebServer/webserv/wiki/%ED%8F%89%EA%B0%80%ED%91%9C-%EB%B2%88%EC%97%AD">평가표 번역</a></li>
+<li><a href="https://yeosong1.github.io/webserv_eval">42 wiki</a></li>
+<li><a href="https://42seoul.gitbook.io/webserv/">webserv tutorial</a></li>
+<li><a href="https://80000coding.oopy.io/2944b11b-6729-4cd8-b545-c5dcdcb0c386">팔만코딩경</a></li>
+<li><a href="https://trend21c.tistory.com/1438">siege test 관련</a></li>
+</ul>
+<hr />
+<h2 id="mandatory-part">mandatory part</h2>
+<h3 id="basic-explanation">basic explanation</h3>
+<ul>
+<li>[ ] HTTP server</li>
+<li>[ ] functions used for I/O multiplexing<ul>
+<li>[ ] kqueue and <code>kevent()</code></li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3 id="basic-checklist">basic checklist</h3>
+<ul>
+<li>[ ] kqueue and <code>kevent()</code><ul>
+<li>[ ] 하나의 <code>kqueue()</code>만이 있어야한다.</li>
+<li>[ ] fd에 대한 READ/WRITE가 <code>kqueue()</code>를 거치지 않고 수행하지 말아야한다.</li>
+<li>[ ] 하나의 클라이언트에 대해 <code>kqueue()</code>당 하나의 <code>read()</code>와 하나의 <code>write()</code>가 존재해야한다.</li>
+</ul>
+</li>
+<li>[ ] read/recv/write/send<ul>
+<li>[ ] 에러가 발생할 경우 client가 제거되어야 한다.</li>
+<li>[ ] the returned value is well checked. (checking only -1 or 0 is not good you should check both)</li>
+<li>[ ] errono에 대한 검사가 위 함수 이후에 진행되지 않아야 한다.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3 id="configuration">configuration</h3>
+<ul>
+<li>[ ] HTTP response status code가 잘못되어서는 안된다.</li>
+<li>[ ] multiple servers with:<ul>
+<li>[ ] different port</li>
+<li>[ ] different hostname<ul>
+<li>[ ] ex) <code>: curl --resolve example.com:80:127.0.0.1
+http://example.com/</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>[ ] default error page &lt;- [ ] 404 error page를 변경해 보도록 한다.</li>
+<li>[ ] client body size<ul>
+<li>[ ] ex) <code>curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorteror longer than body limit"</code></li>
+</ul>
+</li>
+<li>[ ] directory and file<ul>
+<li>[ ] 서로 다른 directory(route -&gt; location?) 설정해본다.</li>
+<li>[ ] directory 요청 시의 default file이 있어야한다.</li>
+<li>[ ] 특정 location에 대한 method를 설정해보고, method를 실행해본다.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3 id="basic-features">basic features</h3>
+<ul>
+<li>[ ] method (이때 status code도 함께 체크해보도록 한다.)<ul>
+<li>[ ] <code>GET</code>: 반드시 작동해야 한다.</li>
+<li>[ ] <code>POST</code>: 반드시 작동해야 한다.</li>
+<li>[ ] <code>DELETE</code>: 반드시 작동해야 한다.</li>
+<li>[ ] <code>UNKNOWN</code>: crash가 일어나지 않아야한다.</li>
+<li>[ ] upload some file to the server and get it back </li>
+</ul>
+</li>
+<li>[ ] siege test (availibility higher than 99.5%)</li>
+</ul>
+<hr />
+<h3 id="check-with-browser">check with browser</h3>
+<ul>
+<li>[ ] 특정 브라우저에서 서버로의 접속이 가능해야한다.</li>
+<li>[ ] request header와 response header를 확인해본다.</li>
+<li>[ ] 정적 웹사이트(fully static website)와 호환이 되어야한다.</li>
+<li>[ ] directory list -&gt; auto-index?</li>
+<li>[ ] redirected URL</li>
+<li>[ ] 그 외의 여러가지를 시도해볼 수 있다.</li>
+</ul>
+<hr />
+<h3 id="port-issues">port issues</h3>
+<ul>
+<li>[ ] multiple ports에 대해 제대로 동작해야한다.</li>
+<li>[ ] 같은 포트를 사용하려고 시도하더라도 동작하지 않아야한다. <ul>
+<li>[ ]  In the configuration try to setup the same port multiple times. It should not work. </li>
+</ul>
+</li>
+<li>[ ] 서로 다른 conf를 가지지만 같은 port를 사용하는 여러 서버들을 실행했을 때, 서버가 만약 작동한다면 그 이유에 대해서도 설명할 수 있어야한다.</li>
+</ul>
+<hr />
+<h3 id="siegestress-test">siege/stress test</h3>
+<ul>
+<li>[ ] siege<ul>
+<li>[ ] <code>siege -b</code>:빈페이지를 얻는 test에서 99.5% 이상의 availibility를 보여야한다.</li>
+<li>[ ] 서버를 재시작하지 않고 siege를 계속 사용할 수 있어야한다.</li>
+</ul>
+</li>
+<li>[ ] memory leaks가 있어서는 안된다.</li>
+<li>[ ] hanging connection이 없어야한다...? </li>
+</ul>
+<hr />
+<h2 id="bonus-part">bonus part</h2>
+<ul>
+<li>noooooooo</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../8_response_msg_mockup_test/" class="btn btn-neutral float-left" title="8_response_msg_mockup_test"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../8_response_msg_mockup_test/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

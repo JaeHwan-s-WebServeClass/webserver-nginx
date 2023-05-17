@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Requirements - My Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Requirements";
+        var mkdocs_page_input_path = "requirements.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> My Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Intro</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../dev-method/">How to develop</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../convention/">Convention</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Requirements</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#_2">프로그램 실행 방법</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_3">요구 사항</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#p5">P5</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#p6">P6</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#configuration-file">Configuration file</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#p8">P8</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../allowed-functions/">Allowed Functions</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">TIL</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/0_daily-todo/">Daily todo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/1_how-to-work-echo-server/">1_how-to-work-echo-server</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/2_webserver-specification/">2_webserver-specification</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/3_simple-configuration-parser/">3_simple-configuration-parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/4_terminal-input-issue/">4_terminal-input-issue</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/5_doxygen/">5_doxygen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/6_debate/">6_debate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/7_requestmsg_parsing/">7_requestmsg_parsing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/8_response_msg_mockup_test/">8_response_msg_mockup_test</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/9_checklist/">9_checklist</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">My Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+      <li>Requirements</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="_1">목표</h1>
+<p>C++ 98 로 HTTP 웹서버 만들기</p>
+<p><br>
+<br></p>
+<h2 id="_2">프로그램 실행 방법</h2>
+<p>./webserv [configuration file] </p>
+<p><br>
+<br></p>
+<h2 id="_3">요구 사항</h2>
+<h3 id="p5">P5</h3>
+<ul>
+<li>
+<p>프로그램은 configuration file 을 인자로 받거나 기본 경로를 사용해야 한다.
+<br></p>
+</li>
+<li>
+<p>서버는 절대로 차단해서는 안되며, 필요에 따라 클라이언트가 다른 서버로 리다이렉션 될 수 있다.</p>
+</li>
+<li>
+<p>☝🏻 "서버가 클라이언트의 요청을 처리하기 어렵거나 오랜 시간이 걸리는 경우" 라고 해석함
+<br></p>
+</li>
+<li>
+<p>클라이언트 - 서버 간의 모든 I/O 연산에 대해, 1개의 poll() 만을 사용해야 한다.</p>
+</li>
+<li>❗️ 찾아보니, 이제는 poll() 함수를 안쓴다. select(), kqueue(), epoll() 을 사용하자.</li>
+<li>
+<p>☝🏻 poll() 이 어떤건지 아직 잘 모르겠지만, 소캣을 연결하는 함수인 것 같다.
+<br></p>
+</li>
+<li>
+<p>poll() 은 읽기와 쓰기를 동시에 확인해야한다.
+<br></p>
+</li>
+<li>
+<p>poll() 을 거치지 않고 읽기 또는 쓰기 작업을 해서는 안된다.
+<br></p>
+</li>
+<li>
+<p>읽기 또는 쓰기 작업 후 errno 값을 확인하는 것은 엄격히 금지되어 있다.
+<br></p>
+</li>
+<li>
+<p>configuration file 을 읽기 전에 poll() 을 사용하지 말자.
+<br></p>
+</li>
+<li>
+<p>❗️ poll() 을 사용하지 않고 파일 디스크립터에서 읽기/받기 또는 쓰기/전송을 시도하면 안된다.
+<br></p>
+</li>
+<li>
+<p>FD_SET, FD_CLR, FD_ISSET, FD_ZERO 매크로를 사용할 수 있다.
+<br></p>
+</li>
+<li>
+<p>서버에 대한 요청이 중단되는 안된다.
+<br></p>
+</li>
+<li>
+<p>서버는 선택한 웹 브라우저와 호환되어야 한다.
+<br></p>
+</li>
+<li>
+<p>Nginx 는 HTTP 1.1 을 준수하며, 프로젝트를 진행하며 헤더와 응답 동작을 비교할 때 활용할 수 있다.
+<br></p>
+</li>
+<li>
+<p>HTTP 응답 상태 코드가 정확해야 한다.</p>
+</li>
+<li>
+<p>200, 300 등 상태 코드를 의미하ㄴ다.
+<br></p>
+</li>
+<li>
+<p>기본 오류 페이지가 제공되어야 한다.
+<br></p>
+</li>
+<li>
+<p>클라이언트는 파일을 업로드 할 수 있어야 한다.
+<br></p>
+</li>
+<li>
+<p>최소한 GET, POST, DELETE 메소드가 필요하다.
+<br></p>
+</li>
+<li>
+<p>서버에 대한 부하(stress) 테스트를 해야하며, 서버는 항상 사용 가능한 상태를 유지해야한다.
+<br></p>
+</li>
+<li>
+<p>서버는 여러 포트를 수신할 수 있어야 한다.</p>
+</li>
+</ul>
+<h3 id="p6">P6</h3>
+<ul>
+<li>MacOS 는 다른 유닉스 OS 와 같은 방식으로 write() 를 구현하지 않는다. 대신 fcntl() 을 사용할 수 있다.
+  ❗️ 다만 nonblock 일 때만 사용가능하다. ex. <code>fcntl(fd, F_SETFL, O_NONBLOCK);</code></li>
+</ul>
+<h4 id="configuration-file">Configuration file</h4>
+<p>⭐️ nginx conf 파일의 'server' 부분에서 영감을 얻을 수 있다.
+<br></p>
+<ul>
+<li>
+<p>각 "server" 의 port 와 host 를 선택한다.
+<br></p>
+</li>
+<li>
+<p>server_names 을 설정할지 여부를 결정한다.
+<br></p>
+</li>
+<li>
+<p>host:port 의 첫 번째 서버가 이 host:port 의 기본값이 된다. (즉, 다른 서버에 속하지 않은 모든 요청에 응답한다는 의미).
+<br />
+<p align='center'> <img src="https://user-images.githubusercontent.com/85930183/231663371-cbff03bb-184b-4c50-836a-c012408f6dfc.png" width='90%'></p></p>
+</li>
+</ul>
+<p><br></p>
+<ul>
+<li>
+<p>기본 오류 페이지를 설정한다.
+<br></p>
+</li>
+<li>
+<p>클라이언트 본문 크기를 제한한다.
+<br></p>
+</li>
+<li>
+<p>다음 규칙/구성 중 하나 또는 여러 개를 사용하여 경로를 설정한다.</p>
+</li>
+<li>경로에 허용되는 HTTP 메서드 목록을 정의</li>
+<li>HTTP 리디렉션을 정의</li>
+<li>
+<p>파일을 검색할 디렉토리 또는 파일을 정의한다.</p>
+<ul>
+<li>예 <br>
+  url /kapouet이 /tmp/www에 루팅된 경우 <br>
+  url /kapouet/pouic/toto/pouet -&gt; /tmp/www/pouic/toto/pouet
+<br></li>
+</ul>
+</li>
+<li>
+<p>디렉토리 목록을 on / off 할 수 있다.</p>
+<ul>
+<li>autoindex 설정을 이야기한다.
+  <br></li>
+</ul>
+</li>
+<li>
+<p>요청이 디렉토리인 경우 응답할 기본 파일을 설정한다.
+  <br></p>
+</li>
+<li>
+<p>특정 파일 확장자(ex: .php)를 기준으로 CGI를 실행한다.
+  <br></p>
+</li>
+<li>
+<p>POST 및 GET 메소드와 함께 작동하도록 설정한다.
+  <br></p>
+</li>
+<li>
+<p>업로드된 파일을 허용하고 저장할 위치를 설정할 수 있는 경로를 만든다.</p>
+<ul>
+<li>CGI 를 직접 호출하지 않으므로 전체 경로를 PATH_INFO 로 사용한다.</li>
+<li>청크된 요청의 경우 서버가 청크를 언청크해야 하며, CGI 는 본문의 끝을 EOF 로 파악한다.</li>
+<li>CGI 출력도 마찬가지다. CGI 에서 content_length 가 없으면, EOF 가 데이터의 끝이다.</li>
+<li>프로그램은 요청된 파일을 첫 번째 인자로 사용하여 CGI 를 호출해야 한다.</li>
+<li>☝🏻 Configuration 파일에 적힌 CGI 를 불러온다는 것으로 이해함.</li>
+<li>CGI 는 상대 경로 파일 액세스를 위해 올바른 디렉토리에서 실행되어야 한다.</li>
+<li>서버는 하나의 CGI (php-CGI, Python 등)으로 작동해야 한다.
+  <br></li>
+</ul>
+</li>
+</ul>
+<h3 id="p8">P8</h3>
+<p>추가 기능을 구현할 계획이 있다면,
+* 쿠키 및 세션 관리 지원하기
+* 여러 개의 CGI를 처리할 수 있도록 하기</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../convention/" class="btn btn-neutral float-left" title="Convention"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../allowed-functions/" class="btn btn-neutral float-right" title="Allowed Functions">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../convention/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../allowed-functions/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Term - My Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Term";
+        var mkdocs_page_input_path = "term.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> My Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Intro</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../dev-method/">How to develop</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../convention/">Convention</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../requirements/">Requirements</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../allowed-functions/">Allowed Functions</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">TIL</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/0_daily-todo/">Daily todo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/1_how-to-work-echo-server/">1_how-to-work-echo-server</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/2_webserver-specification/">2_webserver-specification</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/3_simple-configuration-parser/">3_simple-configuration-parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/4_terminal-input-issue/">4_terminal-input-issue</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/5_doxygen/">5_doxygen</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/6_debate/">6_debate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/7_requestmsg_parsing/">7_requestmsg_parsing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/8_response_msg_mockup_test/">8_response_msg_mockup_test</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../til/9_checklist/">9_checklist</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">My Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+      <li>Term</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <hr />
+<h2 id="_1">동기와 비동기</h2>
+<p>동기와 비동기는 네트워크 통신에서 발생하는 일련의 작업들을 처리하는 방식이자 데이터의 상태와 관련된다. </p>
+<ol>
+<li>
+<p><code>동기(synchronous)</code></p>
+<ul>
+<li>요청을 보내고 응답이 올 때까지 기다리는 방식입니다. </li>
+<li>즉, 요청과 응답이 순서대로 처리됩니다. </li>
+<li>요청과 결과가 동시에 일어난다: 요청을 하면 (시간이 얼마나 걸리든) 요청한 자리에서 결과가 주어진다.</li>
+</ul>
+</li>
+<li>
+<p><code>비동기(asynchronous)</code></p>
+<ul>
+<li>요청을 보낸 후에도 다른 작업을 처리할 수 있으며, 응답이 오면 알림을 받아 처리합니다. </li>
+<li>따라서 비동기 방식은 요청과 응답이 동시에 처리되지 않을 수 있습니다.</li>
+<li>요청과 결과가 동시에 일어나지 않을 수 있다.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="blocking-non-blocking">blocking과 non-blocking</h2>
+<p>blocking과 non-blocking은 네트워크 입출력(I/O) 작업을 처리하는 방식을 나타냅니다. </p>
+<ol>
+<li>
+<p><code>blocking</code></p>
+<ul>
+<li>I/O 작업이 완료될 때까지 호출한 함수가 반환되지 않는 방식입니다. </li>
+<li>즉, I/O 작업이 완료될 때까지 해당 스레드가 대기 상태에 있어야 합니다. </li>
+<li>함수호출을 한 영역에서 프로그램이 (반환될 때까지) 대기하는 경우</li>
+<li>입출력 작업을 수행하는 함수가 호출되면 그 함수가 반환될 때까지 대기하므로, 호출한 함수가 <code>동기 방식</code>일 경우에 해당합니다.</li>
+</ul>
+</li>
+<li>
+<p><code>non-blocking</code></p>
+<ul>
+<li>I/O 작업이 완료되지 않더라도 호출한 함수가 즉시 반환됩니다. </li>
+<li>이후에 결과를 확인하고자 할 때는 추가적인 작업이 필요합니다.</li>
+<li>함수호출을 한 영역에서 프로그램이 (반환될 때까지) 대기하지 않는 경우</li>
+<li>입출력 작업을 수행하면서 다른 작업도 수행할 수 있으므로 호출한 함수가 <code>비동기 방식</code>일 경우에 해당합니다.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<ul>
+<li>
+<p>blocking socket</p>
+<ul>
+<li>일반적으로 소켓은 blocking socket으로 만들어진다. 즉, 읽기와 쓰기의 과정이 완전히 끝날 때까지 머물러있는다.</li>
+<li>blocking socket을 사용하면 해당 영역에 머무르기 때문에 다른 IO 작업을 할 수 없다는 문제가 발생한다.</li>
+</ul>
+</li>
+<li>
+<p>non-blocking socket</p>
+<ul>
+<li>(작성중)  </li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="io-model">I/O model</h2>
+<p>입출력 모델은 blocking/non-blocking과 동기/비동기의 조합에 따라 4가지가 존재한다.</p>
+<ol>
+<li>
+<p>blocking + 동기</p>
+<ul>
+<li>read/write</li>
+</ul>
+</li>
+<li>
+<p>blocking + 비동기</p>
+<ul>
+<li>I/O 다중화</li>
+</ul>
+</li>
+<li>
+<p>non-blocking + 동기</p>
+<ul>
+<li>read/write (O_NONBLOCK)</li>
+</ul>
+</li>
+<li>
+<p>non-blocking + 비동기 </p>
+<ul>
+<li>AIO 리얼 타임 시그널</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="ltlevel-triggered-etedge-triggered">LT(level triggered)와 ET(edge triggered)</h2>
+<p>LT와 ET는 네트워크 소켓에서 이벤트 처리 방식을 나타냅니다. </p>
+<ol>
+<li>
+<p><code>LT(level triggered)</code></p>
+<ul>
+<li>이벤트가 발생한 후에는 이벤트가 해결될 때까지 이벤트를 계속해서 보고하는 방식입니다. </li>
+</ul>
+</li>
+<li>
+<p><code>ET(edge triggered)</code></p>
+<ul>
+<li>이벤트가 발생한 시점에서만 이벤트를 보고하며, 이벤트가 해결될 때까지는 다시 보고하지 않습니다.</li>
+</ul>
+</li>
+</ol>
+<hr />
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
